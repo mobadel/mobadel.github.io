@@ -62,9 +62,17 @@ async function getJSON(url, opts = {}) {
 async function fromNobitex() {
   const list = ASSETS.filter((a) => a.nobitex);
   const src = list.map((a) => a.nobitex).join(',');
-  const data = await getJSON(
-    `https://api.nobitex.ir/market/stats?srcCurrency=${src}&dstCurrency=rls`
-  );
+  const path = `/market/stats?srcCurrency=${src}&dstCurrency=rls`;
+
+  // api.nobitex.ir از runnerهای گیت‌هاب اصلاً resolve نمی‌شود؛ میزبان v2
+  // شانس بیشتری از بیرون ایران دارد، پس اول امتحان می‌شود.
+  const hosts = ['https://apiv2.nobitex.ir', 'https://api.nobitex.ir'];
+  let data = null, lastErr = null;
+  for (const h of hosts) {
+    try { data = await getJSON(h + path); break; }
+    catch (e) { lastErr = new Error(`${h.replace('https://', '')}: ${e.message}`); }
+  }
+  if (!data) throw lastErr;
   if (!data?.stats) throw new Error('پاسخ بدون stats');
 
   const out = {};
@@ -107,8 +115,9 @@ async function fromBinance() {
 /* ── ۳) BrsApi: طلا، سکه، نقره و ارز ────────────────────────── */
 async function fromBrsApi(key) {
   if (!key) throw new Error('کلید BRSAPI_KEY تنظیم نشده است');
+  // میزبان درست api.brsapi.ir است و مسیر پیشوند /Api/ ندارد.
   const data = await getJSON(
-    `https://BrsApi.ir/Api/Market/Gold_Currency.php?key=${encodeURIComponent(key)}`
+    `https://api.brsapi.ir/Market/Gold_Currency.php?key=${encodeURIComponent(key)}`
   );
 
   // پاسخ چند آرایه دارد (gold / currency / …). همه را یکجا می‌کنیم.

@@ -178,14 +178,12 @@ function paintRate() {
 function paintChips() {
   [['from', els['chips-from']], ['to', els['chips-to']]].forEach(function (pair) {
     var side = pair[0], box = pair[1];
-    if (box.dataset.built) {
-      Array.prototype.forEach.call(box.children, function (c) {
-        c.setAttribute('aria-pressed', String(c.dataset.id === state[side]));
-      });
-      return;
-    }
+    // چیپ‌ها میان‌بُرِ همان انتخابگرند، پس باید همان محدودیت را داشته
+    // باشند وگرنه راه فراری برای ساختن مسیر غیرمجاز باقی می‌ماند.
+    var allowed = counterpartsOf(state[side === 'from' ? 'to' : 'from']);
     box.innerHTML = '';
     QUICK.forEach(function (id) {
+      if (allowed.indexOf(id) === -1) return;
       var a = BY_ID[id]; if (!a) return;
       var b = document.createElement('button');
       b.type = 'button'; b.className = 'chip'; b.dataset.id = id;
@@ -194,7 +192,6 @@ function paintChips() {
       b.addEventListener('click', function () { pick(side, id); });
       box.appendChild(b);
     });
-    box.dataset.built = '1';
   });
 }
 
@@ -317,6 +314,10 @@ function openPicker(side) {
   state.pickerSide = side;
   picker.q = ''; picker.cat = 'all'; picker.cursor = 0;
   els['search'].value = '';
+  // فقط مقصدهای مجاز برای سمت مقابل. سمت مقابل تا وقتی این پنجره باز
+  // است ثابت می‌ماند، پس یک‌بار حساب کردن کافی است. انتخاب فعلیِ همین
+  // سمت طبق تعریف داخل این فهرست هست، چون جفت فعلی مجاز است.
+  picker.allowed = counterpartsOf(state[side === 'from' ? 'to' : 'from']);
   buildTabs();
   renderPicker();
   els['picker'].hidden = false;
@@ -332,14 +333,21 @@ function closePicker() {
 }
 
 function buildTabs() {
-  if (els['tabs'].dataset.built) {
-    Array.prototype.forEach.call(els['tabs'].children, function (t) {
-      t.setAttribute('aria-selected', String(t.dataset.cat === picker.cat));
-    });
-    return;
-  }
+  // بدون کش: مجموعهٔ دسته‌های مجاز با هر بار باز شدن فرق می‌کند
   els['tabs'].innerHTML = '';
-  CATEGORIES.forEach(function (c) {
+
+  // دسته‌ای که هیچ گزینهٔ مجازی ندارد اصلاً تب نمی‌گیرد
+  var live = CATEGORIES.filter(function (c) {
+    if (c.id === 'all') return true;
+    return ASSETS.some(function (a) {
+      return a.cat === c.id && picker.allowed.indexOf(a.id) !== -1;
+    });
+  });
+  // اگر فقط یک دستهٔ واقعی مانده، نوار تب بی‌فایده است
+  if (live.length <= 2) { els['tabs'].hidden = true; return; }
+  els['tabs'].hidden = false;
+
+  live.forEach(function (c) {
     var b = document.createElement('button');
     b.type = 'button'; b.className = 'tab'; b.dataset.cat = c.id;
     b.setAttribute('role', 'tab');
@@ -351,10 +359,10 @@ function buildTabs() {
     });
     els['tabs'].appendChild(b);
   });
-  els['tabs'].dataset.built = '1';
 }
 
 function matches(a) {
+  if (picker.allowed.indexOf(a.id) === -1) return false;
   if (picker.cat !== 'all' && a.cat !== picker.cat) return false;
   if (!picker.q) return true;
   var terms = picker.q.split(' ');
@@ -370,7 +378,6 @@ function renderPicker() {
   if (!picker.rows.length) return;
 
   var current = state[state.pickerSide];
-  var otherId = state[state.pickerSide === 'from' ? 'to' : 'from'];
   var lastCat = null;
 
   picker.rows.forEach(function (a, i) {
@@ -401,14 +408,6 @@ function renderPicker() {
     txt.className = 'opt-text';
     var n1 = document.createElement('span'); n1.className = 'opt-name'; n1.textContent = a.name;
     var n2 = document.createElement('span'); n2.className = 'opt-sub';  n2.textContent = a.sym;
-    // اگر این انتخاب مسیر فعلی را غیرمجاز کند، سمت دیگر به تومان می‌رود.
-    // از قبل می‌گوییم تا تغییرِ سمت مقابل غافلگیرکننده نباشد.
-    if (a.id !== otherId && !isAllowedPair(a.id, otherId)) {
-      var note = document.createElement('span');
-      note.className = 'opt-note';
-      note.textContent = 'با تومان';
-      n2.appendChild(note);
-    }
     txt.appendChild(n1); txt.appendChild(n2);
 
     var pr = document.createElement('span');
@@ -487,12 +486,19 @@ function loadSnapshot() {
 function loadNobitex() {
   var list = ASSETS.filter(function (a) { return a.nobitex; });
   var src = list.map(function (a) { return a.nobitex; }).join(',');
-  var url = 'https://api.nobitex.ir/market/stats?srcCurrency=' + src + '&dstCurrency=rls';
+  var path = '/market/stats?srcCurrency=' + src + '&dstCurrency=rls';
+  // اگر یکی از دو میزبان در دسترس نبود یا CORS نداد، دیگری امتحان می‌شود
+  var hosts = ['https://api.nobitex.ir', 'https://apiv2.nobitex.ir'];
 
-  return withTimeout(fetch(url).then(function (r) {
-    if (!r.ok) throw new Error('http ' + r.status);
-    return r.json();
-  }), 7000).then(function (j) {
+  function tryHost(i) {
+    if (i >= hosts.length) return Promise.reject(new Error('همهٔ میزبان‌ها ناموفق'));
+    return withTimeout(fetch(hosts[i] + path).then(function (r) {
+      if (!r.ok) throw new Error('http ' + r.status);
+      return r.json();
+    }), 7000).catch(function () { return tryHost(i + 1); });
+  }
+
+  return tryHost(0).then(function (j) {
     if (!j || !j.stats) throw new Error('bad payload');
     var hit = 0;
     list.forEach(function (a) {
