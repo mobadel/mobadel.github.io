@@ -1,6 +1,8 @@
 {
   "updated": "2026-08-14T10:13:14.368Z",
-  "seed": false,
+  "seed": true,
+  "stale": true,
+  "note": "هیچ منبعی جواب نداد؛ اعداد زیر همان مقادیر نمونهٔ اولیه‌اند.",
   "sources": {
     "binance": "fail: HTTP 451",
     "nobitex": "fail: fetch failed",

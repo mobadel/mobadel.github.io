@@ -355,6 +355,11 @@ h1, h2 { margin: 0; font-weight: 700; }
 .opt-name { font-size: 14.5px; }
 .opt-sub  { font-size: 11.5px; color: var(--text-3); direction: ltr; text-align: start; }
 .opt-price { font-size: 12.5px; color: var(--text-2); direction: ltr; white-space: nowrap; }
+.opt-note {
+  display: inline-block; margin-inline-start: 6px; padding: 0 6px;
+  border-radius: 999px; font-size: 10.5px; direction: rtl;
+  background: var(--surface-3); color: var(--text-3);
+}
 .opt-check { width: 18px; height: 18px; color: var(--accent); flex: 0 0 auto; }
 
 .picker-empty { text-align: center; color: var(--text-3); padding: 24px; font-size: 14px; }

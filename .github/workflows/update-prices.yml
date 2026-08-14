@@ -55,3 +55,17 @@ jobs:
             sleep 5
           done
           exit 1
+
+      # بعد از کامیت اجرا می‌شود تا پرچم stale ذخیره شده باشد، ولی اجرا را
+      # قرمز می‌کند تا خرابیِ همهٔ منابع بی‌سروصدا از دست نرود.
+      - name: هشدار اگر هیچ منبعی جواب نداده
+        run: |
+          node -e "
+            const j = require('./data/prices.json');
+            console.log('منابع:', JSON.stringify(j.sources, null, 2));
+            if (j.stale) {
+              console.error('::error::هیچ منبعی در این اجرا جواب نداد؛ قیمت‌ها قدیمی‌اند.');
+              process.exit(1);
+            }
+            console.log('تازه‌شده:', j.fresh.length, 'مورد');
+          "

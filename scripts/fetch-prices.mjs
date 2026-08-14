@@ -80,9 +80,18 @@ async function fromNobitex() {
 async function fromBinance() {
   const list = ASSETS.filter((a) => a.binance && a.id !== 'usdt');
   const symbols = JSON.stringify(list.map((a) => a.binance));
-  const rows = await getJSON(
-    `https://api.binance.com/api/v3/ticker/price?symbols=${encodeURIComponent(symbols)}`
-  );
+  const path = `/api/v3/ticker/price?symbols=${encodeURIComponent(symbols)}`;
+
+  // api.binance.com به آی‌پی‌های آمریکا HTTP 451 می‌دهد و runnerهای گیت‌هاب
+  // هم آمریکا هستند. data-api.binance.vision میزبان رسمیِ دادهٔ عمومی بازار
+  // است و این محدودیت را ندارد؛ api.binance.com فقط پشتیبان می‌ماند.
+  const hosts = ['https://data-api.binance.vision', 'https://api.binance.com'];
+  let rows = null, lastErr = null;
+  for (const h of hosts) {
+    try { rows = await getJSON(h + path); break; }
+    catch (e) { lastErr = new Error(`${h.replace('https://', '')}: ${e.message}`); }
+  }
+  if (!rows) throw lastErr;
   if (!Array.isArray(rows)) throw new Error('پاسخ آرایه نیست');
 
   const bySym = Object.fromEntries(rows.map((r) => [r.symbol, num(r.price)]));
@@ -179,6 +188,7 @@ async function main() {
 
   const prices = {};   // تومان
   const usd = {};      // دلار
+  const fresh = new Set();   // چه چیزهایی *در همین اجرا* تازه گرفته شدند
 
   if (binance) Object.assign(usd, binance);
 
@@ -188,12 +198,15 @@ async function main() {
   // رمزارزها: اولویت با قیمت تومانی نوبیتکس
   for (const a of ASSETS) {
     if (a.cat !== 'crypto') continue;
-    if (nobitex?.[a.id]) prices[a.id] = nobitex[a.id];
-    else if (usd[a.id] && usdtToman) prices[a.id] = usd[a.id] * usdtToman;  // پل بایننس
+    if (nobitex?.[a.id]) { prices[a.id] = nobitex[a.id]; fresh.add(a.id); }
+    else if (usd[a.id] && usdtToman) {                    // پل بایننس
+      prices[a.id] = usd[a.id] * usdtToman;
+      fresh.add(a.id);
+    }
   }
 
   // طلا، سکه، نقره و ارز: فقط BrsApi
-  if (brs) for (const [id, p] of Object.entries(brs)) prices[id] = p;
+  if (brs) for (const [id, p] of Object.entries(brs)) { prices[id] = p; fresh.add(id); }
 
   // هرچه به دست نیامد، از اجرای قبلی نگه دار
   const kept = [];
@@ -212,10 +225,15 @@ async function main() {
     process.exit(1);
   }
 
+  // اگر هیچ منبعی جواب نداده باشد، همهٔ اعداد ارثیِ اجرای قبلی‌اند و
+  // نباید وانمود کنیم تازه‌اند. seed را فقط وقتی خاموش می‌کنیم که واقعاً
+  // دادهٔ زنده گرفته باشیم، وگرنه صفحه قیمت ساختگی را واقعی نشان می‌دهد.
   const payload = {
     updated: new Date().toISOString(),
-    seed: false,
+    seed: prev.seed === true && fresh.size === 0,
+    stale: fresh.size === 0,      // هیچ‌چیز در این اجرا تازه نشد
     sources: report,
+    fresh: [...fresh],
     kept,        // از اجرای قبلی مانده‌اند (احتمالاً قدیمی)
     missing,     // اصلاً قیمتی ندارند
     prices,

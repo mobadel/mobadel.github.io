@@ -93,6 +93,7 @@ var state = {
   prices: {},              // id → قیمت به تومان
   updated: null,
   seed: false,
+  stale: false,
   pickerSide: null
 };
 
@@ -247,6 +248,10 @@ function pick(side, id) {
   }
   state[side] = id;
 
+  // مسیر غیرمجاز (مثلاً یورو به پوند) هرگز نباید ساخته شود. به‌جای
+  // بستنِ راه، سمت دیگر را روی تومان می‌گذاریم تا کاربر گیر نکند.
+  if (!isAllowedPair(state.from, state.to)) state[other] = 'irt';
+
   if (state.edited === 'from') {
     setInput(els['amount-from'], fmt(state.amount, BY_ID[state.from].dp));
   }
@@ -365,6 +370,7 @@ function renderPicker() {
   if (!picker.rows.length) return;
 
   var current = state[state.pickerSide];
+  var otherId = state[state.pickerSide === 'from' ? 'to' : 'from'];
   var lastCat = null;
 
   picker.rows.forEach(function (a, i) {
@@ -395,6 +401,14 @@ function renderPicker() {
     txt.className = 'opt-text';
     var n1 = document.createElement('span'); n1.className = 'opt-name'; n1.textContent = a.name;
     var n2 = document.createElement('span'); n2.className = 'opt-sub';  n2.textContent = a.sym;
+    // اگر این انتخاب مسیر فعلی را غیرمجاز کند، سمت دیگر به تومان می‌رود.
+    // از قبل می‌گوییم تا تغییرِ سمت مقابل غافلگیرکننده نباشد.
+    if (a.id !== otherId && !isAllowedPair(a.id, otherId)) {
+      var note = document.createElement('span');
+      note.className = 'opt-note';
+      note.textContent = 'با تومان';
+      n2.appendChild(note);
+    }
     txt.appendChild(n1); txt.appendChild(n2);
 
     var pr = document.createElement('span');
@@ -432,7 +446,8 @@ function updateHash() {
 }
 function readHash() {
   var m = /^#([a-z0-9_]+)-([a-z0-9_]+)$/.exec(location.hash || '');
-  if (m && BY_ID[m[1]] && BY_ID[m[2]] && m[1] !== m[2]) {
+  // لینک قدیمی یا دستکاری‌شده نباید مسیر غیرمجاز را زنده کند
+  if (m && BY_ID[m[1]] && BY_ID[m[2]] && isAllowedPair(m[1], m[2])) {
     state.from = m[1]; state.to = m[2];
     return true;
   }
@@ -459,8 +474,11 @@ function loadSnapshot() {
         var v = j.prices[k];
         if (typeof v === 'number' && v > 0) state.prices[k] = v;
       });
+      // updated زمانِ *اجرای* ورک‌فلو است، نه زمان تازگی داده. اگر آن اجرا
+      // هیچ منبعی نگرفته باشد (stale)، این زمان را باور نمی‌کنیم.
       state.updated = j.updated ? Date.parse(j.updated) : Date.now();
       state.seed = !!j.seed;
+      state.stale = !!j.stale;
     }
   });
 }
@@ -489,6 +507,7 @@ function loadNobitex() {
     if (!hit) throw new Error('no stats');
     state.updated = Date.now();
     state.seed = false;
+    state.stale = false;
   });
 }
 
@@ -518,7 +537,9 @@ function refresh() {
       if (!Object.keys(state.prices).length) {
         showBanner('دریافت قیمت‌ها ممکن نشد. اتصال اینترنت را بررسی کنید و دوباره تلاش کنید.');
       } else if (state.seed) {
-        showBanner('قیمت‌ها هنوز به‌روزرسانی نشده‌اند و مقادیر نمونه هستند.');
+        showBanner('قیمت‌ها هنوز به‌روزرسانی نشده‌اند و مقادیر نمونه‌اند — به آن‌ها استناد نکنید.');
+      } else if (state.stale && !liveOk) {
+        showBanner('هیچ‌کدام از منابع قیمت در دسترس نیستند و اعداد زیر قدیمی‌اند.');
       } else if (!snapOk && !liveOk) {
         showBanner('قیمت‌ها ممکن است قدیمی باشند.');
       }

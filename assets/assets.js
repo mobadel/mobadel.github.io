@@ -118,6 +118,53 @@ var ASSETS = [
 /* دارایی‌های پرکاربرد که به‌صورت چیپ زیر هر فیلد نشان داده می‌شوند */
 var QUICK = ['irt', 'usdt', 'usd', 'gold18', 'btc', 'coin_emami'];
 
+/* ────────────────────────────────────────────────────────────────
+   مسیرهای مجاز تبدیل
+
+     تومان        ↔ همهٔ دارایی‌ها
+     ارز دیجیتال  ↔ تومان یا تتر
+     طلا و سکه    ↔ فقط تومان
+     ارز خارجی    ↔ تومان یا دلار
+
+   بقیهٔ ترکیب‌ها اصلاً وجود ندارند. هر دسته یک «قطب» دارد که همهٔ
+   اعضای آن دسته فقط از راه او (یا تومان) به هم وصل می‌شوند.
+   ──────────────────────────────────────────────────────────────── */
+var HUB = { crypto: 'usdt', fiat: 'usd', gold: null };
+
+function counterpartsOf(id) {
+  var self = null;
+  for (var i = 0; i < ASSETS.length; i++) {
+    if (ASSETS[i].id === id) { self = ASSETS[i]; break; }
+  }
+  if (!self) return [];
+
+  var out = [];
+  if (id === 'irt') {                       // تومان به همه‌چیز
+    ASSETS.forEach(function (a) { if (a.id !== 'irt') out.push(a.id); });
+    return out;
+  }
+
+  out.push('irt');                          // هر دارایی همیشه به تومان
+  var hub = HUB[self.cat];
+  if (!hub) return out;                     // طلا و سکه: فقط تومان
+
+  if (id === hub) {                         // خودِ تتر یا دلار: کل دستهٔ خودش
+    ASSETS.forEach(function (a) {
+      if (a.cat === self.cat && a.id !== id && a.id !== 'irt') out.push(a.id);
+    });
+  } else {
+    out.push(hub);                          // بقیهٔ اعضا: فقط قطب دسته
+  }
+  return out;
+}
+
+function isAllowedPair(a, b) {
+  return a !== b && counterpartsOf(a).indexOf(b) !== -1;
+}
+
 if (typeof module !== 'undefined' && module.exports) {
-  module.exports = { ASSETS: ASSETS, CATEGORIES: CATEGORIES, QUICK: QUICK };
+  module.exports = {
+    ASSETS: ASSETS, CATEGORIES: CATEGORIES, QUICK: QUICK,
+    counterpartsOf: counterpartsOf, isAllowedPair: isAllowedPair
+  };
 }
