@@ -1,39 +1,19 @@
 {
-  "updated": "2026-08-14T10:23:42.469Z",
-  "seed": false,
+  "updated": "2026-01-01T00:00:00.000Z",
+  "seed": true,
   "stale": true,
-  "sources": {
-    "nobitex": "fail: fetch failed",
-    "binance": "ok (6)",
-    "brsapi": "fail: HTTP 404"
-  },
+  "note": "بازنشانی دستی. قیمت‌های تومانی زیر عدد گردِ نمونه‌اند تا با قیمت واقعی اشتباه نشوند. بدون یک لنگر تومانی زنده (نوبیتکس یا دلار BrsApi) قیمت دلاری بایننس قابل تبدیل به تومان نیست.",
+  "sources": {},
   "fresh": [],
-  "kept": [
-    "gold18",
-    "coin_emami",
-    "coin_bahar",
-    "coin_half",
-    "coin_quarter",
-    "coin_gram",
-    "silver999",
-    "usd",
-    "eur",
-    "gbp",
-    "aed",
-    "try",
-    "afn",
-    "thb",
-    "gel",
-    "amd"
-  ],
+  "kept": [],
   "missing": [],
   "prices": {
     "usdt": 120000,
-    "btc": 7546080000,
-    "eth": 225198000,
-    "ton": 192000,
-    "xrp": 120372.00000000001,
-    "bnb": 72760800,
+    "btc": 11400000000,
+    "eth": 384000000,
+    "ton": 360000,
+    "xrp": 240000,
+    "bnb": 108000000,
     "gold18": 7500000,
     "coin_emami": 82000000,
     "coin_bahar": 78000000,
@@ -53,10 +33,10 @@
   },
   "usd": {
     "usdt": 1,
-    "btc": 62884,
-    "eth": 1876.65,
+    "btc": 62894.65,
+    "eth": 1876.83,
     "ton": 1.6,
-    "xrp": 1.0031,
-    "bnb": 606.34
+    "xrp": 1.0027,
+    "bnb": 606.8
   }
 }
