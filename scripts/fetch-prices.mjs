@@ -192,8 +192,15 @@ async function main() {
 
   if (binance) Object.assign(usd, binance);
 
-  // نرخ مرجع تومان برای هر دلار: اول تتر نوبیتکس، بعد دلار BrsApi
-  const usdtToman = nobitex?.usdt ?? brs?.usd ?? prev.prices?.usdt ?? null;
+  // نرخ مرجع تومان برای هر دلار: اول تتر نوبیتکس، بعد دلار BrsApi.
+  //
+  // اگر هیچ‌کدام نبودند، *نباید* به کورکورانه از فایل قبلی لنگر برداریم:
+  // وقتی فایل قبلی خودش نمونه یا قدیمی است، قیمت دلاریِ واقعیِ بایننس در
+  // یک عدد ساختگی ضرب می‌شود و نتیجه با اطمینانِ کاذب «تازه» علامت می‌خورد.
+  const anchorLive = nobitex?.usdt ?? brs?.usd ?? null;
+  const anchorOld = (!prev.seed && !prev.stale) ? (prev.prices?.usdt ?? null) : null;
+  const usdtToman = anchorLive ?? anchorOld;
+  const anchorIsLive = anchorLive != null;
 
   // رمزارزها: اولویت با قیمت تومانی نوبیتکس
   for (const a of ASSETS) {
@@ -201,7 +208,8 @@ async function main() {
     if (nobitex?.[a.id]) { prices[a.id] = nobitex[a.id]; fresh.add(a.id); }
     else if (usd[a.id] && usdtToman) {                    // پل بایننس
       prices[a.id] = usd[a.id] * usdtToman;
-      fresh.add(a.id);
+      // فقط وقتی «تازه» است که لنگر تومانی هم زنده باشد
+      if (anchorIsLive) fresh.add(a.id);
     }
   }
 
