@@ -1,0 +1,5 @@
+# ورک‌فلو روی Linux اجرا می‌شود؛ CRLF اسکریپت bash داخل آن را می‌شکند.
+* text=auto eol=lf
+*.png binary
+*.jpg binary
+*.woff2 binary
