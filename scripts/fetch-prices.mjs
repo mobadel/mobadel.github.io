@@ -134,6 +134,19 @@ async function fromBrsApi(key) {
       }
     }
   }
+  // تشخیص: نام‌های واقعی BrsApi از بیرون قابل دیدن نیست، پس هر رکوردی
+  // که به دارایی‌های ما نخورد اینجا چاپ می‌شود تا فیلد brs در
+  // assets/assets.js با نام درست اصلاح شود. کلید API چاپ نمی‌شود.
+  const matchedNames = new Set(
+    ASSETS.filter((a) => out[a.id]).map((a) => norm(a.name))
+  );
+  const leftovers = rows.filter((r) => !matchedNames.has(norm(r.name)));
+  console.log(`\n── BrsApi: ${rows.length} رکورد، ${Object.keys(out).length} تطبیق ──`);
+  for (const r of leftovers.slice(0, 80)) {
+    console.log(`   symbol=${JSON.stringify(r.symbol)}  name=${JSON.stringify(r.name)}  price=${r.price}  unit=${JSON.stringify(r.unit)}`);
+  }
+  if (leftovers.length > 80) console.log(`   … و ${leftovers.length - 80} رکورد دیگر`);
+
   if (!Object.keys(out).length) throw new Error('هیچ داراییِ متناظری یافت نشد');
   return out;
 }

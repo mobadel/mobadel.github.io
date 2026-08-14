@@ -6,12 +6,16 @@ on:
     # ممکن است چند دقیقه دیرتر اجرا شود یا یک نوبت را رد کند.
     - cron: '*/10 * * * *'
   workflow_dispatch:        # اجرای دستی از تب Actions
+  # فیلتر paths عمداً برداشته شد: هنگام ساخته‌شدن شاخهٔ جدید، گیت‌هاب
+  # فیلتر مسیر را نسبت به کامیت «قبلی» می‌سنجد که وجود ندارد و ورک‌فلو
+  # تریگر نمی‌شود.
+  #
+  # این حلقهٔ بی‌نهایت نمی‌سازد: کامیتی که خودِ این job با GITHUB_TOKEN
+  # پیش‌فرض push می‌کند، طبق مستندات گیت‌هاب اجرای تازه‌ای راه نمی‌اندازد.
+  # اگر روزی به‌جای GITHUB_TOKEN از PAT استفاده شد، حتماً باید
+  # paths-ignore: ['data/prices.json'] اضافه شود.
   push:
     branches: [main]
-    paths:
-      - 'scripts/fetch-prices.mjs'
-      - 'assets/assets.js'
-      - '.github/workflows/update-prices.yml'
 
 permissions:
   contents: write
