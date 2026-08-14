@@ -1,0 +1,53 @@
+name: به‌روزرسانی قیمت‌ها
+
+on:
+  schedule:
+    # هر ۱۰ دقیقه. توجه: زمان‌بندی GitHub تضمینی نیست و در ساعات شلوغ
+    # ممکن است چند دقیقه دیرتر اجرا شود یا یک نوبت را رد کند.
+    - cron: '*/10 * * * *'
+  workflow_dispatch:        # اجرای دستی از تب Actions
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/fetch-prices.mjs'
+      - 'assets/assets.js'
+      - '.github/workflows/update-prices.yml'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: prices
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: دریافت قیمت‌ها
+        env:
+          BRSAPI_KEY: ${{ secrets.BRSAPI_KEY }}
+        run: node scripts/fetch-prices.mjs
+
+      - name: کامیت در صورت تغییر
+        run: |
+          git config user.name  "mobadel-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if git diff --quiet -- data/prices.json; then
+            echo "تغییری نبود."
+            exit 0
+          fi
+          git add data/prices.json
+          git commit -m "chore: به‌روزرسانی قیمت‌ها $(date -u '+%Y-%m-%d %H:%M UTC')"
+          # اگر در این فاصله کامیت دیگری آمده باشد، دوباره تلاش می‌کنیم
+          for i in 1 2 3; do
+            git pull --rebase --autostash origin main && git push origin main && exit 0
+            sleep 5
+          done
+          exit 1
