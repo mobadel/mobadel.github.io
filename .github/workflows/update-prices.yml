@@ -43,11 +43,11 @@ jobs:
         run: |
           git config user.name  "mobadel-bot"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          if git diff --quiet -- data/prices.json; then
+          if git diff --quiet -- data/prices.json data/brs-catalog.json; then
             echo "تغییری نبود."
             exit 0
           fi
-          git add data/prices.json
+          git add data/prices.json data/brs-catalog.json
           git commit -m "chore: به‌روزرسانی قیمت‌ها $(date -u '+%Y-%m-%d %H:%M UTC')"
           # اگر در این فاصله کامیت دیگری آمده باشد، دوباره تلاش می‌کنیم
           for i in 1 2 3; do

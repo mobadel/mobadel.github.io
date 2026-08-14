@@ -19,8 +19,14 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dirname, '..');
 const OUT = resolve(ROOT, 'data/prices.json');
 
+const CATALOG = resolve(ROOT, 'data/brs-catalog.json');
+
 const require = createRequire(import.meta.url);
 const { ASSETS } = require(resolve(ROOT, 'assets/assets.js'));
+
+// فهرست خام رکوردهای BrsApi برای نگه‌داری: نام‌های واقعی از بیرون
+// قابل دیدن نیستند و بدون آن‌ها اصلاح فیلد brs حدس‌زدن است.
+let brsCatalog = null;
 
 const TIMEOUT = 20000;
 const report = {};
@@ -128,6 +134,8 @@ async function fromBrsApi(key) {
   };
   collect(data);
   if (!rows.length) throw new Error('پاسخ خالی');
+
+  brsCatalog = rows.map((r) => ({ symbol: r.symbol ?? null, name: r.name ?? null, unit: r.unit ?? null }));
 
   // نرخ هر رکورد را به تومان تبدیل کن
   const priceOfRow = (r) => {
@@ -259,6 +267,16 @@ async function main() {
 
   await mkdir(dirname(OUT), { recursive: true });
   await writeFile(OUT, JSON.stringify(payload, null, 2) + '\n', 'utf8');
+
+  // کاتالوگ فقط وقتی بازنویسی می‌شود که BrsApi واقعاً جواب داده باشد،
+  // وگرنه یک اجرای ناموفق مرجع نگه‌داری را پاک می‌کند.
+  if (brsCatalog) {
+    await writeFile(
+      CATALOG,
+      JSON.stringify({ updated: payload.updated, count: brsCatalog.length, records: brsCatalog }, null, 2) + '\n',
+      'utf8'
+    );
+  }
 
   console.log('منابع:', report);
   console.log(`قیمت‌ها: ${Object.keys(prices).length} مورد` +
