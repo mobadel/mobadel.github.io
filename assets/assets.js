@@ -76,9 +76,8 @@ var ASSETS = [
     alias: ['گرمی', 'سکه گرمی', 'gerami', '1g'],
     brs: ['IR_COIN_1G', 'سکه گرمی', 'سکه یک گرمی'] },
 
-  { id: 'silver999', name: 'نقره ۹۹۹', sym: 'گرم', cat: 'gold', color: '#94a3b8', glyph: '🥈', dp: 3,
-    alias: ['نقره', 'silver', '999', '۹۹۹', 'گرم نقره'],
-    brs: ['IR_SILVER_999', 'نقره 999', 'نقره ۹۹۹', 'گرم نقره'] },
+  /* نقره حذف شد: api.brsapi.ir/Market/Gold_Currency.php هیچ رکورد
+     نقره‌ای ندارد (جستجو روی هر ۵۶ رکورد با نام و نماد، صفر نتیجه). */
 
   /* ── ارز ────────────────────────────────────────────────── */
   { id: 'usd', name: 'دلار آمریکا', sym: 'USD', cat: 'fiat', color: '#16a34a', glyph: '$', dp: 2,
@@ -124,41 +123,24 @@ var QUICK = ['irt', 'usdt', 'usd', 'gold18', 'btc', 'coin_emami'];
 /* ────────────────────────────────────────────────────────────────
    مسیرهای مجاز تبدیل
 
-     تومان        ↔ همهٔ دارایی‌ها
-     ارز دیجیتال  ↔ تومان یا تتر
-     طلا و سکه    ↔ فقط تومان
-     ارز خارجی    ↔ تومان یا دلار
+     تومان ↔ هر دارایی. و تمام.
 
-   بقیهٔ ترکیب‌ها اصلاً وجود ندارند. هر دسته یک «قطب» دارد که همهٔ
-   اعضای آن دسته فقط از راه او (یا تومان) به هم وصل می‌شوند.
+   یعنی همیشه یک سمتِ تبدیل تومان است. تبدیل دارایی به دارایی
+   (بیت‌کوین به تتر، یورو به دلار) اصلاً وجود ندارد.
    ──────────────────────────────────────────────────────────────── */
-var HUB = { crypto: 'usdt', fiat: 'usd', gold: null };
-
 function counterpartsOf(id) {
-  var self = null;
+  var exists = false;
   for (var i = 0; i < ASSETS.length; i++) {
-    if (ASSETS[i].id === id) { self = ASSETS[i]; break; }
+    if (ASSETS[i].id === id) { exists = true; break; }
   }
-  if (!self) return [];
+  if (!exists) return [];
 
-  var out = [];
   if (id === 'irt') {                       // تومان به همه‌چیز
-    ASSETS.forEach(function (a) { if (a.id !== 'irt') out.push(a.id); });
-    return out;
+    return ASSETS
+      .filter(function (a) { return a.id !== 'irt'; })
+      .map(function (a) { return a.id; });
   }
-
-  out.push('irt');                          // هر دارایی همیشه به تومان
-  var hub = HUB[self.cat];
-  if (!hub) return out;                     // طلا و سکه: فقط تومان
-
-  if (id === hub) {                         // خودِ تتر یا دلار: کل دستهٔ خودش
-    ASSETS.forEach(function (a) {
-      if (a.cat === self.cat && a.id !== id && a.id !== 'irt') out.push(a.id);
-    });
-  } else {
-    out.push(hub);                          // بقیهٔ اعضا: فقط قطب دسته
-  }
-  return out;
+  return ['irt'];                           // هر چیز دیگر: فقط تومان
 }
 
 function isAllowedPair(a, b) {

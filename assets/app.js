@@ -192,6 +192,8 @@ function paintChips() {
       b.addEventListener('click', function () { pick(side, id); });
       box.appendChild(b);
     });
+    // سمتی که فقط تومان می‌تواند باشد، چیپِ میان‌بر لازم ندارد
+    box.hidden = box.children.length <= 1;
   });
 }
 
@@ -315,9 +317,13 @@ function openPicker(side) {
   picker.q = ''; picker.cat = 'all'; picker.cursor = 0;
   els['search'].value = '';
   // فقط مقصدهای مجاز برای سمت مقابل. سمت مقابل تا وقتی این پنجره باز
-  // است ثابت می‌ماند، پس یک‌بار حساب کردن کافی است. انتخاب فعلیِ همین
-  // سمت طبق تعریف داخل این فهرست هست، چون جفت فعلی مجاز است.
-  picker.allowed = counterpartsOf(state[side === 'from' ? 'to' : 'from']);
+  // است ثابت می‌ماند، پس یک‌بار حساب کردن کافی است.
+  //
+  // خودِ سمت مقابل هم در فهرست می‌ماند: انتخابش یعنی «مسیر را برعکس
+  // کن». همین است که وقتی مقصد تومان است، تومان در فهرست مبدأ دیده
+  // می‌شود و انتخابش تبدیل را به «تومان به آن دارایی» برمی‌گرداند.
+  var otherId = state[side === 'from' ? 'to' : 'from'];
+  picker.allowed = counterpartsOf(otherId).concat([otherId]);
   buildTabs();
   renderPicker();
   els['picker'].hidden = false;
