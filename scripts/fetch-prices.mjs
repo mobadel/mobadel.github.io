@@ -214,15 +214,18 @@ async function main() {
   // اگر هیچ‌کدام نبودند، *نباید* به کورکورانه از فایل قبلی لنگر برداریم:
   // وقتی فایل قبلی خودش نمونه یا قدیمی است، قیمت دلاریِ واقعیِ بایننس در
   // یک عدد ساختگی ضرب می‌شود و نتیجه با اطمینانِ کاذب «تازه» علامت می‌خورد.
-  const anchorLive = nobitex?.usdt ?? brs?.usd ?? null;
+  // ترتیب لنگر: تترِ نوبیتکس، بعد USDT_IRT از BrsApi، و در آخر نرخ دلار.
+  // رمزارز در ایران با تتر معامله می‌شود، پس تتر لنگر درست‌تری از دلار است.
+  const anchorLive = nobitex?.usdt ?? brs?.usdt ?? brs?.usd ?? null;
   const anchorOld = (!prev.seed && !prev.stale) ? (prev.prices?.usdt ?? null) : null;
   const usdtToman = anchorLive ?? anchorOld;
   const anchorIsLive = anchorLive != null;
 
-  // رمزارزها: اولویت با قیمت تومانی نوبیتکس
+  // رمزارزها: نوبیتکس ← قیمت تومانی مستقیم BrsApi (فقط تتر) ← پل بایننس
   for (const a of ASSETS) {
     if (a.cat !== 'crypto') continue;
     if (nobitex?.[a.id]) { prices[a.id] = nobitex[a.id]; fresh.add(a.id); }
+    else if (brs?.[a.id]) { prices[a.id] = brs[a.id]; fresh.add(a.id); }
     else if (usd[a.id] && usdtToman) {                    // پل بایننس
       prices[a.id] = usd[a.id] * usdtToman;
       // فقط وقتی «تازه» است که لنگر تومانی هم زنده باشد
@@ -230,8 +233,14 @@ async function main() {
     }
   }
 
-  // طلا، سکه، نقره و ارز: فقط BrsApi
-  if (brs) for (const [id, p] of Object.entries(brs)) { prices[id] = p; fresh.add(id); }
+  // طلا، سکه و ارز: فقط BrsApi. رمزارزها بالاتر رسیدگی شدند و نباید
+  // اینجا دوباره نوشته شوند، وگرنه قیمت نوبیتکس بازنویسی می‌شود.
+  const catOf = Object.fromEntries(ASSETS.map((a) => [a.id, a.cat]));
+  if (brs) for (const [id, p] of Object.entries(brs)) {
+    if (catOf[id] === 'crypto') continue;
+    prices[id] = p;
+    fresh.add(id);
+  }
 
   // هرچه به دست نیامد، از اجرای قبلی نگه دار
   const kept = [];

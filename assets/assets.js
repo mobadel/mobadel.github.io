@@ -30,8 +30,11 @@ var ASSETS = [
     alias: ['toman', 'tooman', 'irr', 'rial', 'ریال', 'تومن'], base: true },
 
   /* ── ارز دیجیتال ────────────────────────────────────────── */
+  // USDT_IRT در BrsApi واحدش تومان است و نرخ واقعی تتر را می‌دهد؛ بقیهٔ
+  // رمزارزهای آن API با واحد دلارند و به کار لنگر تومانی نمی‌آیند.
   { id: 'usdt', name: 'تتر', sym: 'USDT', cat: 'crypto', color: '#26a17b', glyph: '₮', dp: 2,
-    alias: ['tether', 'usdt', 'تتر'], nobitex: 'usdt', binance: 'USDTUSD' },
+    alias: ['tether', 'usdt', 'تتر'], nobitex: 'usdt', binance: 'USDTUSD',
+    brs: ['USDT_IRT', 'دلار تتر'] },
 
   { id: 'btc', name: 'بیت‌کوین', sym: 'BTC', cat: 'crypto', color: '#f7931a', glyph: '₿', dp: 8,
     alias: ['bitcoin', 'btc', 'بیتکوین', 'بیت کوین'], nobitex: 'btc', binance: 'BTCUSDT' },
