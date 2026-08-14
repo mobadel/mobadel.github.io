@@ -24,7 +24,8 @@ function group(intPart) {
 
 /** رشتهٔ ورودی کاربر → عدد (NaN اگر خالی/نامعتبر) */
 function parseAmount(str) {
-  var s = toEnDigits(str).replace(/[,\s٬،]/g, '').replace(/[٫،]/g, '.');
+  // «,» و «٬» و «،» و فاصله جداکنندهٔ هزارگان‌اند؛ «٫» اعشار فارسی است
+  var s = toEnDigits(str).replace(/[,\s٬،]/g, '').replace(/٫/g, '.');
   if (!s || s === '.') return NaN;
   var n = parseFloat(s);
   return isFinite(n) ? n : NaN;
@@ -206,8 +207,13 @@ function paintLadder() {
   body.innerHTML = '';
   if (convert(1, state.from, state.to) == null) return;
 
-  // پلهٔ پایه را از روی مقدار فعلی می‌سازیم تا ردیف‌ها معنادار باشند
-  var seed = isFinite(state.amount) && state.amount > 0 ? state.amount : 1;
+  // پلهٔ پایه را از روی مقدار فعلی می‌سازیم تا ردیف‌ها معنادار باشند.
+  // اگر کاربر فیلد پایین را ویرایش کرده، state.amount در واحد مقصد است
+  // و باید اول به واحد مبدأ برگردد، وگرنه بزرگیِ ردیف‌ها غلط می‌شود.
+  var seed = state.edited === 'from'
+    ? state.amount
+    : convert(state.amount, state.to, state.from);
+  if (!isFinite(seed) || seed <= 0) seed = 1;
   var unit = Math.pow(10, Math.floor(Math.log10(seed)));
   [1, 2, 5, 10, 20, 50, 100].forEach(function (m) {
     var v = unit * m;
@@ -226,11 +232,24 @@ function paintLadder() {
 /* ── انتخاب دارایی ──────────────────────────────────────────── */
 function pick(side, id) {
   if (!BY_ID[id]) return;
+
+  // مقدار را به واحد مبدأ برگردان *قبل از* عوض شدن دارایی‌ها، وگرنه
+  // عددِ فیلد پایین با دارایی جدید دوباره تفسیر می‌شود. رفتار ثابت:
+  // ورودی کاربر سر جایش می‌ماند و فقط خروجی دوباره حساب می‌شود.
+  if (state.edited === 'to') {
+    var asFrom = convert(state.amount, state.to, state.from);
+    if (asFrom != null) { state.amount = asFrom; state.edited = 'from'; }
+  }
+
   var other = side === 'from' ? 'to' : 'from';
   if (state[other] === id) {            // انتخاب تکراری ⇒ جابه‌جایی
     state[other] = state[side];
   }
   state[side] = id;
+
+  if (state.edited === 'from') {
+    setInput(els['amount-from'], fmt(state.amount, BY_ID[state.from].dp));
+  }
   render();
 }
 
@@ -259,10 +278,11 @@ function attachInput(el, side) {
     state.edited = side;
     state.amount = isFinite(n) ? n : NaN;
 
-    // بازنویسیِ فرمت‌شده فقط وقتی کاربر در حال تایپ اعشار نیست
-    if (isFinite(n) && !/[.,٫،]\s*$/.test(raw) && !/\.\d*0$/.test(toEnDigits(raw))) {
-      var hint = BY_ID[state[side]].dp;
-      var formatted = fmt(n, Math.max(hint, 8));
+    // سه‌رقمی‌کردن فقط برای عددِ صحیح. اگر کاربر نقطهٔ اعشار زده باشد
+    // دست نمی‌زنیم، وگرنه fmt() اعشارِ در حال تایپ را حذف می‌کند
+    // (مثلاً «۱۵۰۰.۷۵» در فیلد دلار به «۱٬۵۰۰» تبدیل می‌شد).
+    if (isFinite(n) && !/[.٫]/.test(toEnDigits(raw))) {
+      var formatted = fmt(n, 0);
       setInput(el, formatted);
       // نشانگر را پس از همان تعداد رقم قرار بده
       var seen = 0, pos = 0;
