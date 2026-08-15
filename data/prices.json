@@ -1,11 +1,11 @@
 {
-  "updated": "2026-08-15T09:03:00.448Z",
+  "updated": "2026-08-15T09:55:51.857Z",
   "seed": false,
   "stale": false,
   "sources": {
     "binance": "ok (6)",
-    "nobitex": "fail: api.nobitex.ir: fetch failed",
-    "brsapi": "ok (16)"
+    "brsapi": "ok (16)",
+    "nobitex": "fail: api.nobitex.ir: fetch failed"
   },
   "fresh": [
     "usdt",
@@ -33,34 +33,34 @@
   "kept": [],
   "missing": [],
   "prices": {
-    "usdt": 187838,
-    "btc": 11819893988,
-    "eth": 352585074.65999997,
-    "ton": 300540.8,
-    "xrp": 188007.05419999998,
-    "bnb": 114618747.60000001,
-    "gold18": 19252000,
-    "coin_emami": 190985000,
-    "coin_bahar": 188200000,
-    "coin_half": 97000000,
-    "coin_quarter": 54000000,
+    "usdt": 187649,
+    "btc": 11830359352.35,
+    "eth": 352943374.63,
+    "ton": 300238.4,
+    "xrp": 188174.4172,
+    "bnb": 114809287.67,
+    "gold18": 19211900,
+    "coin_emami": 190495000,
+    "coin_bahar": 188360000,
+    "coin_half": 96800000,
+    "coin_quarter": 53000000,
     "coin_gram": 28500000,
-    "usd": 187700,
-    "eur": 216910,
-    "gbp": 254100,
-    "aed": 51135,
-    "try": 3980,
-    "afn": 2866,
-    "thb": 5669,
-    "gel": 71960,
-    "amd": 513
+    "usd": 187420,
+    "eur": 216330,
+    "gbp": 253410,
+    "aed": 50997,
+    "try": 3970,
+    "afn": 2859,
+    "thb": 5654,
+    "gel": 71770,
+    "amd": 512
   },
   "usd": {
     "usdt": 1,
-    "btc": 62926,
-    "eth": 1877.07,
+    "btc": 63045.15,
+    "eth": 1880.87,
     "ton": 1.6,
-    "xrp": 1.0009,
-    "bnb": 610.2
+    "xrp": 1.0028,
+    "bnb": 611.83
   }
 }
