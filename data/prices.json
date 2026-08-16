@@ -1,14 +1,20 @@
 {
-  "updated": "2026-08-16T10:53:21.414Z",
+  "updated": "2026-08-16T11:43:25.978Z",
   "seed": false,
   "stale": true,
   "sources": {
     "binance": "ok (6)",
     "nobitex": "fail: api.nobitex.ir: fetch failed",
-    "brsapi": "fail: This operation was aborted"
+    "brsapi": "fail: fetch failed"
   },
   "fresh": [],
   "kept": [
+    "usdt",
+    "btc",
+    "eth",
+    "ton",
+    "xrp",
+    "bnb",
     "gold18",
     "coin_emami",
     "coin_bahar",
@@ -51,10 +57,10 @@
   },
   "usd": {
     "usdt": 1,
-    "btc": 63008.56,
-    "eth": 1881.16,
+    "btc": 63003.5,
+    "eth": 1880.82,
     "ton": 1.6,
-    "xrp": 1.0001,
-    "bnb": 606.73
+    "xrp": 0.9998,
+    "bnb": 606.98
   }
 }
