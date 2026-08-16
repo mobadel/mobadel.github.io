@@ -1,138 +1,88 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="fa" dir="rtl">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>مبدل — تبدیل ارز دیجیتال، طلا و ارز به تومان</title>
-<meta name="description" content="مبدل لحظه‌ای تومان به تتر، بیت‌کوین، اتریوم، تون‌کوین، ریپل، BNB، طلا ۱۸ عیار، سکه، نقره و ارزهای خارجی.">
-<meta name="theme-color" content="#0b1020">
-<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="assets/styles.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>مبدل تتر به تومان | نرخ لحظه‌ای USDT</title>
+  <meta name="description" content="تبدیل سریع و لحظه‌ای تتر به تومان و تومان به تتر با نرخ بازار نوبیتکس.">
+  <meta name="theme-color" content="#f4f7f5">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="assets/styles.css">
 </head>
 <body>
+  <a class="skip-link" href="#amount-from">رفتن به مبدل</a>
 
-<a class="skip" href="#amount-from">رفتن به مبدل</a>
+  <header class="site-header">
+    <div class="shell header-inner">
+      <a class="brand" href="/" aria-label="صفحه اصلی مبدل">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M7 7h11m0 0-3-3m3 3-3 3M17 17H6m0 0 3 3m-3-3 3-3"/></svg>
+        </span>
+        <span>مبدل</span>
+      </a>
 
-<header class="topbar">
-  <div class="wrap topbar-in">
-    <div class="brand">
-      <span class="brand-mark" aria-hidden="true">⇄</span>
-      <span class="brand-name">مبدل</span>
-    </div>
-    <div class="topbar-actions">
-      <button id="refresh" class="icon-btn" type="button" title="به‌روزرسانی قیمت‌ها" aria-label="به‌روزرسانی قیمت‌ها">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11A8 8 0 1 0 18.6 15.5"/><polyline points="20 5 20 11 14 11"/></svg>
-      </button>
-      <button id="theme" class="icon-btn" type="button" title="تغییر پوسته" aria-label="تغییر پوسته">
-        <svg viewBox="0 0 24 24" aria-hidden="true" class="ic-moon"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
-        <svg viewBox="0 0 24 24" aria-hidden="true" class="ic-sun"><circle cx="12" cy="12" r="4.2"/><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M19.1 4.9l-1.8 1.8M6.7 17.3l-1.8 1.8"/></svg>
+      <button class="refresh-button" id="refresh" type="button" aria-label="به‌روزرسانی نرخ" title="به‌روزرسانی نرخ">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6v5h-5M4 18v-5h5"/><path d="M18.5 10a7 7 0 0 0-12-3L4 9m16 6-2.5 2a7 7 0 0 1-12-3"/></svg>
       </button>
     </div>
-  </div>
-</header>
+  </header>
 
-<main class="wrap">
+  <main class="shell page-main">
+    <section class="intro" aria-labelledby="page-title">
+      <p class="eyebrow">نرخ لحظه‌ای بازار</p>
+      <h1 id="page-title">تبدیل تتر و تومان</h1>
+      <p class="intro-copy">مقدار را وارد کنید؛ معادل آن با آخرین نرخ تتر در بازار نوبیتکس محاسبه می‌شود.</p>
+    </section>
 
-  <div id="banner" class="banner" hidden role="status"></div>
-
-  <section class="card converter" aria-label="مبدل ارز">
-
-    <!-- ── FROM ─────────────────────────────── -->
-    <div class="field" data-side="from">
-      <div class="field-head">
-        <label for="amount-from">مقدار</label>
+    <section class="converter-card" aria-label="مبدل تتر و تومان">
+      <div class="rate-summary" aria-live="polite" aria-atomic="true">
+        <span class="rate-label">نرخ هر تتر</span>
+        <strong class="rate-value" id="rate-value">در حال دریافت…</strong>
+        <span class="rate-status" id="rate-status">
+          <span class="status-dot" aria-hidden="true"></span>
+          اتصال به نوبیتکس
+        </span>
       </div>
-      <div class="field-body">
-        <input id="amount-from" class="amount" type="text" inputmode="decimal"
-               autocomplete="off" spellcheck="false" value="۱۰,۰۰۰,۰۰۰"
-               aria-label="مقدار مبدأ">
-        <button class="asset-btn" id="asset-from" type="button" aria-haspopup="dialog">
-          <span class="asset-ico" data-ico></span>
-          <span class="asset-text">
-            <span class="asset-name" data-name>تومان</span>
-            <span class="asset-sym" data-sym>IRT</span>
-          </span>
-          <svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
-        </button>
+
+      <div class="fields-wrap">
+        <div class="currency-field" data-side="from">
+          <label for="amount-from">مقدار</label>
+          <div class="field-control">
+            <input id="amount-from" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" value="۱۰۰" aria-describedby="rate-value">
+            <div class="currency-badge" id="currency-from" aria-label="تتر">
+              <span class="currency-icon tether" aria-hidden="true">₮</span>
+              <span class="currency-text"><strong>USDT</strong><small>تتر</small></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="swap-divider">
+          <span aria-hidden="true"></span>
+          <button id="swap" class="swap-button" type="button" aria-label="جابه‌جایی تتر و تومان" title="جابه‌جایی">
+            <svg viewBox="0 0 24 24"><path d="M7 7h11m0 0-3-3m3 3-3 3M17 17H6m0 0 3 3m-3-3 3-3"/></svg>
+          </button>
+          <span aria-hidden="true"></span>
+        </div>
+
+        <div class="currency-field" data-side="to">
+          <label for="amount-to">معادل</label>
+          <div class="field-control output-control">
+            <input id="amount-to" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" aria-describedby="rate-value">
+            <div class="currency-badge" id="currency-to" aria-label="تومان">
+              <span class="currency-icon toman" aria-hidden="true">ت</span>
+              <span class="currency-text"><strong>IRT</strong><small>تومان</small></span>
+            </div>
+          </div>
+        </div>
       </div>
-      <div class="chips" id="chips-from"></div>
-    </div>
 
-    <!-- ── SWAP ─────────────────────────────── -->
-    <div class="swap-row">
-      <span class="swap-line" aria-hidden="true"></span>
-      <button id="swap" class="swap" type="button" title="برعکس کردن مسیر تبدیل" aria-label="برعکس کردن مسیر تبدیل">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4v13M7 20l-3.5-3.5M7 20l3.5-3.5"/><path d="M17 20V7M17 4l3.5 3.5M17 4l-3.5 3.5"/></svg>
-      </button>
-      <span class="swap-line" aria-hidden="true"></span>
-    </div>
-
-    <!-- ── TO ───────────────────────────────── -->
-    <div class="field" data-side="to">
-      <div class="field-head">
-        <label for="amount-to">معادل</label>
+      <div class="source-note" id="source-note" role="status">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5m0-8h.01"/></svg>
+        <span>قیمت عمومی بازار نوبیتکس؛ بدون کارمزد معامله</span>
       </div>
-      <div class="field-body">
-        <input id="amount-to" class="amount" type="text" inputmode="decimal"
-               autocomplete="off" spellcheck="false" aria-label="مقدار مقصد">
-        <button class="asset-btn" id="asset-to" type="button" aria-haspopup="dialog">
-          <span class="asset-ico" data-ico></span>
-          <span class="asset-text">
-            <span class="asset-name" data-name>تتر</span>
-            <span class="asset-sym" data-sym>USDT</span>
-          </span>
-          <svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
-        </button>
-      </div>
-      <div class="chips" id="chips-to"></div>
-    </div>
+    </section>
+  </main>
 
-    <!-- ── RATE ─────────────────────────────── -->
-    <div class="rate" id="rate">
-      <span class="rate-text" id="rate-text">در حال دریافت قیمت‌ها…</span>
-      <span class="rate-meta" id="rate-meta"></span>
-    </div>
-  </section>
-
-  <!-- ── LADDER ─────────────────────────────── -->
-  <section class="card ladder-card" aria-label="جدول تبدیل">
-    <h2 class="sec-title" id="ladder-title">جدول تبدیل</h2>
-    <div class="table-scroll">
-      <table class="ladder">
-        <thead><tr><th id="ladder-h1">مقدار</th><th id="ladder-h2">معادل</th></tr></thead>
-        <tbody id="ladder-body"></tbody>
-      </table>
-    </div>
-  </section>
-
-  <footer class="foot">
-    <p>قیمت‌ها از <strong>نوبیتکس</strong> (رمزارز/تومان)، <strong>Binance</strong> (رمزارز/دلار) و <strong>BrsApi</strong> (طلا، سکه، نقره و ارز) دریافت می‌شود.</p>
-    <p class="foot-warn">این صفحه صرفاً ابزار محاسبه است و مبنای معامله نیست. قیمت‌ها ممکن است با تأخیر همراه باشند.</p>
-  </footer>
-</main>
-
-<!-- ── ASSET PICKER ─────────────────────────── -->
-<div class="sheet-backdrop" id="picker" hidden>
-  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="picker-title">
-    <div class="sheet-grab" aria-hidden="true"></div>
-    <div class="sheet-head">
-      <h2 id="picker-title">انتخاب دارایی</h2>
-      <button id="picker-close" class="icon-btn" type="button" aria-label="بستن">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
-      </button>
-    </div>
-    <div class="search-wrap">
-      <svg class="search-ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
-      <input id="search" class="search" type="search" placeholder="جستجو: تتر، طلا، دلار، BTC …"
-             autocomplete="off" spellcheck="false" aria-controls="picker-list">
-    </div>
-    <div class="tabs" id="tabs" role="tablist"></div>
-    <ul class="picker-list" id="picker-list" role="listbox" aria-label="فهرست دارایی‌ها"></ul>
-    <p class="picker-empty" id="picker-empty" hidden>موردی پیدا نشد.</p>
-  </div>
-</div>
-
-<script src="assets/assets.js"></script>
-<script src="assets/app.js"></script>
+  <script src="assets/app.js"></script>
 </body>
 </html>
