@@ -1,19 +1,14 @@
 {
-  "updated": "2026-08-16T09:56:29.844Z",
+  "updated": "2026-08-16T10:53:21.414Z",
   "seed": false,
-  "stale": false,
+  "stale": true,
   "sources": {
     "binance": "ok (6)",
     "nobitex": "fail: api.nobitex.ir: fetch failed",
-    "brsapi": "ok (16)"
+    "brsapi": "fail: This operation was aborted"
   },
-  "fresh": [
-    "usdt",
-    "btc",
-    "eth",
-    "ton",
-    "xrp",
-    "bnb",
+  "fresh": [],
+  "kept": [
     "gold18",
     "coin_emami",
     "coin_bahar",
@@ -30,15 +25,14 @@
     "gel",
     "amd"
   ],
-  "kept": [],
   "missing": [],
   "prices": {
     "usdt": 186107,
-    "btc": 11725911613.03,
-    "eth": 349970491.36,
+    "btc": 11726334075.92,
+    "eth": 350097044.12,
     "ton": 297771.2,
-    "xrp": 186162.8321,
-    "bnb": 113089779.61999999,
+    "xrp": 186125.6107,
+    "bnb": 112916700.11,
     "gold18": 19070600,
     "coin_emami": 189010000,
     "coin_bahar": 186000000,
@@ -57,10 +51,10 @@
   },
   "usd": {
     "usdt": 1,
-    "btc": 63006.29,
-    "eth": 1880.48,
+    "btc": 63008.56,
+    "eth": 1881.16,
     "ton": 1.6,
-    "xrp": 1.0003,
-    "bnb": 607.66
+    "xrp": 1.0001,
+    "bnb": 606.73
   }
 }
