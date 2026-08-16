@@ -1,641 +1,260 @@
-/* ══════════════════════════════════════════════════════════════
-   مبدل — app.js
-   ══════════════════════════════════════════════════════════════ */
 (function () {
-'use strict';
+  "use strict";
 
-/* ── ابزار اعداد ─────────────────────────────────────────────
-   ورودی کاربر می‌تواند فارسی، عربی یا انگلیسی باشد؛ خروجی همیشه
-   فارسی است.                                                    */
-var FA_DIGITS = '۰۱۲۳۴۵۶۷۸۹';
-var DIGIT_MAP = {};
-'۰۱۲۳۴۵۶۷۸۹'.split('').forEach(function (d, i) { DIGIT_MAP[d] = String(i); });
-'٠١٢٣٤٥٦٧٨٩'.split('').forEach(function (d, i) { DIGIT_MAP[d] = String(i); });
+  var FA_DIGITS = "۰۱۲۳۴۵۶۷۸۹";
+  var DIGIT_MAP = {};
+  "۰۱۲۳۴۵۶۷۸۹".split("").forEach(function (digit, index) { DIGIT_MAP[digit] = String(index); });
+  "٠١٢٣٤٥٦٧٨٩".split("").forEach(function (digit, index) { DIGIT_MAP[digit] = String(index); });
 
-function toEnDigits(s) {
-  return String(s).replace(/[۰-۹٠-٩]/g, function (d) { return DIGIT_MAP[d]; });
-}
-function toFaDigits(s) {
-  return String(s).replace(/[0-9]/g, function (d) { return FA_DIGITS[+d]; });
-}
-function group(intPart) {
-  return intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-}
+  var currencies = {
+    usdt: { id: "usdt", code: "USDT", name: "تتر", icon: "₮", iconClass: "tether", decimals: 4 },
+    irt: { id: "irt", code: "IRT", name: "تومان", icon: "ت", iconClass: "toman", decimals: 0 }
+  };
 
-/** رشتهٔ ورودی کاربر → عدد (NaN اگر خالی/نامعتبر) */
-function parseAmount(str) {
-  // «,» و «٬» و «،» و فاصله جداکنندهٔ هزارگان‌اند؛ «٫» اعشار فارسی است
-  var s = toEnDigits(str).replace(/[,\s٬،]/g, '').replace(/٫/g, '.');
-  if (!s || s === '.') return NaN;
-  var n = parseFloat(s);
-  return isFinite(n) ? n : NaN;
-}
+  var state = {
+    from: "usdt",
+    to: "irt",
+    amount: 100,
+    edited: "from",
+    rate: null,
+    updatedAt: null,
+    live: false,
+    loading: false
+  };
 
-/** تعداد اعشار مناسب بر اساس بزرگی عدد */
-function smartDp(v, hint) {
-  var a = Math.abs(v);
-  if (a === 0) return 0;
-  if (a >= 1000) return 0;
-  if (a >= 100)  return Math.min(hint, 2);
-  if (a >= 1)    return Math.min(hint, 4);
-  if (a >= 0.01) return Math.min(Math.max(hint, 4), 6);
-  return Math.min(Math.max(hint, 6), 8);
-}
+  var elements = {
+    amountFrom: document.getElementById("amount-from"),
+    amountTo: document.getElementById("amount-to"),
+    currencyFrom: document.getElementById("currency-from"),
+    currencyTo: document.getElementById("currency-to"),
+    rateValue: document.getElementById("rate-value"),
+    rateStatus: document.getElementById("rate-status"),
+    sourceNote: document.getElementById("source-note"),
+    swap: document.getElementById("swap"),
+    refresh: document.getElementById("refresh")
+  };
 
-/** عدد → رشتهٔ فارسیِ سه‌رقم‌جداشده */
-function fmt(v, hint) {
-  if (!isFinite(v)) return '';
-  var dp = smartDp(v, hint == null ? 2 : hint);
-  var s = v.toFixed(dp);
-  if (dp > 0) s = s.replace(/\.?0+$/, '');           // صفرهای انتهایی
-  var parts = s.split('.');
-  return toFaDigits(group(parts[0]) + (parts[1] ? '.' + parts[1] : ''));
-}
+  var writing = false;
 
-/** فرمت فشرده برای فهرست انتخاب: ۱۱۰٫۲ هزار / ۴٫۵ میلیارد */
-function fmtCompact(v) {
-  if (!isFinite(v) || v <= 0) return '';
-  var units = [[1e12, 'همت'], [1e9, 'میلیارد'], [1e6, 'میلیون'], [1e3, 'هزار']];
-  for (var i = 0; i < units.length; i++) {
-    if (v >= units[i][0]) {
-      var q = v / units[i][0];
-      return toFaDigits((q >= 100 ? q.toFixed(0) : q.toFixed(1)).replace(/\.0$/, '')) + ' ' + units[i][1];
-    }
-  }
-  return fmt(v, 4);
-}
-
-/* ── نرمال‌سازی متن برای جستجو ───────────────────────────────── */
-function norm(s) {
-  return toEnDigits(String(s))
-    .toLowerCase()
-    .replace(/[يى]/g, 'ی')   // ي ى → ی
-    .replace(/ك/g, 'ک')           // ك → ک
-    .replace(/[ةۀ]/g, 'ه')   // ة ۀ → ه
-    .replace(/[‌‏‎]/g, '')
-    .replace(/[ً-ْ]/g, '')   // اعراب
-    .replace(/\s+/g, ' ')
-    .trim();
-}
-
-/* ── وضعیت ──────────────────────────────────────────────────── */
-var BY_ID = {};
-ASSETS.forEach(function (a) {
-  BY_ID[a.id] = a;
-  a._hay = norm([a.name, a.sym, a.id].concat(a.alias || []).join(' '));
-});
-
-var state = {
-  from: 'irt',
-  to: 'usdt',
-  amount: 10000000,
-  edited: 'from',          // کدام فیلد آخرین‌بار ویرایش شده
-  prices: {},              // id → قیمت به تومان
-  updated: null,
-  seed: false,
-  stale: false,
-  pickerSide: null
-};
-
-var els = {};
-['amount-from', 'amount-to', 'asset-from', 'asset-to', 'chips-from', 'chips-to',
- 'swap', 'rate-text', 'rate-meta', 'refresh', 'theme', 'banner', 'picker',
- 'picker-close', 'picker-list', 'picker-empty', 'search', 'tabs',
- 'ladder-body', 'ladder-title', 'ladder-h1', 'ladder-h2'].forEach(function (id) {
-  els[id] = document.getElementById(id);
-});
-
-/* ── تبدیل ──────────────────────────────────────────────────── */
-function priceOf(id) {
-  if (id === 'irt') return 1;
-  var p = state.prices[id];
-  return (typeof p === 'number' && p > 0) ? p : null;
-}
-function convert(amount, fromId, toId) {
-  var pf = priceOf(fromId), pt = priceOf(toId);
-  if (pf == null || pt == null || !isFinite(amount)) return null;
-  return amount * pf / pt;
-}
-
-/* ── رندر ───────────────────────────────────────────────────── */
-function paintAssetBtn(btn, asset) {
-  var ico = btn.querySelector('[data-ico]');
-  ico.textContent = asset.glyph;
-  ico.style.background = asset.color;
-  btn.querySelector('[data-name]').textContent = asset.name;
-  btn.querySelector('[data-sym]').textContent = asset.sym;
-}
-
-var writing = false;   // جلوگیری از حلقهٔ رویداد بین دو ورودی
-
-function setInput(el, value) {
-  writing = true;
-  el.value = value;
-  writing = false;
-}
-
-function render() {
-  var A = BY_ID[state.from], B = BY_ID[state.to];
-  paintAssetBtn(els['asset-from'], A);
-  paintAssetBtn(els['asset-to'], B);
-
-  // مقدار سمت مقابلِ فیلدی که کاربر تایپ کرده را محاسبه کن
-  if (state.edited === 'from') {
-    var out = convert(state.amount, state.from, state.to);
-    setInput(els['amount-to'], out == null ? '' : fmt(out, B.dp));
-  } else {
-    var back = convert(state.amount, state.to, state.from);
-    setInput(els['amount-from'], back == null ? '' : fmt(back, A.dp));
+  function toEnglishDigits(value) {
+    return String(value).replace(/[۰-۹٠-٩]/g, function (digit) { return DIGIT_MAP[digit]; });
   }
 
-  paintChips();
-  paintRate();
-  paintLadder();
-  updateHash();
-}
-
-function paintRate() {
-  var A = BY_ID[state.from], B = BY_ID[state.to];
-  var one = convert(1, state.from, state.to);
-
-  if (one == null) {
-    els['rate-text'].textContent = 'قیمت ' +
-      (priceOf(state.from) == null ? A.name : B.name) + ' در دسترس نیست.';
-  } else {
-    els['rate-text'].textContent = '۱ ' + A.name + ' = ' + fmt(one, B.dp) + ' ' + B.name;
+  function parseAmount(value) {
+    var normalized = toEnglishDigits(value)
+      .replace(/[\s,٬،]/g, "")
+      .replace(/٫/g, ".");
+    if (!normalized || normalized === ".") return NaN;
+    var number = Number(normalized);
+    return Number.isFinite(number) && number >= 0 ? number : NaN;
   }
 
-  var meta = els['rate-meta'];
-  if (!state.updated) { meta.textContent = ''; return; }
-  var mins = Math.round((Date.now() - state.updated) / 60000);
-  var when = mins < 1 ? 'همین الان' :
-             mins < 60 ? toFaDigits(mins) + ' دقیقه پیش' :
-             toFaDigits(Math.round(mins / 60)) + ' ساعت پیش';
-  meta.textContent = 'آخرین به‌روزرسانی: ' + when;
-  meta.classList.toggle('stale', mins > 30);
-}
-
-function paintChips() {
-  [['from', els['chips-from']], ['to', els['chips-to']]].forEach(function (pair) {
-    var side = pair[0], box = pair[1];
-    // چیپ‌ها میان‌بُرِ همان انتخابگرند، پس باید همان محدودیت را داشته
-    // باشند وگرنه راه فراری برای ساختن مسیر غیرمجاز باقی می‌ماند.
-    var allowed = counterpartsOf(state[side === 'from' ? 'to' : 'from']);
-    box.innerHTML = '';
-    QUICK.forEach(function (id) {
-      if (allowed.indexOf(id) === -1) return;
-      var a = BY_ID[id]; if (!a) return;
-      var b = document.createElement('button');
-      b.type = 'button'; b.className = 'chip'; b.dataset.id = id;
-      b.textContent = a.name;
-      b.setAttribute('aria-pressed', String(id === state[side]));
-      b.addEventListener('click', function () { pick(side, id); });
-      box.appendChild(b);
-    });
-    // سمتی که فقط تومان می‌تواند باشد، چیپِ میان‌بر لازم ندارد
-    box.hidden = box.children.length <= 1;
-  });
-}
-
-function paintLadder() {
-  var A = BY_ID[state.from], B = BY_ID[state.to];
-  els['ladder-title'].textContent = 'جدول تبدیل ' + A.name + ' به ' + B.name;
-  els['ladder-h1'].textContent = A.name;
-  els['ladder-h2'].textContent = B.name;
-
-  var body = els['ladder-body'];
-  body.innerHTML = '';
-  if (convert(1, state.from, state.to) == null) return;
-
-  // پلهٔ پایه را از روی مقدار فعلی می‌سازیم تا ردیف‌ها معنادار باشند.
-  // اگر کاربر فیلد پایین را ویرایش کرده، state.amount در واحد مقصد است
-  // و باید اول به واحد مبدأ برگردد، وگرنه بزرگیِ ردیف‌ها غلط می‌شود.
-  var seed = state.edited === 'from'
-    ? state.amount
-    : convert(state.amount, state.to, state.from);
-  if (!isFinite(seed) || seed <= 0) seed = 1;
-  var unit = Math.pow(10, Math.floor(Math.log10(seed)));
-  [1, 2, 5, 10, 20, 50, 100].forEach(function (m) {
-    var v = unit * m;
-    var r = convert(v, state.from, state.to);
-    if (r == null) return;
-    var tr = document.createElement('tr');
-    var td1 = document.createElement('td');
-    var td2 = document.createElement('td');
-    td1.textContent = fmt(v, A.dp) + ' ' + A.name;
-    td2.textContent = fmt(r, B.dp) + ' ' + B.name;
-    tr.appendChild(td1); tr.appendChild(td2);
-    body.appendChild(tr);
-  });
-}
-
-/* ── انتخاب دارایی ──────────────────────────────────────────── */
-function pick(side, id) {
-  if (!BY_ID[id]) return;
-
-  // مقدار را به واحد مبدأ برگردان *قبل از* عوض شدن دارایی‌ها، وگرنه
-  // عددِ فیلد پایین با دارایی جدید دوباره تفسیر می‌شود. رفتار ثابت:
-  // ورودی کاربر سر جایش می‌ماند و فقط خروجی دوباره حساب می‌شود.
-  if (state.edited === 'to') {
-    var asFrom = convert(state.amount, state.to, state.from);
-    if (asFrom != null) { state.amount = asFrom; state.edited = 'from'; }
+  function formatNumber(value, decimals) {
+    if (!Number.isFinite(value)) return "";
+    var maximumFractionDigits = decimals;
+    if (value > 0 && value < 1) maximumFractionDigits = Math.max(decimals, 6);
+    return new Intl.NumberFormat("fa-IR", {
+      maximumFractionDigits: maximumFractionDigits,
+      minimumFractionDigits: 0
+    }).format(value).replace(/−/g, "-");
   }
 
-  var other = side === 'from' ? 'to' : 'from';
-  if (state[other] === id) {            // انتخاب تکراری ⇒ جابه‌جایی
-    state[other] = state[side];
+  function formatTime(date) {
+    if (!date) return "";
+    return new Intl.DateTimeFormat("fa-IR", {
+      hour: "2-digit",
+      minute: "2-digit"
+    }).format(date);
   }
-  state[side] = id;
 
-  // مسیر غیرمجاز (مثلاً یورو به پوند) هرگز نباید ساخته شود. به‌جای
-  // بستنِ راه، سمت دیگر را روی تومان می‌گذاریم تا کاربر گیر نکند.
-  if (!isAllowedPair(state.from, state.to)) state[other] = 'irt';
-
-  if (state.edited === 'from') {
-    setInput(els['amount-from'], fmt(state.amount, BY_ID[state.from].dp));
+  function convert(amount, from) {
+    if (!Number.isFinite(state.rate) || state.rate <= 0 || !Number.isFinite(amount)) return null;
+    return from === "usdt" ? amount * state.rate : amount / state.rate;
   }
-  render();
-}
 
-function swap() {
-  var f = state.from;
-  state.from = state.to;
-  state.to = f;
-  // مقدارِ نمایش‌داده‌شده در سمت مقصد به مبدأ منتقل می‌شود
-  var shown = parseAmount(els['amount-to'].value);
-  if (isFinite(shown) && shown > 0) state.amount = shown;
-  state.edited = 'from';
-  setInput(els['amount-from'], fmt(state.amount, BY_ID[state.from].dp));
-  els['swap'].classList.toggle('turn');
-  render();
-}
+  function setInput(input, value) {
+    writing = true;
+    input.value = value;
+    writing = false;
+  }
 
-/* ── ورودی‌ها با حفظ مکان نشانگر ────────────────────────────── */
-function attachInput(el, side) {
-  el.addEventListener('input', function () {
-    if (writing) return;
-    var caret = el.selectionStart;
-    var raw = el.value;
-    var digitsBefore = toEnDigits(raw.slice(0, caret)).replace(/[^\d.]/g, '').length;
+  function paintCurrency(container, currency) {
+    container.setAttribute("aria-label", currency.name);
+    container.innerHTML =
+      '<span class="currency-icon ' + currency.iconClass + '" aria-hidden="true">' + currency.icon + "</span>" +
+      '<span class="currency-text"><strong>' + currency.code + "</strong><small>" + currency.name + "</small></span>";
+  }
 
-    var n = parseAmount(raw);
-    state.edited = side;
-    state.amount = isFinite(n) ? n : NaN;
+  function paintConversion() {
+    var fromCurrency = currencies[state.from];
+    var toCurrency = currencies[state.to];
+    paintCurrency(elements.currencyFrom, fromCurrency);
+    paintCurrency(elements.currencyTo, toCurrency);
 
-    // سه‌رقمی‌کردن فقط برای عددِ صحیح. اگر کاربر نقطهٔ اعشار زده باشد
-    // دست نمی‌زنیم، وگرنه fmt() اعشارِ در حال تایپ را حذف می‌کند
-    // (مثلاً «۱۵۰۰.۷۵» در فیلد دلار به «۱٬۵۰۰» تبدیل می‌شد).
-    if (isFinite(n) && !/[.٫]/.test(toEnDigits(raw))) {
-      var formatted = fmt(n, 0);
-      setInput(el, formatted);
-      // نشانگر را پس از همان تعداد رقم قرار بده
-      var seen = 0, pos = 0;
-      for (; pos < formatted.length && seen < digitsBefore; pos++) {
-        if (/[۰-۹.]/.test(formatted[pos])) seen++;
-      }
-      try { el.setSelectionRange(pos, pos); } catch (e) {}
-    }
-
-    if (side === 'from') {
-      var out = convert(state.amount, state.from, state.to);
-      setInput(els['amount-to'], out == null ? '' : fmt(out, BY_ID[state.to].dp));
+    if (state.edited === "from") {
+      var result = convert(state.amount, state.from);
+      setInput(elements.amountTo, result === null ? "" : formatNumber(result, toCurrency.decimals));
     } else {
-      var back = convert(state.amount, state.to, state.from);
-      setInput(els['amount-from'], back == null ? '' : fmt(back, BY_ID[state.from].dp));
+      var reverseResult = convert(state.amount, state.to);
+      setInput(elements.amountFrom, reverseResult === null ? "" : formatNumber(reverseResult, fromCurrency.decimals));
     }
-    paintLadder();
-  });
-
-  el.addEventListener('focus', function () { el.select(); });
-}
-
-/* ── پنجرهٔ انتخاب ──────────────────────────────────────────── */
-var picker = { cat: 'all', q: '', rows: [], cursor: 0 };
-
-function openPicker(side) {
-  state.pickerSide = side;
-  picker.q = ''; picker.cat = 'all'; picker.cursor = 0;
-  els['search'].value = '';
-  // فقط مقصدهای مجاز برای سمت مقابل. سمت مقابل تا وقتی این پنجره باز
-  // است ثابت می‌ماند، پس یک‌بار حساب کردن کافی است.
-  //
-  // خودِ سمت مقابل هم در فهرست می‌ماند: انتخابش یعنی «مسیر را برعکس
-  // کن». همین است که وقتی مقصد تومان است، تومان در فهرست مبدأ دیده
-  // می‌شود و انتخابش تبدیل را به «تومان به آن دارایی» برمی‌گرداند.
-  var otherId = state[side === 'from' ? 'to' : 'from'];
-  picker.allowed = counterpartsOf(otherId).concat([otherId]);
-  buildTabs();
-  renderPicker();
-  els['picker'].hidden = false;
-  document.body.style.overflow = 'hidden';
-  setTimeout(function () { els['search'].focus(); }, 30);
-}
-function closePicker() {
-  els['picker'].hidden = true;
-  document.body.style.overflow = '';
-  var btn = document.getElementById('asset-' + state.pickerSide);
-  if (btn) btn.focus();
-  state.pickerSide = null;
-}
-
-function buildTabs() {
-  // بدون کش: مجموعهٔ دسته‌های مجاز با هر بار باز شدن فرق می‌کند
-  els['tabs'].innerHTML = '';
-
-  // دسته‌ای که هیچ گزینهٔ مجازی ندارد اصلاً تب نمی‌گیرد
-  var live = CATEGORIES.filter(function (c) {
-    if (c.id === 'all') return true;
-    return ASSETS.some(function (a) {
-      return a.cat === c.id && picker.allowed.indexOf(a.id) !== -1;
-    });
-  });
-  // اگر فقط یک دستهٔ واقعی مانده، نوار تب بی‌فایده است
-  if (live.length <= 2) { els['tabs'].hidden = true; return; }
-  els['tabs'].hidden = false;
-
-  live.forEach(function (c) {
-    var b = document.createElement('button');
-    b.type = 'button'; b.className = 'tab'; b.dataset.cat = c.id;
-    b.setAttribute('role', 'tab');
-    b.setAttribute('aria-selected', String(c.id === picker.cat));
-    b.textContent = c.label;
-    b.addEventListener('click', function () {
-      picker.cat = c.id; picker.cursor = 0;
-      buildTabs(); renderPicker();
-    });
-    els['tabs'].appendChild(b);
-  });
-}
-
-function matches(a) {
-  if (picker.allowed.indexOf(a.id) === -1) return false;
-  if (picker.cat !== 'all' && a.cat !== picker.cat) return false;
-  if (!picker.q) return true;
-  var terms = picker.q.split(' ');
-  return terms.every(function (t) { return a._hay.indexOf(t) !== -1; });
-}
-
-function renderPicker() {
-  var list = els['picker-list'];
-  list.innerHTML = '';
-  picker.rows = ASSETS.filter(matches);
-
-  els['picker-empty'].hidden = picker.rows.length > 0;
-  if (!picker.rows.length) return;
-
-  var current = state[state.pickerSide];
-  var lastCat = null;
-
-  picker.rows.forEach(function (a, i) {
-    if (picker.cat === 'all' && a.cat !== lastCat) {
-      lastCat = a.cat;
-      var h = document.createElement('li');
-      h.className = 'grp';
-      h.setAttribute('role', 'presentation');
-      h.textContent = (CATEGORIES.filter(function (c) { return c.id === a.cat; })[0] || {}).label || '';
-      list.appendChild(h);
-    }
-    var li = document.createElement('li');
-    li.setAttribute('role', 'presentation');
-
-    var b = document.createElement('button');
-    b.type = 'button';
-    b.className = 'opt' + (i === picker.cursor ? ' cursor' : '');
-    b.setAttribute('role', 'option');
-    b.setAttribute('aria-selected', String(a.id === current));
-    b.dataset.id = a.id;
-
-    var ico = document.createElement('span');
-    ico.className = 'asset-ico';
-    ico.style.background = a.color;
-    ico.textContent = a.glyph;
-
-    var txt = document.createElement('span');
-    txt.className = 'opt-text';
-    var n1 = document.createElement('span'); n1.className = 'opt-name'; n1.textContent = a.name;
-    var n2 = document.createElement('span'); n2.className = 'opt-sub';  n2.textContent = a.sym;
-    txt.appendChild(n1); txt.appendChild(n2);
-
-    var pr = document.createElement('span');
-    pr.className = 'opt-price';
-    var p = priceOf(a.id);
-    pr.textContent = (a.id === 'irt' || p == null) ? '' : fmtCompact(p) + ' ت';
-
-    b.appendChild(ico); b.appendChild(txt); b.appendChild(pr);
-    b.addEventListener('click', function () {
-      pick(state.pickerSide, a.id);
-      closePicker();
-    });
-    li.appendChild(b);
-    list.appendChild(li);
-  });
-}
-
-function moveCursor(delta) {
-  if (!picker.rows.length) return;
-  picker.cursor = (picker.cursor + delta + picker.rows.length) % picker.rows.length;
-  var opts = els['picker-list'].querySelectorAll('.opt');
-  Array.prototype.forEach.call(opts, function (o, i) {
-    o.classList.toggle('cursor', i === picker.cursor);
-    if (i === picker.cursor) o.scrollIntoView({ block: 'nearest' });
-  });
-}
-
-/* ── همگام‌سازی با آدرس صفحه (لینک اشتراک‌پذیر) ─────────────── */
-var hashLock = false;
-function updateHash() {
-  hashLock = true;
-  var h = '#' + state.from + '-' + state.to;
-  if (location.hash !== h) history.replaceState(null, '', h);
-  setTimeout(function () { hashLock = false; }, 0);
-}
-function readHash() {
-  var m = /^#([a-z0-9_]+)-([a-z0-9_]+)$/.exec(location.hash || '');
-  // لینک قدیمی یا دستکاری‌شده نباید مسیر غیرمجاز را زنده کند
-  if (m && BY_ID[m[1]] && BY_ID[m[2]] && isAllowedPair(m[1], m[2])) {
-    state.from = m[1]; state.to = m[2];
-    return true;
   }
-  return false;
-}
 
-/* ── قیمت‌ها ────────────────────────────────────────────────── */
-function withTimeout(promise, ms) {
-  return new Promise(function (resolve, reject) {
-    var t = setTimeout(function () { reject(new Error('timeout')); }, ms);
-    promise.then(function (v) { clearTimeout(t); resolve(v); },
-                 function (e) { clearTimeout(t); reject(e); });
-  });
-}
+  function paintRate() {
+    if (!Number.isFinite(state.rate) || state.rate <= 0) {
+      elements.rateValue.textContent = state.loading ? "در حال دریافت…" : "نرخ در دسترس نیست";
+      elements.rateStatus.classList.toggle("error", !state.loading);
+      elements.rateStatus.innerHTML = '<span class="status-dot" aria-hidden="true"></span>' +
+        (state.loading ? "اتصال به نوبیتکس" : "خطا در دریافت نرخ");
+      elements.sourceNote.querySelector("span").textContent = state.loading
+        ? "در حال دریافت آخرین قیمت عمومی بازار نوبیتکس"
+        : "لطفاً اتصال اینترنت را بررسی و دوباره تلاش کنید.";
+      return;
+    }
 
-/** ۱) عکس فوری ذخیره‌شده در ریپو — همیشه در دسترس، بدون CORS */
-function loadSnapshot() {
-  return withTimeout(fetch('data/prices.json?t=' + Date.now()).then(function (r) {
-    if (!r.ok) throw new Error('http ' + r.status);
-    return r.json();
-  }), 8000).then(function (j) {
-    if (j && j.prices) {
-      Object.keys(j.prices).forEach(function (k) {
-        var v = j.prices[k];
-        if (typeof v === 'number' && v > 0) state.prices[k] = v;
+    elements.rateValue.textContent = "۱ تتر = " + formatNumber(state.rate, 0) + " تومان";
+    elements.rateStatus.classList.toggle("error", !state.live);
+    elements.rateStatus.innerHTML = '<span class="status-dot" aria-hidden="true"></span>' +
+      (state.live ? "به‌روز در " + formatTime(state.updatedAt) : "نمایش آخرین نرخ ذخیره‌شده");
+    elements.sourceNote.querySelector("span").textContent = state.live
+      ? "قیمت عمومی بازار نوبیتکس؛ بدون کارمزد معامله"
+      : "ارتباط زنده برقرار نشد؛ این نرخ ممکن است قدیمی باشد.";
+  }
+
+  function paint() {
+    paintConversion();
+    paintRate();
+    history.replaceState(null, "", "#" + state.from + "-" + state.to);
+  }
+
+  function formatInputWhileTyping(input, amount) {
+    var raw = input.value;
+    if (!Number.isFinite(amount) || /[.٫]/.test(raw)) return;
+    var caret = input.selectionStart || raw.length;
+    var digitsBefore = toEnglishDigits(raw.slice(0, caret)).replace(/\D/g, "").length;
+    var formatted = formatNumber(amount, 0);
+    setInput(input, formatted);
+
+    var seen = 0;
+    var position = 0;
+    while (position < formatted.length && seen < digitsBefore) {
+      if (/[۰-۹]/.test(formatted[position])) seen += 1;
+      position += 1;
+    }
+    try { input.setSelectionRange(position, position); } catch (error) { /* unsupported input type */ }
+  }
+
+  function onInput(side, input) {
+    input.addEventListener("input", function () {
+      if (writing) return;
+      var amount = parseAmount(input.value);
+      state.edited = side;
+      state.amount = amount;
+      formatInputWhileTyping(input, amount);
+      paintConversion();
+    });
+  }
+
+  function readDirection() {
+    if (location.hash === "#irt-usdt") {
+      state.from = "irt";
+      state.to = "usdt";
+      state.amount = 10000000;
+      setInput(elements.amountFrom, formatNumber(state.amount, 0));
+    }
+  }
+
+  function swapCurrencies() {
+    var visibleResult = parseAmount(elements.amountTo.value);
+    var previousFrom = state.from;
+    state.from = state.to;
+    state.to = previousFrom;
+    state.edited = "from";
+    state.amount = Number.isFinite(visibleResult) ? visibleResult : 0;
+    setInput(elements.amountFrom, formatNumber(state.amount, currencies[state.from].decimals));
+    elements.swap.classList.toggle("turned");
+    paint();
+    elements.amountFrom.focus();
+    elements.amountFrom.select();
+  }
+
+  function withTimeout(promise, milliseconds) {
+    return new Promise(function (resolve, reject) {
+      var timer = setTimeout(function () { reject(new Error("timeout")); }, milliseconds);
+      promise.then(function (value) {
+        clearTimeout(timer);
+        resolve(value);
+      }, function (error) {
+        clearTimeout(timer);
+        reject(error);
       });
-      // updated زمانِ *اجرای* ورک‌فلو است، نه زمان تازگی داده. اگر آن اجرا
-      // هیچ منبعی نگرفته باشد (stale)، این زمان را باور نمی‌کنیم.
-      state.updated = j.updated ? Date.parse(j.updated) : Date.now();
-      state.seed = !!j.seed;
-      state.stale = !!j.stale;
-    }
-  });
-}
-
-/** ۲) نوبیتکس مستقیم از مرورگر — تازه‌ترین قیمت تومانی رمزارزها */
-function loadNobitex() {
-  var list = ASSETS.filter(function (a) { return a.nobitex; });
-  var src = list.map(function (a) { return a.nobitex; }).join(',');
-  var path = '/market/stats?srcCurrency=' + src + '&dstCurrency=rls';
-  // اگر یکی از دو میزبان در دسترس نبود یا CORS نداد، دیگری امتحان می‌شود
-  var hosts = ['https://api.nobitex.ir', 'https://apiv2.nobitex.ir'];
-
-  function tryHost(i) {
-    if (i >= hosts.length) return Promise.reject(new Error('همهٔ میزبان‌ها ناموفق'));
-    return withTimeout(fetch(hosts[i] + path).then(function (r) {
-      if (!r.ok) throw new Error('http ' + r.status);
-      return r.json();
-    }), 7000).catch(function () { return tryHost(i + 1); });
+    });
   }
 
-  return tryHost(0).then(function (j) {
-    if (!j || !j.stats) throw new Error('bad payload');
-    var hit = 0;
-    list.forEach(function (a) {
-      var s = j.stats[a.nobitex + '-rls'];
-      if (!s) return;
-      var rial = parseFloat(s.latest);
-      if (isFinite(rial) && rial > 0) {
-        state.prices[a.id] = rial / 10;   // ریال → تومان
-        hit++;
+  function fetchJson(url, timeout) {
+    return withTimeout(fetch(url, { cache: "no-store" }).then(function (response) {
+      if (!response.ok) throw new Error("HTTP " + response.status);
+      return response.json();
+    }), timeout);
+  }
+
+  function loadSnapshot() {
+    return fetchJson("data/prices.json?t=" + Date.now(), 5000).then(function (payload) {
+      var savedRate = Number(payload.rate || (payload.prices && payload.prices.usdt));
+      if (Number.isFinite(savedRate) && savedRate > 0) {
+        state.rate = savedRate;
+        state.updatedAt = payload.updated ? new Date(payload.updated) : null;
+        state.live = false;
+        paint();
       }
-    });
-    if (!hit) throw new Error('no stats');
-    state.updated = Date.now();
-    state.seed = false;
-    state.stale = false;
-  });
-}
+    }).catch(function () { /* snapshot is only a fallback */ });
+  }
 
-function showBanner(msg) {
-  els['banner'].textContent = msg;
-  els['banner'].hidden = false;
-}
-function hideBanner() { els['banner'].hidden = true; }
+  function extractNobitexRate(payload) {
+    var stats = payload && payload.stats;
+    var market = stats && (stats["usdt-rls"] || stats.USDTIRT || stats.usdt_rls);
+    var rial = Number(market && market.latest);
+    if (!Number.isFinite(rial) || rial <= 0) throw new Error("invalid payload");
+    return rial / 10;
+  }
 
-/* عکس فوری و نوبیتکس باید *پشت سر هم* اجرا شوند، نه موازی: اگر
-   موازی باشند و پاسخ فایل دیرتر برسد، دادهٔ تازهٔ نوبیتکس را
-   بازنویسی می‌کند. نوبیتکس همیشه حرف آخر را می‌زند. */
-function refresh() {
-  els['refresh'].classList.add('spin');
-  hideBanner();
+  function loadLiveRate() {
+    var endpoints = [
+      "https://api.nobitex.ir/market/stats?srcCurrency=usdt&dstCurrency=rls",
+      "https://apiv2.nobitex.ir/market/stats?srcCurrency=usdt&dstCurrency=rls"
+    ];
 
-  var snapOk = false, liveOk = false;
-
-  return loadSnapshot()
-    .then(function () { snapOk = true; }, function () {})
-    .then(function () {
-      return loadNobitex().then(function () { liveOk = true; }, function () {});
-    })
-    .then(function () {
-      els['refresh'].classList.remove('spin');
-
-      if (!Object.keys(state.prices).length) {
-        showBanner('دریافت قیمت‌ها ممکن نشد. اتصال اینترنت را بررسی کنید و دوباره تلاش کنید.');
-      } else if (state.seed) {
-        showBanner('قیمت‌ها هنوز به‌روزرسانی نشده‌اند و مقادیر نمونه‌اند — به آن‌ها استناد نکنید.');
-      } else if (state.stale && !liveOk) {
-        showBanner('هیچ‌کدام از منابع قیمت در دسترس نیستند و اعداد زیر قدیمی‌اند.');
-      } else if (!snapOk && !liveOk) {
-        showBanner('قیمت‌ها ممکن است قدیمی باشند.');
-      }
-      render();
-    });
-}
-
-/* ── پوسته ──────────────────────────────────────────────────── */
-function initTheme() {
-  var saved = null;
-  try { saved = localStorage.getItem('mobadel-theme'); } catch (e) {}
-  if (saved) document.documentElement.setAttribute('data-theme', saved);
-
-  els['theme'].addEventListener('click', function () {
-    var cur = document.documentElement.getAttribute('data-theme');
-    if (!cur) {
-      cur = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    function attempt(index) {
+      if (index >= endpoints.length) return Promise.reject(new Error("Nobitex unavailable"));
+      return fetchJson(endpoints[index], 8000).catch(function () { return attempt(index + 1); });
     }
-    var next = cur === 'dark' ? 'light' : 'dark';
-    document.documentElement.setAttribute('data-theme', next);
-    try { localStorage.setItem('mobadel-theme', next); } catch (e) {}
-  });
-}
 
-/* ── راه‌اندازی ─────────────────────────────────────────────── */
-function init() {
-  initTheme();
-  readHash();
+    state.loading = true;
+    elements.refresh.classList.add("loading");
+    elements.refresh.disabled = true;
+    paintRate();
 
-  attachInput(els['amount-from'], 'from');
-  attachInput(els['amount-to'], 'to');
+    return attempt(0).then(function (payload) {
+      state.rate = extractNobitexRate(payload);
+      state.updatedAt = new Date();
+      state.live = true;
+      state.loading = false;
+      paint();
+    }).catch(function () {
+      state.loading = false;
+      state.live = false;
+      paint();
+    }).finally(function () {
+      elements.refresh.classList.remove("loading");
+      elements.refresh.disabled = false;
+    });
+  }
 
-  els['swap'].addEventListener('click', swap);
-  els['refresh'].addEventListener('click', function () { refresh(); });
-  els['asset-from'].addEventListener('click', function () { openPicker('from'); });
-  els['asset-to'].addEventListener('click', function () { openPicker('to'); });
-  els['picker-close'].addEventListener('click', closePicker);
-
-  els['picker'].addEventListener('mousedown', function (e) {
-    if (e.target === els['picker']) closePicker();
-  });
-
-  els['search'].addEventListener('input', function () {
-    picker.q = norm(els['search'].value);
-    picker.cursor = 0;
-    renderPicker();
-  });
-
-  els['search'].addEventListener('keydown', function (e) {
-    if (e.key === 'ArrowDown') { e.preventDefault(); moveCursor(1); }
-    else if (e.key === 'ArrowUp') { e.preventDefault(); moveCursor(-1); }
-    else if (e.key === 'Enter') {
-      e.preventDefault();
-      var a = picker.rows[picker.cursor];
-      if (a) { pick(state.pickerSide, a.id); closePicker(); }
-    }
-  });
-
-  document.addEventListener('keydown', function (e) {
-    if (e.key === 'Escape' && !els['picker'].hidden) closePicker();
-  });
-
-  window.addEventListener('hashchange', function () {
-    if (hashLock) return;
-    if (readHash()) render();
-  });
-
-  setInput(els['amount-from'], fmt(state.amount, 0));
-  render();
-  refresh();
-
-  // تازه‌سازی خودکار هنگام بازگشت به تب و هر ۲ دقیقه
-  setInterval(function () {
-    if (!document.hidden) refresh();
-  }, 120000);
-  document.addEventListener('visibilitychange', function () {
-    if (!document.hidden && state.updated && Date.now() - state.updated > 120000) refresh();
-  });
-}
-
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', init);
-} else {
-  init();
-}
-
+  readDirection();
+  onInput("from", elements.amountFrom);
+  onInput("to", elements.amountTo);
+  elements.swap.addEventListener("click", swapCurrencies);
+  elements.refresh.addEventListener("click", loadLiveRate);
+  paint();
+  loadSnapshot().finally(loadLiveRate);
 })();
