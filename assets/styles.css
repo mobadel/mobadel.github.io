@@ -207,6 +207,7 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
 
 .field-control {
   display: flex;
+  flex-direction: row-reverse;
   min-height: 92px;
   align-items: center;
   gap: 14px;
@@ -236,7 +237,7 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
   font-weight: 700;
   line-height: 1.2;
   direction: ltr;
-  text-align: right;
+  text-align: left;
   letter-spacing: -.02em;
 }
 
@@ -266,7 +267,11 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
   font-weight: 700;
 }
 
-.currency-icon.tether { background: #26a17b; }
+.currency-icon.tether {
+  overflow: hidden;
+  color: transparent;
+  background: #26a17b url("usdt-logo.svg") center / cover no-repeat;
+}
 .currency-icon.toman { background: #24352f; }
 
 .currency-text {
