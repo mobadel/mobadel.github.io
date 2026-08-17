@@ -268,7 +268,7 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
 .currency-icon.tether {
   overflow: hidden;
   color: transparent;
-  background: #26a17b url("usdt-logo.svg") center / cover no-repeat;
+  background: #26a17b url("usdt-logo.svg?v=20260817-2") center / cover no-repeat;
 }
 .currency-icon.toman {
   overflow: hidden;
