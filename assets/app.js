@@ -82,7 +82,7 @@
     container.setAttribute("aria-label", currency.name);
     container.innerHTML =
       '<span class="currency-icon ' + currency.iconClass + '" aria-hidden="true">' + currency.icon + "</span>" +
-      '<span class="currency-text"><strong>' + currency.code + "</strong><small>" + currency.name + "</small></span>" +
+      '<span class="currency-text"><strong>' + currency.name + "</strong><small>" + currency.code + "</small></span>" +
       '<span class="currency-chevron" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m7 10 5 5 5-5"/></svg></span>';
   }
 

@@ -283,8 +283,8 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
   line-height: 1.25;
 }
 
-.currency-text strong { font-size: 15px; direction: ltr; }
-.currency-text small { color: var(--muted); font-size: 12px; }
+.currency-text strong { font-size: 15px; }
+.currency-text small { color: var(--muted); font-size: 12px; direction: ltr; }
 
 .currency-chevron {
   display: grid;
