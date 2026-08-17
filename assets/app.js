@@ -12,9 +12,9 @@
   };
 
   var state = {
-    from: "usdt",
-    to: "irt",
-    amount: 100,
+    from: "irt",
+    to: "usdt",
+    amount: 10000000,
     edited: "from",
     rate: null,
     updatedAt: null,
@@ -27,9 +27,9 @@
     amountTo: document.getElementById("amount-to"),
     currencyFrom: document.getElementById("currency-from"),
     currencyTo: document.getElementById("currency-to"),
+    pageTitle: document.getElementById("page-title"),
     rateValue: document.getElementById("rate-value"),
     rateStatus: document.getElementById("rate-status"),
-    sourceNote: document.getElementById("source-note"),
     swap: document.getElementById("swap"),
     refresh: document.getElementById("refresh")
   };
@@ -82,12 +82,16 @@
     container.setAttribute("aria-label", currency.name);
     container.innerHTML =
       '<span class="currency-icon ' + currency.iconClass + '" aria-hidden="true">' + currency.icon + "</span>" +
-      '<span class="currency-text"><strong>' + currency.code + "</strong><small>" + currency.name + "</small></span>";
+      '<span class="currency-text"><strong>' + currency.code + "</strong><small>" + currency.name + "</small></span>" +
+      '<span class="currency-chevron" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m7 10 5 5 5-5"/></svg></span>';
   }
 
   function paintConversion() {
     var fromCurrency = currencies[state.from];
     var toCurrency = currencies[state.to];
+    var conversionTitle = "تبدیل " + fromCurrency.name + " به " + toCurrency.name;
+    elements.pageTitle.textContent = conversionTitle;
+    document.title = conversionTitle.replace("تبدیل", "مبدل") + " | نرخ لحظه‌ای USDT";
     paintCurrency(elements.currencyFrom, fromCurrency);
     paintCurrency(elements.currencyTo, toCurrency);
 
@@ -106,25 +110,18 @@
       elements.rateStatus.classList.toggle("error", !state.loading);
       elements.rateStatus.innerHTML = '<span class="status-dot" aria-hidden="true"></span>' +
         (state.loading ? "اتصال به نوبیتکس" : "خطا در دریافت نرخ");
-      elements.sourceNote.querySelector("span").textContent = state.loading
-        ? "در حال دریافت آخرین قیمت عمومی بازار نوبیتکس"
-        : "لطفاً اتصال اینترنت را بررسی و دوباره تلاش کنید.";
       return;
     }
 
     elements.rateValue.textContent = "۱ تتر = " + formatNumber(state.rate, 0) + " تومان";
     elements.rateStatus.classList.toggle("error", !state.live);
     elements.rateStatus.innerHTML = '<span class="status-dot" aria-hidden="true"></span>' +
-      (state.live ? "به‌روز در " + formatTime(state.updatedAt) : "نمایش آخرین نرخ ذخیره‌شده");
-    elements.sourceNote.querySelector("span").textContent = state.live
-      ? "قیمت عمومی بازار نوبیتکس؛ بدون کارمزد معامله"
-      : "ارتباط زنده برقرار نشد؛ این نرخ ممکن است قدیمی باشد.";
+      (state.live ? "آخرین به‌روزرسانی " + formatTime(state.updatedAt) : "نمایش آخرین نرخ ذخیره‌شده");
   }
 
   function paint() {
     paintConversion();
     paintRate();
-    history.replaceState(null, "", "#" + state.from + "-" + state.to);
   }
 
   function formatInputWhileTyping(input, amount) {
@@ -155,13 +152,8 @@
     });
   }
 
-  function readDirection() {
-    if (location.hash === "#irt-usdt") {
-      state.from = "irt";
-      state.to = "usdt";
-      state.amount = 10000000;
-      setInput(elements.amountFrom, formatNumber(state.amount, 0));
-    }
+  function clearLegacyHash() {
+    if (location.hash) history.replaceState(null, "", location.pathname + location.search);
   }
 
   function swapCurrencies() {
@@ -250,7 +242,7 @@
     });
   }
 
-  readDirection();
+  clearLegacyHash();
   onInput("from", elements.amountFrom);
   onInput("to", elements.amountTo);
   elements.swap.addEventListener("click", swapCurrencies);

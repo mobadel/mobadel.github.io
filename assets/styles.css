@@ -158,14 +158,12 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
 .rate-summary {
   display: grid;
   grid-template-columns: 1fr auto;
-  align-items: end;
+  align-items: center;
   gap: 2px 16px;
   margin-bottom: 24px;
   padding-bottom: 22px;
   border-bottom: 1px solid var(--border);
 }
-
-.rate-label { color: var(--muted); font-size: 13px; }
 
 .rate-value {
   grid-column: 1;
@@ -176,7 +174,7 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
 
 .rate-status {
   grid-column: 2;
-  grid-row: 1 / span 2;
+  grid-row: 1;
   align-self: center;
   display: inline-flex;
   align-items: center;
@@ -249,9 +247,9 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
   align-items: center;
   gap: 10px;
   padding: 9px 11px;
-  border: 1px solid var(--border);
+  border: 0;
   border-radius: 14px;
-  background: #fff;
+  background: transparent;
   user-select: none;
 }
 
@@ -284,6 +282,15 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
 .currency-text strong { font-size: 15px; direction: ltr; }
 .currency-text small { color: var(--muted); font-size: 12px; }
 
+.currency-chevron {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  color: var(--subtle);
+}
+
+.currency-chevron svg { width: 17px; height: 17px; stroke-width: 2; }
+
 .swap-divider {
   display: flex;
   align-items: center;
@@ -311,20 +318,6 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
 .swap-button:hover { border-color: var(--green); background: var(--green-soft); }
 .swap-button:active { transform: scale(.92); }
 .swap-button.turned { transform: rotate(180deg); }
-
-.source-note {
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-  margin-top: 22px;
-  padding: 12px 14px;
-  border-radius: 13px;
-  color: var(--muted);
-  background: var(--green-soft);
-  font-size: 12.5px;
-}
-
-.source-note svg { width: 18px; height: 18px; flex: 0 0 auto; margin-top: 1px; color: var(--green-dark); }
 
 @media (max-width: 560px) {
   .shell { width: min(100% - 24px, 720px); }
