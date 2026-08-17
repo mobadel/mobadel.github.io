@@ -270,7 +270,11 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
   color: transparent;
   background: #26a17b url("usdt-logo.svg") center / cover no-repeat;
 }
-.currency-icon.toman { background: #24352f; }
+.currency-icon.toman {
+  overflow: hidden;
+  color: transparent;
+  background: transparent url("https://cdn.jsdelivr.net/gh/lipis/flag-icons@7.3.2/flags/1x1/ir.svg") center / cover no-repeat;
+}
 
 .currency-text {
   display: flex;
