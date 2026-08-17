@@ -91,7 +91,6 @@
     var toCurrency = currencies[state.to];
     var conversionTitle = "تبدیل " + fromCurrency.name + " به " + toCurrency.name;
     elements.pageTitle.textContent = conversionTitle;
-    document.title = conversionTitle.replace("تبدیل", "مبدل") + " | نرخ لحظه‌ای USDT";
     paintCurrency(elements.currencyFrom, fromCurrency);
     paintCurrency(elements.currencyTo, toCurrency);
 

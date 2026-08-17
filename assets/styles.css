@@ -1,13 +1,13 @@
 @font-face {
   font-family: "Vazirmatn";
-  src: url("https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/fonts/webfonts/Vazirmatn-Regular.woff2") format("woff2");
+  src: url("fonts/Vazirmatn-Regular.woff2") format("woff2");
   font-weight: 400;
   font-display: swap;
 }
 
 @font-face {
   font-family: "Vazirmatn";
-  src: url("https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/fonts/webfonts/Vazirmatn-Bold.woff2") format("woff2");
+  src: url("fonts/Vazirmatn-Bold.woff2") format("woff2");
   font-weight: 700;
   font-display: swap;
 }
@@ -273,7 +273,7 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
 .currency-icon.toman {
   overflow: hidden;
   color: transparent;
-  background: transparent url("https://cdn.jsdelivr.net/gh/lipis/flag-icons@7.3.2/flags/1x1/ir.svg") center / cover no-repeat;
+  background: transparent url("flags/ir.svg") center / cover no-repeat;
 }
 
 .currency-text {
@@ -323,6 +323,36 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
 .swap-button:active { transform: scale(.92); }
 .swap-button.turned { transform: rotate(180deg); }
 
+.site-footer {
+  padding: 0 0 34px;
+}
+
+.rate-info {
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  color: var(--muted);
+  background: rgba(255, 255, 255, .68);
+}
+
+.rate-info summary {
+  padding: 13px 16px;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.rate-info summary::marker { color: var(--green); }
+
+.rate-info-copy {
+  padding: 0 16px 14px;
+  border-top: 1px solid var(--border);
+  font-size: 12px;
+  line-height: 1.9;
+}
+
+.rate-info-copy p { margin: 12px 0 0; }
+
 @media (max-width: 560px) {
   .shell { width: min(100% - 24px, 720px); }
   .site-header { padding-top: 16px; }
@@ -339,6 +369,7 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
   .currency-text strong { font-size: 13px; }
   .currency-text small { font-size: 11px; }
   .swap-divider { padding-inline: 8px; }
+  .site-footer { padding-bottom: 24px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

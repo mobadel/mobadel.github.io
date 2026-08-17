@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <radialGradient id="pageGlow" cx="50%" cy="0%" r="78%">
+      <stop offset="0" stop-color="#d9f1e8"/>
+      <stop offset="1" stop-color="#f4f7f5"/>
+    </radialGradient>
+    <linearGradient id="brandGradient" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#22a477"/>
+      <stop offset="1" stop-color="#0c694b"/>
+    </linearGradient>
+    <filter id="cardShadow" x="-20%" y="-30%" width="140%" height="170%">
+      <feDropShadow dx="0" dy="22" stdDeviation="24" flood-color="#1a3a2f" flood-opacity=".13"/>
+    </filter>
+    <clipPath id="usdtClip"><circle cx="286" cy="429" r="34"/></clipPath>
+    <clipPath id="irtClip"><circle cx="914" cy="429" r="34"/></clipPath>
+    <style>
+      @font-face {
+        font-family: Vazirmatn;
+        src: url("fonts/Vazirmatn-Regular.woff2") format("woff2");
+        font-weight: 400;
+      }
+      @font-face {
+        font-family: Vazirmatn;
+        src: url("fonts/Vazirmatn-Bold.woff2") format("woff2");
+        font-weight: 700;
+      }
+      text { font-family: Vazirmatn, Tahoma, Arial, sans-serif; }
+    </style>
+  </defs>
+
+  <rect width="1200" height="630" fill="url(#pageGlow)"/>
+  <circle cx="76" cy="92" r="126" fill="#16815f" opacity=".055"/>
+  <circle cx="1138" cy="558" r="170" fill="#16815f" opacity=".05"/>
+
+  <g filter="url(#cardShadow)">
+    <rect x="90" y="70" width="1020" height="490" rx="42" fill="#ffffff" stroke="#dce4e0" stroke-width="2"/>
+  </g>
+
+  <g transform="translate(1016 112)">
+    <rect width="58" height="58" rx="18" fill="url(#brandGradient)"/>
+    <path d="M16 21h27m0 0-7-7m7 7-7 7M42 38H15m0 0 7 7m-7-7 7-7" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+  <text x="996" y="151" fill="#10231c" font-size="28" font-weight="700" text-anchor="end">مبدل</text>
+
+  <text x="600" y="264" fill="#10231c" font-size="62" font-weight="700" text-anchor="middle" direction="rtl">تبدیل تومان و تتر</text>
+  <text x="600" y="315" fill="#60716a" font-size="25" font-weight="400" text-anchor="middle" direction="rtl">محاسبه سریع و رایگان با نرخ لحظه‌ای بازار</text>
+
+  <g>
+    <rect x="190" y="383" width="320" height="92" rx="26" fill="#f6f8f7" stroke="#dce4e0" stroke-width="2"/>
+    <image href="usdt-logo.svg" x="252" y="395" width="68" height="68" clip-path="url(#usdtClip)" preserveAspectRatio="xMidYMid slice"/>
+    <text x="348" y="425" fill="#10231c" font-size="25" font-weight="700" text-anchor="start">USDT</text>
+    <text x="348" y="454" fill="#60716a" font-size="18" text-anchor="start" direction="rtl">تتر</text>
+  </g>
+
+  <g>
+    <circle cx="600" cy="429" r="34" fill="#ffffff" stroke="#b8c7c0" stroke-width="2"/>
+    <path d="M591 411v36m0 0-7-7m7 7 7-7M609 447v-36m0 0-7 7m7-7 7 7" fill="none" stroke="#0c5f45" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+
+  <g>
+    <rect x="690" y="383" width="320" height="92" rx="26" fill="#f6f8f7" stroke="#dce4e0" stroke-width="2"/>
+    <image href="flags/ir.svg" x="880" y="395" width="68" height="68" clip-path="url(#irtClip)" preserveAspectRatio="xMidYMid slice"/>
+    <text x="852" y="425" fill="#10231c" font-size="25" font-weight="700" text-anchor="end">IRT</text>
+    <text x="852" y="454" fill="#60716a" font-size="18" text-anchor="end" direction="rtl">تومان</text>
+  </g>
+
+  <text x="600" y="525" fill="#16815f" font-size="20" font-weight="700" text-anchor="middle">mobadel.github.io</text>
+</svg>
