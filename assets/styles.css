@@ -323,36 +323,6 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
 .swap-button:active { transform: scale(.92); }
 .swap-button.turned { transform: rotate(180deg); }
 
-.site-footer {
-  padding: 0 0 34px;
-}
-
-.rate-info {
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  color: var(--muted);
-  background: rgba(255, 255, 255, .68);
-}
-
-.rate-info summary {
-  padding: 13px 16px;
-  color: var(--text);
-  font-size: 13px;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.rate-info summary::marker { color: var(--green); }
-
-.rate-info-copy {
-  padding: 0 16px 14px;
-  border-top: 1px solid var(--border);
-  font-size: 12px;
-  line-height: 1.9;
-}
-
-.rate-info-copy p { margin: 12px 0 0; }
-
 @media (max-width: 560px) {
   .shell { width: min(100% - 24px, 720px); }
   .site-header { padding-top: 16px; }
@@ -369,7 +339,6 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
   .currency-text strong { font-size: 13px; }
   .currency-text small { font-size: 11px; }
   .swap-divider { padding-inline: 8px; }
-  .site-footer { padding-bottom: 24px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
