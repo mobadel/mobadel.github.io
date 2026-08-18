@@ -114,7 +114,11 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
 .refresh-button:hover { color: var(--green-dark); border-color: var(--border-strong); background: #fff; }
 .refresh-button:active { transform: scale(.94); }
 .refresh-button.loading svg { animation: spin .75s linear infinite; }
-.refresh-button:focus-visible, .swap-button:focus-visible, input:focus-visible { outline: 3px solid rgba(22, 129, 95, .20); outline-offset: 2px; }
+.refresh-button:focus-visible, .swap-button:focus-visible, .currency-badge:focus-visible,
+.dialog-close:focus-visible, .asset-option:focus-visible, input:focus-visible {
+  outline: 3px solid rgba(22, 129, 95, .20);
+  outline-offset: 2px;
+}
 
 @keyframes spin { to { transform: rotate(-360deg); } }
 
@@ -251,7 +255,12 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
   border-radius: 14px;
   background: transparent;
   user-select: none;
+  cursor: pointer;
+  text-align: start;
+  transition: background .18s;
 }
+
+.currency-badge:hover { background: var(--surface-muted); }
 
 .currency-icon {
   display: grid;
@@ -263,18 +272,12 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
   color: #fff;
   font-size: 20px;
   font-weight: 700;
+  overflow: hidden;
+  background: #eef4f1;
 }
 
-.currency-icon.tether {
-  overflow: hidden;
-  color: transparent;
-  background: #26a17b url("usdt-logo.svg?v=20260817-2") center / cover no-repeat;
-}
-.currency-icon.toman {
-  overflow: hidden;
-  color: transparent;
-  background: transparent url("flags/ir.svg") center / cover no-repeat;
-}
+.currency-icon img { width: 100%; height: 100%; object-fit: cover; }
+.currency-icon.letter-icon { color: var(--green-dark); background: var(--green-soft); font-size: 12px; direction: ltr; }
 
 .currency-text {
   display: flex;
@@ -323,6 +326,117 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
 .swap-button:active { transform: scale(.92); }
 .swap-button.turned { transform: rotate(180deg); }
 
+.dialog-open { overflow: hidden; }
+
+.asset-dialog {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+
+.asset-dialog[hidden] { display: none; }
+
+.asset-dialog-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(8, 28, 21, .48);
+  backdrop-filter: blur(4px);
+}
+
+.asset-dialog-panel {
+  position: relative;
+  display: flex;
+  width: min(100%, 520px);
+  max-height: min(720px, calc(100dvh - 48px));
+  flex-direction: column;
+  padding: 24px;
+  border: 1px solid var(--border);
+  border-radius: 26px;
+  background: var(--surface);
+  box-shadow: 0 28px 80px rgba(8, 28, 21, .24);
+}
+
+.asset-dialog-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.asset-dialog-head h2 { margin: 0; font-size: 22px; }
+.asset-dialog-head p { margin: 3px 0 0; color: var(--muted); font-size: 13px; }
+
+.dialog-close {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  color: var(--muted);
+  background: #fff;
+  cursor: pointer;
+}
+
+.asset-search {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 20px 0 12px;
+  padding: 0 14px;
+  border: 1.5px solid var(--border);
+  border-radius: 14px;
+  color: var(--subtle);
+  background: var(--surface-muted);
+}
+
+.asset-search:focus-within { border-color: var(--green); box-shadow: 0 0 0 4px rgba(22, 129, 95, .10); }
+.asset-search svg { width: 19px; height: 19px; flex: 0 0 auto; }
+
+.asset-search input {
+  width: 100%;
+  padding: 13px 0;
+  border: 0;
+  outline: 0;
+  color: var(--text);
+  background: transparent;
+}
+
+.asset-list {
+  min-height: 100px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+}
+
+.asset-option {
+  display: grid;
+  width: 100%;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 10px;
+  border: 0;
+  border-radius: 14px;
+  background: transparent;
+  cursor: pointer;
+  text-align: right;
+}
+
+.asset-option:hover, .asset-option[aria-selected="true"] { background: var(--green-soft); }
+.asset-option-icon { width: 40px; height: 40px; }
+
+.asset-option-label { display: flex; min-width: 0; flex-direction: column; line-height: 1.35; }
+.asset-option-label strong { overflow: hidden; font-size: 14px; text-overflow: ellipsis; white-space: nowrap; }
+.asset-option-label small { overflow: hidden; color: var(--muted); font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
+
+.asset-option-code { color: var(--muted); font-size: 13px; direction: ltr; }
+.asset-empty { margin: 28px 0; color: var(--muted); text-align: center; }
+
 @media (max-width: 560px) {
   .shell { width: min(100% - 24px, 720px); }
   .site-header { padding-top: 16px; }
@@ -339,6 +453,13 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
   .currency-text strong { font-size: 13px; }
   .currency-text small { font-size: 11px; }
   .swap-divider { padding-inline: 8px; }
+  .asset-dialog { align-items: end; padding: 0; }
+  .asset-dialog-panel {
+    width: 100%;
+    max-height: min(82dvh, 720px);
+    padding: 20px 16px max(18px, env(safe-area-inset-bottom));
+    border-radius: 24px 24px 0 0;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
