@@ -1,0 +1,1251 @@
+{
+  "source": "https://nobitex.ir/price/",
+  "updated": "2026-08-18T12:40:41Z",
+  "currencies": {
+    "irt": {
+      "fa": "تومان",
+      "en": "Toman",
+      "alt": "ریال"
+    },
+    "100k_floki": {
+      "fa": "100K_فلوکی",
+      "en": "FLOKI",
+      "alt": "floki"
+    },
+    "1b_babydoge": {
+      "fa": "1B_بیبی دوج",
+      "en": "Baby Doge Coin",
+      "alt": "babydoge"
+    },
+    "1inch": {
+      "fa": "وان اینچ نتورک",
+      "en": "1inch Network",
+      "alt": ""
+    },
+    "1k_bonk": {
+      "fa": "1k_بونک",
+      "en": "Bonk",
+      "alt": "bonk"
+    },
+    "1k_cat": {
+      "fa": "1k_کت",
+      "en": "Simon's Cat",
+      "alt": "cat"
+    },
+    "1k_cheems": {
+      "fa": "1k_چیمز",
+      "en": "Cheems",
+      "alt": "cheems"
+    },
+    "1k_shib": {
+      "fa": "1k_شیبا",
+      "en": "Shiba Inu",
+      "alt": "shib"
+    },
+    "1m_btt": {
+      "fa": "1M_بی‌تی‌تی",
+      "en": "BitTorrent",
+      "alt": "btt"
+    },
+    "1m_nft": {
+      "fa": "1M_ایپ ان‌اف‌تی",
+      "en": "APENFT",
+      "alt": "nft"
+    },
+    "1m_pepe": {
+      "fa": "1m_پپه",
+      "en": "Pepe",
+      "alt": "pepe"
+    },
+    "2z": {
+      "fa": "دابل‌زیرو",
+      "en": "DoubleZero",
+      "alt": ""
+    },
+    "a": {
+      "fa": "والتا",
+      "en": "Vaulta",
+      "alt": ""
+    },
+    "aapl": {
+      "fa": "اپل",
+      "en": "Apple Inc stock",
+      "alt": ""
+    },
+    "aave": {
+      "fa": "آوه",
+      "en": "Aave",
+      "alt": ""
+    },
+    "ada": {
+      "fa": "کاردانو",
+      "en": "Cardano",
+      "alt": ""
+    },
+    "aero": {
+      "fa": "ایرودروم فایننس",
+      "en": "Aerodrome Finance",
+      "alt": ""
+    },
+    "aevo": {
+      "fa": "آئوو",
+      "en": "Aevo",
+      "alt": ""
+    },
+    "agld": {
+      "fa": "ادونچر گلد",
+      "en": "Adventure Gold",
+      "alt": ""
+    },
+    "aixbt": {
+      "fa": "ای آی ایکس بی تی",
+      "en": "aixbt by Virtuals",
+      "alt": ""
+    },
+    "algo": {
+      "fa": "الگورند",
+      "en": "Algorand",
+      "alt": ""
+    },
+    "amzn": {
+      "fa": "آمازون",
+      "en": "Amazon Inc stock",
+      "alt": ""
+    },
+    "ankr": {
+      "fa": "انکر",
+      "en": "Ankr",
+      "alt": ""
+    },
+    "ape": {
+      "fa": "ایپ‌کوین",
+      "en": "ApeCoin",
+      "alt": ""
+    },
+    "api3": {
+      "fa": "ای پی آی ۳",
+      "en": "API3",
+      "alt": ""
+    },
+    "apt": {
+      "fa": "اپتاس",
+      "en": "Aptos",
+      "alt": ""
+    },
+    "arb": {
+      "fa": "آربیتروم",
+      "en": "Arbitrum",
+      "alt": ""
+    },
+    "aster": {
+      "fa": "استر",
+      "en": "Aster",
+      "alt": ""
+    },
+    "at": {
+      "fa": "اپرو",
+      "en": "Apro",
+      "alt": ""
+    },
+    "ath": {
+      "fa": "ایثیر",
+      "en": "Aethir",
+      "alt": ""
+    },
+    "atom": {
+      "fa": "اتم",
+      "en": "Cosmos",
+      "alt": ""
+    },
+    "avax": {
+      "fa": "آوالانچ",
+      "en": "Avalanche",
+      "alt": ""
+    },
+    "avnt": {
+      "fa": "آوانتیس",
+      "en": "Avantis",
+      "alt": ""
+    },
+    "awe": {
+      "fa": "ای‌دبلیو‌ای",
+      "en": "AWE",
+      "alt": ""
+    },
+    "axs": {
+      "fa": "اکسی‌اینفینیتی",
+      "en": "Axie Infinity",
+      "alt": ""
+    },
+    "baba": {
+      "fa": "گروه علی‌بابا",
+      "en": "Alibaba Group Holding Ltd stock",
+      "alt": ""
+    },
+    "bal": {
+      "fa": "بالانسر",
+      "en": "Balancer",
+      "alt": ""
+    },
+    "banana": {
+      "fa": "بنانا گان",
+      "en": "Banana Gun",
+      "alt": ""
+    },
+    "band": {
+      "fa": "بند پروتکل",
+      "en": "Band Protocol",
+      "alt": ""
+    },
+    "bank": {
+      "fa": "لورنزو پروتکل",
+      "en": "Lorenzo Protocol",
+      "alt": ""
+    },
+    "bard": {
+      "fa": "لومبارد",
+      "en": "Lombard",
+      "alt": ""
+    },
+    "based": {
+      "fa": "بیسد",
+      "en": "Based",
+      "alt": ""
+    },
+    "bat": {
+      "fa": "بیسیک اتنشن توکن",
+      "en": "Basic Attention Token",
+      "alt": ""
+    },
+    "bch": {
+      "fa": "بیت‌کوین‌کش",
+      "en": "Bitcoin Cash",
+      "alt": ""
+    },
+    "beamx": {
+      "fa": "بیم",
+      "en": "Beam",
+      "alt": ""
+    },
+    "bico": {
+      "fa": "بیکونومی",
+      "en": "Biconomy",
+      "alt": ""
+    },
+    "bio": {
+      "fa": "بیو پروتکل",
+      "en": "Bio Protocol",
+      "alt": ""
+    },
+    "blur": {
+      "fa": "بلر",
+      "en": "Blur",
+      "alt": ""
+    },
+    "bnb": {
+      "fa": "بایننس‌کوین",
+      "en": "BNB",
+      "alt": ""
+    },
+    "bome": {
+      "fa": "بوک آف میم",
+      "en": "BOOK OF MEME",
+      "alt": ""
+    },
+    "brev": {
+      "fa": "برویس",
+      "en": "Brevis",
+      "alt": ""
+    },
+    "btc": {
+      "fa": "بیت‌کوین",
+      "en": "Bitcoin",
+      "alt": ""
+    },
+    "busd": {
+      "fa": "بایننس یواس‌دی",
+      "en": "BUSD",
+      "alt": ""
+    },
+    "cake": {
+      "fa": "پنکیک سواپ",
+      "en": "PancakeSwap",
+      "alt": ""
+    },
+    "cati": {
+      "fa": "کتیزن",
+      "en": "Catizen",
+      "alt": ""
+    },
+    "celr": {
+      "fa": "سلر نتورک",
+      "en": "Celer Network",
+      "alt": ""
+    },
+    "cetus": {
+      "fa": "ستوس پروتکل",
+      "en": "Cetus Protocol",
+      "alt": ""
+    },
+    "cfg": {
+      "fa": "سنتریفیوژ",
+      "en": "Centrifuge",
+      "alt": ""
+    },
+    "cgpt": {
+      "fa": "چین جی پی تی",
+      "en": "ChainGPT",
+      "alt": ""
+    },
+    "chip": {
+      "fa": "یو‌اس‌دی ای آی",
+      "en": "USD AI",
+      "alt": ""
+    },
+    "chz": {
+      "fa": "چیلیز",
+      "en": "Chiliz",
+      "alt": ""
+    },
+    "comp": {
+      "fa": "کامپاند",
+      "en": "Compound",
+      "alt": ""
+    },
+    "cookie": {
+      "fa": "کوکی دائو",
+      "en": "Cookie DAO",
+      "alt": ""
+    },
+    "copxon": {
+      "fa": "صندوق مس",
+      "en": "Global X Copper Miners Tokenized ETF",
+      "alt": ""
+    },
+    "coti": {
+      "fa": "کوتی",
+      "en": "COTI",
+      "alt": ""
+    },
+    "crv": {
+      "fa": "کرو دائو توکن",
+      "en": "Curve DAO Token",
+      "alt": ""
+    },
+    "cvc": {
+      "fa": "سیویک",
+      "en": "Civic",
+      "alt": ""
+    },
+    "cvx": {
+      "fa": "کانوکس فایننس",
+      "en": "Convex Finance",
+      "alt": ""
+    },
+    "dai": {
+      "fa": "دای",
+      "en": "Dai",
+      "alt": ""
+    },
+    "dao": {
+      "fa": "دائو میکر",
+      "en": "DAO Maker",
+      "alt": ""
+    },
+    "dash": {
+      "fa": "دش",
+      "en": "Dash",
+      "alt": ""
+    },
+    "dexe": {
+      "fa": "دکسی",
+      "en": "Dexe",
+      "alt": ""
+    },
+    "doge": {
+      "fa": "دوج‌کوین",
+      "en": "Dogecoin",
+      "alt": ""
+    },
+    "dogs": {
+      "fa": "داگز",
+      "en": "Dogs",
+      "alt": ""
+    },
+    "dood": {
+      "fa": "دودلز",
+      "en": "Doodles",
+      "alt": ""
+    },
+    "dot": {
+      "fa": "پولکادات",
+      "en": "Polkadot",
+      "alt": ""
+    },
+    "dusk": {
+      "fa": "داسک",
+      "en": "Dusk",
+      "alt": ""
+    },
+    "dydx": {
+      "fa": "دی‌وای دی‌ایکس",
+      "en": "dYdX",
+      "alt": ""
+    },
+    "edge": {
+      "fa": "اج‌ایکس",
+      "en": "edgeX",
+      "alt": ""
+    },
+    "edu": {
+      "fa": "اپن کمپس",
+      "en": "Open Campus",
+      "alt": ""
+    },
+    "egala": {
+      "fa": "گالا",
+      "en": "Gala",
+      "alt": ""
+    },
+    "egld": {
+      "fa": "مولتی ورس ایکس",
+      "en": "MultiversX",
+      "alt": ""
+    },
+    "eigen": {
+      "fa": "آیگن‌کلاود",
+      "en": "EigenCloud",
+      "alt": ""
+    },
+    "ena": {
+      "fa": "اتنا",
+      "en": "Ethena",
+      "alt": ""
+    },
+    "enj": {
+      "fa": "انجین کوین",
+      "en": "Enjin Coin",
+      "alt": ""
+    },
+    "ens": {
+      "fa": "اتریوم نیم سرویس",
+      "en": "Ethereum Name Service",
+      "alt": ""
+    },
+    "esp": {
+      "fa": "اسپرسو",
+      "en": "Espresso",
+      "alt": ""
+    },
+    "etc": {
+      "fa": "اتریوم کلاسیک",
+      "en": "Ethereum Classic",
+      "alt": ""
+    },
+    "eth": {
+      "fa": "اتریوم",
+      "en": "Ethereum",
+      "alt": ""
+    },
+    "ethfi": {
+      "fa": "اترفای",
+      "en": "ether.fi",
+      "alt": ""
+    },
+    "eul": {
+      "fa": "اولر",
+      "en": "Euler",
+      "alt": ""
+    },
+    "fet": {
+      "fa": "فچ ای آی",
+      "en": "Artificial Superintelligence Alliance",
+      "alt": ""
+    },
+    "fil": {
+      "fa": "فایل کوین",
+      "en": "Filecoin",
+      "alt": ""
+    },
+    "flow": {
+      "fa": "فلو",
+      "en": "Flow",
+      "alt": ""
+    },
+    "flr": {
+      "fa": "فلر",
+      "en": "Flare",
+      "alt": ""
+    },
+    "fluid": {
+      "fa": "فلوئید",
+      "en": "Fluid",
+      "alt": ""
+    },
+    "form": {
+      "fa": "فور",
+      "en": "Four",
+      "alt": ""
+    },
+    "g": {
+      "fa": "گرویتی",
+      "en": "Gravity",
+      "alt": ""
+    },
+    "gala": {
+      "fa": "گالا",
+      "en": "Gala",
+      "alt": ""
+    },
+    "genius": {
+      "fa": "جینیس ترمینال",
+      "en": "Genius Terminal",
+      "alt": ""
+    },
+    "giggle": {
+      "fa": "گیگل فاند",
+      "en": "Giggle Fund",
+      "alt": ""
+    },
+    "glm": {
+      "fa": "گولم",
+      "en": "Golem",
+      "alt": ""
+    },
+    "gmt": {
+      "fa": "استپن",
+      "en": "GMT",
+      "alt": ""
+    },
+    "gmx": {
+      "fa": "جی‌ام‌اکس",
+      "en": "GMX",
+      "alt": ""
+    },
+    "googl": {
+      "fa": "آلفابت",
+      "en": "Alphabet Inc Class A stock",
+      "alt": ""
+    },
+    "gram": {
+      "fa": "گرام",
+      "en": "Gram",
+      "alt": ""
+    },
+    "grass": {
+      "fa": "گرس",
+      "en": "Grass",
+      "alt": ""
+    },
+    "grt": {
+      "fa": "گراف",
+      "en": "The Graph",
+      "alt": ""
+    },
+    "hbar": {
+      "fa": "هدرا",
+      "en": "Hedera",
+      "alt": ""
+    },
+    "hmstr": {
+      "fa": "همستر کامبت",
+      "en": "Hamster Kombat",
+      "alt": ""
+    },
+    "holo": {
+      "fa": "هولوورلد ای‌آی",
+      "en": "Holoworld AI",
+      "alt": ""
+    },
+    "home": {
+      "fa": "دیفای اپ",
+      "en": "Defi App",
+      "alt": ""
+    },
+    "hot": {
+      "fa": "هولو",
+      "en": "Holo",
+      "alt": ""
+    },
+    "huma": {
+      "fa": "هوما فایننس",
+      "en": "Huma Finance",
+      "alt": ""
+    },
+    "hype": {
+      "fa": "هایپرلیکویید",
+      "en": "Hyperliquid",
+      "alt": ""
+    },
+    "imx": {
+      "fa": "ایموتبل ایکس",
+      "en": "Immutable",
+      "alt": ""
+    },
+    "inj": {
+      "fa": "اینجکتیو",
+      "en": "Injective",
+      "alt": ""
+    },
+    "io": {
+      "fa": "آیو",
+      "en": "io.net",
+      "alt": ""
+    },
+    "jasmy": {
+      "fa": "جسمی کوین",
+      "en": "JasmyCoin",
+      "alt": ""
+    },
+    "jst": {
+      "fa": "جاست",
+      "en": "JUST",
+      "alt": ""
+    },
+    "jto": {
+      "fa": "جیتو",
+      "en": "Jito",
+      "alt": ""
+    },
+    "jup": {
+      "fa": "ژوپیتر",
+      "en": "Jupiter",
+      "alt": ""
+    },
+    "kaito": {
+      "fa": "کایتو",
+      "en": "KAITO",
+      "alt": ""
+    },
+    "kite": {
+      "fa": "کایت",
+      "en": "Kite",
+      "alt": ""
+    },
+    "kmno": {
+      "fa": "کامینو فایننس",
+      "en": "Kamino Finance",
+      "alt": ""
+    },
+    "la": {
+      "fa": "لاگرانژ",
+      "en": "Lagrange",
+      "alt": ""
+    },
+    "layer": {
+      "fa": "سولیر",
+      "en": "Solayer",
+      "alt": ""
+    },
+    "ldo": {
+      "fa": "لیدو دائو",
+      "en": "Lido DAO",
+      "alt": ""
+    },
+    "linea": {
+      "fa": "لینیا",
+      "en": "Linea",
+      "alt": ""
+    },
+    "link": {
+      "fa": "چین‌لینک",
+      "en": "Chainlink",
+      "alt": ""
+    },
+    "lit": {
+      "fa": "لایتر",
+      "en": "Lighter",
+      "alt": ""
+    },
+    "lpt": {
+      "fa": "لایوپیر",
+      "en": "Livepeer",
+      "alt": ""
+    },
+    "lrc": {
+      "fa": "لوپرینگ",
+      "en": "Loopring",
+      "alt": ""
+    },
+    "ltc": {
+      "fa": "لایت‌کوین",
+      "en": "Litecoin",
+      "alt": ""
+    },
+    "magic": {
+      "fa": "ترژر",
+      "en": "Treasure",
+      "alt": ""
+    },
+    "major": {
+      "fa": "میجر",
+      "en": "Major",
+      "alt": ""
+    },
+    "mana": {
+      "fa": "دیسنترالند",
+      "en": "Decentraland",
+      "alt": ""
+    },
+    "mask": {
+      "fa": "مسک نتورک",
+      "en": "Mask Network",
+      "alt": ""
+    },
+    "mdt": {
+      "fa": "مژربل دیتا",
+      "en": "Measurable Data Token",
+      "alt": ""
+    },
+    "me": {
+      "fa": "مجیک ایدن",
+      "en": "Magic Eden",
+      "alt": ""
+    },
+    "meme": {
+      "fa": "میم کوین",
+      "en": "Memecoin",
+      "alt": ""
+    },
+    "met": {
+      "fa": "متئورا",
+      "en": "Meteora",
+      "alt": ""
+    },
+    "metis": {
+      "fa": "متیس دائو",
+      "en": "MetisDAO",
+      "alt": ""
+    },
+    "mew": {
+      "fa": "میو",
+      "en": "cat in a dogs world",
+      "alt": ""
+    },
+    "mmt": {
+      "fa": "مومنتوم",
+      "en": "Momentum",
+      "alt": ""
+    },
+    "moodeng": {
+      "fa": "مودنگ",
+      "en": "Moo Deng",
+      "alt": ""
+    },
+    "morpho": {
+      "fa": "مورفو",
+      "en": "Morpho",
+      "alt": ""
+    },
+    "move": {
+      "fa": "موومنت",
+      "en": "Movement",
+      "alt": ""
+    },
+    "msft": {
+      "fa": "مایکروسافت",
+      "en": "Microsoft Corp stock",
+      "alt": ""
+    },
+    "near": {
+      "fa": "نیر پروتکل",
+      "en": "NEAR Protocol",
+      "alt": ""
+    },
+    "neiro": {
+      "fa": "نیرو",
+      "en": "Neiro",
+      "alt": ""
+    },
+    "nmr": {
+      "fa": "نومریر",
+      "en": "Numeraire",
+      "alt": ""
+    },
+    "not": {
+      "fa": "نات کوین",
+      "en": "Notcoin",
+      "alt": ""
+    },
+    "nvda": {
+      "fa": "انویدیا",
+      "en": "Nvidia Corp stock",
+      "alt": ""
+    },
+    "nxt20": {
+      "fa": "شاخص کل نوبیتکس",
+      "en": "Nobitex Total",
+      "alt": ""
+    },
+    "omg": {
+      "fa": "او‌ام‌جی نتورک",
+      "en": "OMG Network",
+      "alt": ""
+    },
+    "ondo": {
+      "fa": "اوندو",
+      "en": "Ondo",
+      "alt": ""
+    },
+    "one": {
+      "fa": "هارمونی",
+      "en": "Harmony",
+      "alt": ""
+    },
+    "op": {
+      "fa": "آپتیمیزم",
+      "en": "Optimism",
+      "alt": ""
+    },
+    "open": {
+      "fa": "اوپن‌لجر",
+      "en": "OpenLedger",
+      "alt": ""
+    },
+    "opg": {
+      "fa": "اوپن‌گردینت",
+      "en": "OpenGradient",
+      "alt": ""
+    },
+    "orca": {
+      "fa": "اورکا",
+      "en": "Orca",
+      "alt": ""
+    },
+    "paxg": {
+      "fa": "پکس گلد",
+      "en": "Pax Gold",
+      "alt": ""
+    },
+    "pendle": {
+      "fa": "پندل",
+      "en": "Pendle",
+      "alt": ""
+    },
+    "pengu": {
+      "fa": "پاجی پنگوئن",
+      "en": "Pudgy Penguins",
+      "alt": ""
+    },
+    "pgala": {
+      "fa": "گالای پگ‌شده",
+      "en": "PeggedGala",
+      "alt": ""
+    },
+    "plume": {
+      "fa": "پلوم",
+      "en": "Plume",
+      "alt": ""
+    },
+    "pmn": {
+      "fa": "پیمان",
+      "en": "peyman",
+      "alt": ""
+    },
+    "pnut": {
+      "fa": "پینات",
+      "en": "Peanut the Squirrel",
+      "alt": ""
+    },
+    "pol": {
+      "fa": "پالیگان",
+      "en": "Polygon",
+      "alt": ""
+    },
+    "prom": {
+      "fa": "پرام",
+      "en": "Prom",
+      "alt": ""
+    },
+    "prove": {
+      "fa": "ساکسینکت",
+      "en": "Succinct",
+      "alt": ""
+    },
+    "pump": {
+      "fa": "پامپ فان",
+      "en": "Pump.fun",
+      "alt": ""
+    },
+    "pyth": {
+      "fa": "پایث نتورک",
+      "en": "Pyth Network",
+      "alt": ""
+    },
+    "qnt": {
+      "fa": "کوانت",
+      "en": "Quant",
+      "alt": ""
+    },
+    "ray": {
+      "fa": "ریدیوم",
+      "en": "Raydium",
+      "alt": ""
+    },
+    "rdnt": {
+      "fa": "رادیانت کپیتال",
+      "en": "Radiant Capital",
+      "alt": ""
+    },
+    "re": {
+      "fa": "ری",
+      "en": "Re",
+      "alt": ""
+    },
+    "red": {
+      "fa": "رد استون",
+      "en": "RedStone",
+      "alt": ""
+    },
+    "render": {
+      "fa": "رندر",
+      "en": "Render",
+      "alt": ""
+    },
+    "robo": {
+      "fa": "فبریک پروتکل",
+      "en": "Fabric Protocol",
+      "alt": ""
+    },
+    "rsr": {
+      "fa": "رزرو رایتس",
+      "en": "Reserve Rights",
+      "alt": ""
+    },
+    "s": {
+      "fa": "سونیک",
+      "en": "Sonic",
+      "alt": ""
+    },
+    "safe": {
+      "fa": "سیف",
+      "en": "Safe",
+      "alt": ""
+    },
+    "sahara": {
+      "fa": "ساهارا ای آی",
+      "en": "Sahara AI",
+      "alt": ""
+    },
+    "sand": {
+      "fa": "سندباکس",
+      "en": "The Sandbox",
+      "alt": ""
+    },
+    "sei": {
+      "fa": "سی",
+      "en": "Sei",
+      "alt": ""
+    },
+    "sent": {
+      "fa": "سنشنت",
+      "en": "Sentient",
+      "alt": ""
+    },
+    "skhy": {
+      "fa": "اس‌کی هاینیکس",
+      "en": "SK Hynix stock",
+      "alt": ""
+    },
+    "skl": {
+      "fa": "اسکیل",
+      "en": "SKALE",
+      "alt": ""
+    },
+    "sky": {
+      "fa": "اسکای",
+      "en": "Sky",
+      "alt": ""
+    },
+    "slp": {
+      "fa": "اسموث لاو پوشن",
+      "en": "Smooth Love Potion",
+      "alt": ""
+    },
+    "slvon": {
+      "fa": "صندوق نقره",
+      "en": "iShares Silver Trust Tokenized ETF (Ondo)",
+      "alt": ""
+    },
+    "slx": {
+      "fa": "سالستیس",
+      "en": "Solstice",
+      "alt": ""
+    },
+    "snt": {
+      "fa": "استاتوس",
+      "en": "Status",
+      "alt": ""
+    },
+    "snx": {
+      "fa": "سینتتیکس",
+      "en": "Synthetix",
+      "alt": ""
+    },
+    "sol": {
+      "fa": "سولانا",
+      "en": "Solana",
+      "alt": ""
+    },
+    "spcx": {
+      "fa": "اسپیس‌ایکس",
+      "en": "SpaceX stock",
+      "alt": ""
+    },
+    "spk": {
+      "fa": "اسپارک",
+      "en": "Spark",
+      "alt": ""
+    },
+    "ssv": {
+      "fa": "اس‌اس‌وی نتورک",
+      "en": "ssv network",
+      "alt": ""
+    },
+    "storj": {
+      "fa": "استورج",
+      "en": "Storj",
+      "alt": ""
+    },
+    "strk": {
+      "fa": "استارک نت",
+      "en": "Starknet",
+      "alt": ""
+    },
+    "sui": {
+      "fa": "سویی",
+      "en": "Sui",
+      "alt": ""
+    },
+    "sun": {
+      "fa": "سان",
+      "en": "Sun",
+      "alt": ""
+    },
+    "super": {
+      "fa": "سوپر ورس",
+      "en": "SuperVerse",
+      "alt": ""
+    },
+    "sushi": {
+      "fa": "سوشی‌سواپ",
+      "en": "SushiSwap",
+      "alt": ""
+    },
+    "syn": {
+      "fa": "سیناپس",
+      "en": "Synapse",
+      "alt": ""
+    },
+    "syrup": {
+      "fa": "میپل فایننس",
+      "en": "Maple Finance",
+      "alt": ""
+    },
+    "t": {
+      "fa": "ترشولد",
+      "en": "Threshold",
+      "alt": ""
+    },
+    "tao": {
+      "fa": "بیت‌تنسور",
+      "en": "Bittensor",
+      "alt": ""
+    },
+    "tnsr": {
+      "fa": "تنسور",
+      "en": "Tensor",
+      "alt": ""
+    },
+    "toshi": {
+      "fa": "توشی",
+      "en": "Toshi",
+      "alt": ""
+    },
+    "trb": {
+      "fa": "تلور",
+      "en": "Tellor",
+      "alt": ""
+    },
+    "trx": {
+      "fa": "ترون",
+      "en": "TRON",
+      "alt": ""
+    },
+    "tsla": {
+      "fa": "تسلا",
+      "en": "Tesla Inc stock",
+      "alt": ""
+    },
+    "tsm": {
+      "fa": "صنایع نیم‌رسانای تایوان",
+      "en": "Taiwan Semiconductor Manufacturing Co stock",
+      "alt": ""
+    },
+    "turbo": {
+      "fa": "توربو",
+      "en": "Turbo",
+      "alt": ""
+    },
+    "uma": {
+      "fa": "اوما",
+      "en": "UMA",
+      "alt": ""
+    },
+    "uni": {
+      "fa": "یونی‌سواپ",
+      "en": "Uniswap",
+      "alt": ""
+    },
+    "usdc": {
+      "fa": "یو‌اس‌‌دی‌کوین",
+      "en": "USDC",
+      "alt": ""
+    },
+    "usde": {
+      "fa": "یو‌اس‌‌دی‌ای",
+      "en": "USDe",
+      "alt": ""
+    },
+    "usdt": {
+      "fa": "تتر",
+      "en": "Tether",
+      "alt": ""
+    },
+    "usoon": {
+      "fa": "نفت دیجیتال",
+      "en": "United States Oil Tokenized Fund",
+      "alt": ""
+    },
+    "virtual": {
+      "fa": "ویرچوالز پروتکل",
+      "en": "Virtuals Protocol",
+      "alt": ""
+    },
+    "w": {
+      "fa": "ورم هول",
+      "en": "Wormhole",
+      "alt": ""
+    },
+    "wal": {
+      "fa": "والروس",
+      "en": "Walrus",
+      "alt": ""
+    },
+    "wbtc": {
+      "fa": "رپد بیت‌کوین",
+      "en": "Wrapped Bitcoin",
+      "alt": ""
+    },
+    "wet": {
+      "fa": "هیومیدیفای",
+      "en": "Humidifi",
+      "alt": ""
+    },
+    "wif": {
+      "fa": "داگ ویف هت",
+      "en": "dogwifhat",
+      "alt": ""
+    },
+    "wld": {
+      "fa": "ورلد کوین",
+      "en": "Worldcoin",
+      "alt": ""
+    },
+    "woo": {
+      "fa": "وو نتورک",
+      "en": "WOO Network",
+      "alt": ""
+    },
+    "x": {
+      "fa": "ایکس امپایر",
+      "en": "X Empire",
+      "alt": ""
+    },
+    "xaut": {
+      "fa": "تتر گلد",
+      "en": "Tether Gold",
+      "alt": ""
+    },
+    "xlm": {
+      "fa": "استلار",
+      "en": "Stellar",
+      "alt": ""
+    },
+    "xmr": {
+      "fa": "مونرو",
+      "en": "Monero",
+      "alt": ""
+    },
+    "xrp": {
+      "fa": "ریپل",
+      "en": "XRP",
+      "alt": ""
+    },
+    "xtz": {
+      "fa": "تزوس",
+      "en": "Tezos",
+      "alt": ""
+    },
+    "xvs": {
+      "fa": "ونوس",
+      "en": "Venus",
+      "alt": ""
+    },
+    "yfi": {
+      "fa": "یرن فایننس",
+      "en": "yearn finance",
+      "alt": ""
+    },
+    "zama": {
+      "fa": "زاما",
+      "en": "Zama",
+      "alt": ""
+    },
+    "zbt": {
+      "fa": "زیروبیس",
+      "en": "ZEROBASE",
+      "alt": ""
+    },
+    "zec": {
+      "fa": "زی‌کش",
+      "en": "Zcash",
+      "alt": ""
+    },
+    "zen": {
+      "fa": "هورایزن",
+      "en": "Horizen",
+      "alt": ""
+    },
+    "zil": {
+      "fa": "زیلیکا",
+      "en": "Zilliqa",
+      "alt": ""
+    },
+    "zk": {
+      "fa": "زی‌کی سینک",
+      "en": "ZkSync",
+      "alt": ""
+    },
+    "zkc": {
+      "fa": "باوندلس",
+      "en": "Boundless",
+      "alt": ""
+    },
+    "zora": {
+      "fa": "زورا",
+      "en": "Zora",
+      "alt": ""
+    },
+    "zro": {
+      "fa": "لیر زیرو",
+      "en": "LayerZero",
+      "alt": ""
+    },
+    "zrx": {
+      "fa": "زیرو ایکس",
+      "en": "0x Protocol",
+      "alt": ""
+    }
+  }
+}
