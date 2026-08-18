@@ -416,7 +416,7 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
 .asset-option {
   display: grid;
   width: 100%;
-  grid-template-columns: auto 1fr;
+  grid-template-columns: auto 1fr auto;
   align-items: center;
   gap: 12px;
   padding: 11px 10px;
@@ -434,6 +434,7 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
 .asset-option-label strong { overflow: hidden; font-size: 14px; text-overflow: ellipsis; white-space: nowrap; }
 .asset-option-label small { overflow: hidden; color: var(--muted); font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
 
+.asset-option-code { color: var(--muted); font-size: 13px; direction: ltr; }
 .asset-empty { margin: 28px 0; color: var(--muted); text-align: center; }
 
 @media (max-width: 560px) {

@@ -114,9 +114,10 @@ setTimeout(() => {
   assert.equal(optionsInDialog.length, 4);
   const bitcoinOption = optionsInDialog.find((item) => item.dataset.currency === "btc");
   assert.ok(bitcoinOption);
-  assert.equal(bitcoinOption.children.length, 2);
+  assert.equal(bitcoinOption.children.length, 3);
   assert.equal(bitcoinOption.children[1].children[0].textContent, "بیت‌کوین");
   assert.equal(bitcoinOption.children[1].children[1].textContent, "Bitcoin");
+  assert.equal(bitcoinOption.children[2].textContent, "BTC");
 
   elements["asset-search"].value = "Ethereum";
   elements["asset-search"].dispatch("input");

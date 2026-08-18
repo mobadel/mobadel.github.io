@@ -340,7 +340,8 @@
       var english = document.createElement("small");
       english.textContent = currency.englishName || currency.code;
       label.append(name, english);
-      option.appendChild(label);
+      var code = document.createElement("b"); code.className = "asset-option-code"; code.textContent = currency.code;
+      option.append(label, code);
       option.addEventListener("click", function () { selectCurrency(currency.id); });
       elements.assetList.appendChild(option);
     });
