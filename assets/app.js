@@ -109,7 +109,8 @@
       id: id, code: id === "irt" ? "IRT" : id.toUpperCase(), name: displayName(id, englishName),
       englishName: englishName,
       decimals: id === "irt" ? 0 : (option.displayPrecision ? decimalsFromPrecision(option.displayPrecision) : (current.decimals == null ? 8 : current.decimals)),
-      localIcon: current.localIcon || null, iconUrls: getOptionIconUrls(option, id)
+      localIcon: current.localIcon || null, iconUrls: getOptionIconUrls(option, id),
+      aliases: current.aliases || []
     };
     return currencies[id];
   }
@@ -152,6 +153,20 @@
     coins.forEach(function (coin) {
       var id = normalizeId(coin && coin.coin);
       if (currencies[id]) upsertCurrency(id, coin);
+    });
+  }
+
+  function applyCurrencyNames(payload) {
+    var names = payload && payload.currencies;
+    if (!names || typeof names !== "object") return;
+    Object.keys(names).forEach(function (rawId) {
+      var id = normalizeId(rawId);
+      var currency = currencies[id];
+      var item = names[rawId];
+      if (!currency || !item) return;
+      currency.name = item.fa || currency.name;
+      currency.englishName = item.en || currency.englishName || currency.code;
+      currency.aliases = item.alt ? [item.alt] : [];
     });
   }
 
@@ -309,7 +324,7 @@
   function renderAssetList() {
     var query = normalizedSearch(elements.assetSearch.value);
     var assets = availableCurrencies().filter(function (currency) {
-      var haystack = normalizedSearch([currency.code, currency.name, currency.englishName].join(" "));
+      var haystack = normalizedSearch([currency.code, currency.name, currency.englishName].concat(currency.aliases || []).join(" "));
       return !query || haystack.indexOf(query) !== -1;
     });
     elements.assetList.replaceChildren();
@@ -323,10 +338,9 @@
       var label = document.createElement("span"); label.className = "asset-option-label";
       var name = document.createElement("strong"); name.textContent = currency.name;
       var english = document.createElement("small");
-      english.textContent = currency.englishName && currency.englishName !== currency.name ? currency.englishName : "دارایی نوبیتکس";
+      english.textContent = currency.englishName || currency.code;
       label.append(name, english);
-      var code = document.createElement("b"); code.className = "asset-option-code"; code.textContent = currency.code;
-      option.append(label, code);
+      option.appendChild(label);
       option.addEventListener("click", function () { selectCurrency(currency.id); });
       elements.assetList.appendChild(option);
     });
@@ -397,8 +411,9 @@
     state.loading = true; elements.refresh.classList.add("loading"); elements.refresh.disabled = true; paintRate();
     var statsRequest = attemptEndpoints(["/market/stats"], 12000);
     var optionsRequest = attemptEndpoints(["/v2/options"], 12000).catch(function () { return null; });
-    return Promise.all([statsRequest, optionsRequest]).then(function (responses) {
-      buildMarketGraph(responses[0]); applyOptions(responses[1]);
+    var namesRequest = fetchJson("data/currencies.json?t=" + Date.now(), 5000).catch(function () { return null; });
+    return Promise.all([statsRequest, optionsRequest, namesRequest]).then(function (responses) {
+      buildMarketGraph(responses[0]); applyOptions(responses[1]); applyCurrencyNames(responses[2]);
       state.updatedAt = new Date(); state.live = true; state.loading = false; paint();
       if (!elements.dialog.hidden) renderAssetList();
     }).catch(function () {

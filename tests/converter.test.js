@@ -85,9 +85,18 @@ const options = {
     { coin: "usdt", name: "Tether", displayPrecision: "0.0001" }
   ]
 };
+const currencyNames = {
+  currencies: {
+    irt: { fa: "تومان", en: "Toman", alt: "ریال" },
+    usdt: { fa: "تتر", en: "Tether", alt: "" },
+    btc: { fa: "بیت‌کوین", en: "Bitcoin", alt: "" },
+    eth: { fa: "اتریوم", en: "Ethereum", alt: "اتر" }
+  }
+};
 
 global.fetch = async (url) => {
   if (String(url).includes("data/prices.json")) return { ok: false, status: 404, json: async () => ({}) };
+  if (String(url).includes("data/currencies.json")) return { ok: true, json: async () => currencyNames };
   if (String(url).includes("/market/stats")) return { ok: true, json: async () => stats };
   if (String(url).includes("/v2/options")) return { ok: true, json: async () => options };
   throw new Error(`Unexpected URL: ${url}`);
@@ -103,7 +112,21 @@ setTimeout(() => {
   elements["currency-from"].dispatch("click");
   const optionsInDialog = elements["asset-list"].children;
   assert.equal(optionsInDialog.length, 4);
-  assert.ok(optionsInDialog.some((item) => item.dataset.currency === "btc"));
+  const bitcoinOption = optionsInDialog.find((item) => item.dataset.currency === "btc");
+  assert.ok(bitcoinOption);
+  assert.equal(bitcoinOption.children.length, 2);
+  assert.equal(bitcoinOption.children[1].children[0].textContent, "بیت‌کوین");
+  assert.equal(bitcoinOption.children[1].children[1].textContent, "Bitcoin");
+
+  elements["asset-search"].value = "Ethereum";
+  elements["asset-search"].dispatch("input");
+  assert.equal(elements["asset-list"].children.length, 1);
+  assert.equal(elements["asset-list"].children[0].dataset.currency, "eth");
+
+  elements["asset-search"].value = "اتر";
+  elements["asset-search"].dispatch("input");
+  assert.equal(elements["asset-list"].children.length, 1);
+  assert.equal(elements["asset-list"].children[0].dataset.currency, "eth");
 
   elements["asset-search"].value = "btc";
   elements["asset-search"].dispatch("input");
