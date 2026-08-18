@@ -81,13 +81,13 @@
     return PERSIAN_NAMES[id] || englishName || id.toUpperCase();
   }
 
-  function getOptionIconUrls(option) {
+  function getOptionIconUrls(option, id) {
     var values = [
       option.icon, option.iconUrl, option.icon_url, option.iconPath,
       option.logo, option.logoUrl, option.logo_url,
       option.image, option.imageUrl, option.image_url
     ];
-    return values.map(function (value) {
+    var urls = values.map(function (value) {
       if (typeof value !== "string") return null;
       if (value.indexOf("//") === 0) return "https:" + value;
       if (value.indexOf("/") === 0) return "https://nobitex.ir" + value;
@@ -95,6 +95,8 @@
     }).filter(function (value) {
       return value && /^https:\/\/([a-z0-9-]+\.)*nobitex\.ir\//i.test(value);
     });
+    if (id !== "irt") urls.push("https://cdn.nobitex.ir/crypto/" + encodeURIComponent(id) + ".svg");
+    return urls;
   }
 
   function upsertCurrency(id, option) {
@@ -107,7 +109,7 @@
       id: id, code: id === "irt" ? "IRT" : id.toUpperCase(), name: displayName(id, englishName),
       englishName: englishName,
       decimals: id === "irt" ? 0 : (option.displayPrecision ? decimalsFromPrecision(option.displayPrecision) : (current.decimals == null ? 8 : current.decimals)),
-      localIcon: current.localIcon || null, iconUrls: getOptionIconUrls(option)
+      localIcon: current.localIcon || null, iconUrls: getOptionIconUrls(option, id)
     };
     return currencies[id];
   }
