@@ -53,7 +53,7 @@ const ids = [
   "asset-search", "asset-list", "asset-empty"
 ];
 const elements = Object.fromEntries(ids.map((id) => [id, new FakeElement(id.includes("amount") || id === "asset-search" ? "input" : "div")]));
-elements["amount-from"].value = "۱۰٬۰۰۰٬۰۰۰";
+elements["amount-from"].value = "۱۰۰";
 elements["asset-dialog"].hidden = true;
 elements["asset-dialog"].backdrop = new FakeElement();
 
@@ -105,9 +105,10 @@ global.fetch = async (url) => {
 vm.runInThisContext(fs.readFileSync("assets/app.js", "utf8"), { filename: "assets/app.js" });
 
 setTimeout(() => {
-  assert.match(elements["page-title"].textContent, /تبدیل تومان به تتر/);
-  assert.match(elements["rate-value"].textContent, /۱ تومان.*تتر/);
-  assert.equal(elements["amount-to"].value, "۱۰۰");
+  assert.match(elements["page-title"].textContent, /تبدیل تتر به تومان/);
+  assert.match(elements["rate-value"].textContent, /۱ تتر.*۱۰۰٬۰۰۰ تومان/);
+  assert.equal(elements["amount-from"].value, "۱۰۰");
+  assert.equal(elements["amount-to"].value, "۱۰٬۰۰۰٬۰۰۰");
 
   elements["currency-from"].dispatch("click");
   const optionsInDialog = elements["asset-list"].children;
@@ -133,17 +134,17 @@ setTimeout(() => {
   elements["asset-search"].dispatch("input");
   assert.equal(elements["asset-list"].children.length, 1);
   elements["asset-list"].children[0].dispatch("click");
-  assert.match(elements["page-title"].textContent, /بیت‌کوین به تتر/);
-  assert.match(elements["rate-value"].textContent, /۵۱٬۰۰۰/);
-
-  elements["currency-to"].dispatch("click");
-  const toman = elements["asset-list"].children.find((item) => item.dataset.currency === "irt");
-  toman.dispatch("click");
+  assert.match(elements["page-title"].textContent, /بیت‌کوین به تومان/);
   assert.match(elements["rate-value"].textContent, /۵٬۰۰۰٬۰۰۰٬۰۰۰ تومان/);
 
+  elements["currency-to"].dispatch("click");
+  const tether = elements["asset-list"].children.find((item) => item.dataset.currency === "usdt");
+  tether.dispatch("click");
+  assert.match(elements["rate-value"].textContent, /۵۱٬۰۰۰ تتر/);
+
   elements["swap"].dispatch("click");
-  assert.match(elements["page-title"].textContent, /تومان به بیت‌کوین/);
-  assert.ok(elements["rate-value"].textContent.startsWith("۱ تومان"));
+  assert.match(elements["page-title"].textContent, /تتر به بیت‌کوین/);
+  assert.ok(elements["rate-value"].textContent.startsWith("۱ تتر"));
 
   console.log("converter tests passed");
 }, 30);
