@@ -110,6 +110,16 @@ setTimeout(() => {
   assert.equal(elements["amount-from"].value, "۱۰۰");
   assert.equal(elements["amount-to"].value, "۱۰٬۰۰۰٬۰۰۰");
 
+  elements["amount-from"].value = "100.55";
+  elements["amount-from"].selectionStart = elements["amount-from"].value.length;
+  elements["amount-from"].dispatch("input");
+  assert.equal(elements["amount-from"].value, "۱۰۰٫۵۵");
+
+  elements["amount-from"].value = "100.55.555";
+  elements["amount-from"].selectionStart = elements["amount-from"].value.length;
+  elements["amount-from"].dispatch("input");
+  assert.equal(elements["amount-from"].value, "۱۰۰٫۵۵۵۵۵");
+
   elements["currency-from"].dispatch("click");
   const optionsInDialog = elements["asset-list"].children;
   assert.equal(optionsInDialog.length, 4);
