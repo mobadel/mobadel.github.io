@@ -2,6 +2,10 @@ const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const vm = require("node:vm");
 
+const html = fs.readFileSync("index.html", "utf8");
+assert.match(html, /<title>تبدکس \| کامل‌ترین مبدل قیمت تتر، بیت کوین و ارزهای دیجیتال در ایران<\/title>/);
+assert.match(html, /<meta name="description" content="تبدیل آنلاین بیت کوین و ارزهای دیجیتال به یکدیگر، تتر و تومان با نرخ لحظه‌ای بازار ایران\. محاسبه سریع و رایگان قیمت\.">/);
+
 class FakeClassList {
   constructor() { this.values = new Set(); }
   add(value) { this.values.add(value); }
