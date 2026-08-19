@@ -42,6 +42,10 @@
     return String(value).replace(/[۰-۹٠-٩]/g, function (digit) { return DIGIT_MAP[digit]; });
   }
 
+  function toPersianDigits(value) {
+    return String(value).replace(/\d/g, function (digit) { return "۰۱۲۳۴۵۶۷۸۹"[Number(digit)]; });
+  }
+
   function parseAmount(value) {
     var normalized = toEnglishDigits(value).replace(/[\s,٬،]/g, "").replace(/٫/g, ".");
     if (!normalized || normalized === ".") return NaN;
@@ -268,27 +272,54 @@
 
   function paint() { updateRate(); paintConversion(); paintRate(); }
 
-  function formatInputWhileTyping(input, amount) {
+  function editableTokens(value) {
+    var normalized = toEnglishDigits(value).replace(/٫/g, ".");
+    var seenDecimal = false; var tokens = 0;
+    normalized.split("").forEach(function (character) {
+      if (/\d/.test(character)) tokens += 1;
+      else if (character === "." && !seenDecimal) { seenDecimal = true; tokens += 1; }
+    });
+    return tokens;
+  }
+
+  function formatEditableAmount(value) {
+    var normalized = toEnglishDigits(value).replace(/[\s,٬،]/g, "").replace(/٫/g, ".");
+    var integer = ""; var fraction = ""; var seenDecimal = false;
+    normalized.split("").forEach(function (character) {
+      if (/\d/.test(character)) {
+        if (seenDecimal) fraction += character;
+        else integer += character;
+      } else if (character === "." && !seenDecimal) {
+        seenDecimal = true;
+      }
+    });
+    if (!integer && seenDecimal) integer = "0";
+    integer = integer.replace(/^0+(?=\d)/, "");
+    var grouped = integer.replace(/\B(?=(\d{3})+(?!\d))/g, "٬");
+    return toPersianDigits(grouped + (seenDecimal ? "٫" + fraction : ""));
+  }
+
+  function formatInputWhileTyping(input) {
     var raw = input.value;
-    if (!Number.isFinite(amount) || /[.٫]/.test(raw)) return;
-    var caret = input.selectionStart || raw.length;
-    var digitsBefore = toEnglishDigits(raw.slice(0, caret)).replace(/\D/g, "").length;
-    var formatted = formatNumber(amount, 0);
+    var caret = input.selectionStart == null ? raw.length : input.selectionStart;
+    var tokensBeforeCaret = editableTokens(raw.slice(0, caret));
+    var formatted = formatEditableAmount(raw);
     setInput(input, formatted);
     var seen = 0; var position = 0;
-    while (position < formatted.length && seen < digitsBefore) {
-      if (/[۰-۹]/.test(formatted[position])) seen += 1;
+    while (position < formatted.length && seen < tokensBeforeCaret) {
+      if (/[۰-۹٫]/.test(formatted[position])) seen += 1;
       position += 1;
     }
     try { input.setSelectionRange(position, position); } catch (error) { /* unsupported input type */ }
+    return parseAmount(formatted);
   }
 
   function onInput(side, input) {
     input.addEventListener("input", function () {
       if (writing) return;
-      var amount = parseAmount(input.value);
+      var amount = formatInputWhileTyping(input);
       state.edited = side; state.amount = amount;
-      formatInputWhileTyping(input, amount); paintConversion();
+      paintConversion();
     });
   }
 
