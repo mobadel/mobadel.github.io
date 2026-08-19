@@ -92,11 +92,10 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
   place-items: center;
   border-radius: 13px;
   color: #fff;
-  background: var(--green);
   box-shadow: 0 8px 20px rgba(22, 129, 95, .22);
 }
 
-.brand-mark svg { width: 21px; height: 21px; }
+.brand-mark svg { display: block; width: 40px; height: 40px; }
 
 .refresh-button {
   display: grid;
