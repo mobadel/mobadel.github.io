@@ -21,7 +21,7 @@
   };
 
   var state = {
-    from: "irt", to: "usdt", amount: 10000000, edited: "from", rate: null,
+    from: "usdt", to: "irt", amount: 100, edited: "from", rate: null,
     graph: {}, updatedAt: null, live: false, loading: false, dialogSide: null, lastFocused: null
   };
 
