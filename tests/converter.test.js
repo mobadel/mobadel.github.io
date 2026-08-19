@@ -3,6 +3,7 @@ const fs = require("node:fs");
 const vm = require("node:vm");
 
 const html = fs.readFileSync("index.html", "utf8");
+const styles = fs.readFileSync("assets/styles.css", "utf8");
 assert.match(html, /<title>تبدکس \| کامل‌ترین مبدل قیمت تتر، بیت کوین و ارزهای دیجیتال در ایران<\/title>/);
 assert.match(html, /<meta name="description" content="تبدیل آنلاین بیت کوین و ارزهای دیجیتال به یکدیگر، تتر و تومان با نرخ لحظه‌ای بازار ایران\. محاسبه سریع و رایگان قیمت\.">/);
 assert.match(html, /<link rel="canonical" href="https:\/\/tabdex\.ir\/">/);
@@ -13,6 +14,7 @@ assert.ok(fs.existsSync("assets/favicon.ico"));
 assert.ok(fs.existsSync("assets/favicon-48x48.png"));
 assert.ok(fs.existsSync("assets/apple-touch-icon.png"));
 assert.match(html, /<span class="brand-mark"[^>]*>[\s\S]*?<svg viewBox="0 0 64 64">[\s\S]*?<path d="M18 21h28l-7-7M46 43H18l7 7"\/>/);
+assert.match(styles, /\.brand-mark svg \{[^}]*stroke: none;/);
 
 class FakeClassList {
   constructor() { this.values = new Set(); }
