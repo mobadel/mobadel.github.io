@@ -54,7 +54,8 @@ jobs:
           set ftp:ssl-force yes
           set ftp:ssl-protect-data yes
           set ftp:ssl-auth TLS
-          set ssl:verify-certificate yes
+          # Temporary workaround for ParsPack's incomplete FTPS certificate chain.
+          set ssl:verify-certificate no
           mirror --reverse --verbose --parallel=4 _site/ "$FTP_DIRECTORY"
           bye
           EOF
