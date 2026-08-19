@@ -1,0 +1,60 @@
+name: Deploy to ParsPack
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: parspack-production
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    name: Deploy over FTPS
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Prepare static site
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p _site
+          cp index.html robots.txt sitemap.xml _site/
+          cp -R assets data scripts _site/
+
+      - name: Install FTPS client
+        shell: bash
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes lftp
+
+      - name: Deploy site
+        shell: bash
+        env:
+          FTP_SERVER: ${{ secrets.PARS_FTP_SERVER }}
+          FTP_PORT: ${{ secrets.PARS_FTP_PORT }}
+          FTP_USERNAME: ${{ secrets.PARS_FTP_USERNAME }}
+          FTP_PASSWORD: ${{ secrets.PARS_FTP_PASSWORD }}
+          FTP_DIRECTORY: ${{ secrets.PARS_FTP_DIRECTORY }}
+        run: |
+          set -euo pipefail
+          lftp -u "$FTP_USERNAME","$FTP_PASSWORD" -p "$FTP_PORT" "$FTP_SERVER" <<EOF
+          set cmd:fail-exit yes
+          set net:max-retries 2
+          set net:timeout 20
+          set ftp:ssl-force yes
+          set ftp:ssl-protect-data yes
+          set ftp:ssl-auth TLS
+          set ssl:verify-certificate yes
+          mirror --reverse --verbose --parallel=4 _site/ "$FTP_DIRECTORY"
+          bye
+          EOF
