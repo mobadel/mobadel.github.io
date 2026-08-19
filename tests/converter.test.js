@@ -14,7 +14,9 @@ assert.ok(fs.existsSync("assets/favicon.ico"));
 assert.ok(fs.existsSync("assets/favicon-48x48.png"));
 assert.ok(fs.existsSync("assets/apple-touch-icon.png"));
 assert.match(html, /<span class="brand-mark"[^>]*>[\s\S]*?<svg viewBox="0 0 64 64">[\s\S]*?<path d="M18 21h28l-7-7M46 43H18l7 7"\/>/);
-assert.match(styles, /\.brand-mark svg \{[^}]*stroke: none;/);
+assert.match(styles, /\.brand-mark svg \{[^}]*stroke: none;[^}]*shape-rendering: geometricPrecision;/);
+const brandMarkRule = styles.match(/\.brand-mark \{([^}]*)\}/)[1];
+assert.doesNotMatch(brandMarkRule, /border-radius|box-shadow/);
 
 class FakeClassList {
   constructor() { this.values = new Set(); }
