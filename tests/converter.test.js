@@ -5,6 +5,13 @@ const vm = require("node:vm");
 const html = fs.readFileSync("index.html", "utf8");
 assert.match(html, /<title>تبدکس \| کامل‌ترین مبدل قیمت تتر، بیت کوین و ارزهای دیجیتال در ایران<\/title>/);
 assert.match(html, /<meta name="description" content="تبدیل آنلاین بیت کوین و ارزهای دیجیتال به یکدیگر، تتر و تومان با نرخ لحظه‌ای بازار ایران\. محاسبه سریع و رایگان قیمت\.">/);
+assert.match(html, /<link rel="canonical" href="https:\/\/tabdex\.ir\/">/);
+assert.match(html, /<link rel="icon" href="\/assets\/favicon-48x48\.png" type="image\/png" sizes="48x48">/);
+assert.match(html, /<link rel="apple-touch-icon" href="\/assets\/apple-touch-icon\.png" sizes="180x180">/);
+assert.doesNotMatch(html, /mobadel\.github\.io/);
+assert.ok(fs.existsSync("assets/favicon.ico"));
+assert.ok(fs.existsSync("assets/favicon-48x48.png"));
+assert.ok(fs.existsSync("assets/apple-touch-icon.png"));
 
 class FakeClassList {
   constructor() { this.values = new Set(); }
