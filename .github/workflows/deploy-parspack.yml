@@ -31,6 +31,35 @@ jobs:
           cp index.html robots.txt sitemap.xml _site/
           cp -R assets data scripts _site/
 
+      # نرخ لحظه‌ای را هنگام دیپلوی می‌گیرد و فقط داخل _site می‌نویسد.
+      # نه کرون دارد، نه کامیتی در ریپو می‌سازد. اگر نوبیتکس در دسترس
+      # نباشد، همان prices.json کامیت‌شده دست‌نخورده منتشر می‌شود.
+      - name: تازه‌سازی نرخ تتر
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -uo pipefail
+          # فقط apiv2: نام api.nobitex.ir در DNS وجود ندارد.
+          response=$(curl -sS --max-time 20 --retry 2 --retry-delay 3 \
+            -H 'user-agent: mobadel-deploy/1.0 (+https://tabdex.ir)' \
+            'https://apiv2.nobitex.ir/market/stats?srcCurrency=usdt&dstCurrency=rls') || {
+              echo "::warning::نوبیتکس پاسخ نداد؛ اسنپ‌شات کامیت‌شده منتشر می‌شود."
+              exit 0
+            }
+          # latest به ریال است؛ تقسیم بر ۱۰ تا تومان شود (مطابق assets/app.js).
+          rate=$(printf '%s' "$response" \
+            | jq -r '(.stats["usdt-rls"].latest // empty) | tonumber / 10' 2>/dev/null || true)
+          valid=$(printf '%s' "${rate:-0}" | awk '{ print ($1 + 0 > 0) ? "yes" : "no" }')
+          if [ "$valid" != "yes" ]; then
+            echo "::warning::پاسخ نوبیتکس نامعتبر بود؛ اسنپ‌شات کامیت‌شده منتشر می‌شود."
+            exit 0
+          fi
+          jq -n --argjson rate "$rate" \
+            '{updated: (now | todateiso8601), source: "nobitex", rate: $rate}' \
+            > _site/data/prices.json
+          echo "نرخ تازه شد: $rate تومان"
+          cat _site/data/prices.json
+
       - name: Install FTPS client
         shell: bash
         run: |
