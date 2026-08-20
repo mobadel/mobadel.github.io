@@ -418,7 +418,10 @@
   }
 
   function attemptEndpoints(paths, timeout) {
-    var hosts = ["https://api.nobitex.ir", "https://apiv2.nobitex.ir"];
+    // apiv2 اول است: نام api.nobitex.ir در DNS وجود ندارد و هر بار یک
+    // درخواست محکوم‌به‌شکست می‌ساخت. به‌عنوان فالبک نگه داشته شده تا اگر
+    // روزی دوباره فعال شد، سایت بدون تغییر کار کند.
+    var hosts = ["https://apiv2.nobitex.ir", "https://api.nobitex.ir"];
     var urls = [];
     hosts.forEach(function (host) { paths.forEach(function (path) { urls.push(host + path); }); });
     function attempt(index) {
