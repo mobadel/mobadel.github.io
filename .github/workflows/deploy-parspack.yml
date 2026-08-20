@@ -60,6 +60,27 @@ jobs:
           echo "نرخ تازه شد: $rate تومان"
           cat _site/data/prices.json
 
+      # کلید BrsApi از سکرت به یک فایل PHP نوشته می‌شود. فایل PHP
+      # (برخلاف یک فایل متنی) اجرا می‌شود و محتوایش سرو نمی‌شود، پس
+      # کلید از بیرون قابل خواندن نیست. کلید هرگز وارد ریپو نمی‌شود.
+      # base64 فقط برای فرار از مشکلات نقل‌قول در شل است.
+      - name: نوشتن کلید BrsApi
+        shell: bash
+        env:
+          BRSAPI_KEY: ${{ secrets.BRSAPI_KEY }}
+        run: |
+          set -euo pipefail
+          if [ -z "${BRSAPI_KEY:-}" ]; then
+            # عمداً دیپلوی را نمی‌شکنیم: نبودِ کلید فقط یعنی طلا و ارز
+            # فیات نرخ ندارند، ولی بقیهٔ سایت باید منتشر شود.
+            echo "::warning::سکرت BRSAPI_KEY تعریف نشده؛ نرخ طلا و ارز فیات تا تعریف شدن آن در دسترس نخواهد بود."
+            exit 0
+          fi
+          mkdir -p _site/api
+          encoded=$(printf '%s' "$BRSAPI_KEY" | base64 -w0)
+          printf '<?php\nreturn ["brsapi_key" => base64_decode("%s")];\n' "$encoded" > _site/api/config.php
+          echo "config.php نوشته شد."
+
       - name: Install FTPS client
         shell: bash
         run: |
