@@ -468,3 +468,39 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; }
 }
+
+/* تگ‌های دستهٔ دارایی زیر فیلد جستجو. از همان زبان بصری فیلد جستجو
+   استفاده می‌کنند: همان ضخامت حاشیه، همان سبزِ برند، همان حلقهٔ فوکوس. */
+.asset-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 14px;
+}
+
+.asset-filter {
+  padding: 7px 14px;
+  font: inherit;
+  font-size: 13px;
+  color: var(--muted);
+  background: var(--surface-muted);
+  border: 1.5px solid var(--border);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: color .15s, border-color .15s, background-color .15s;
+}
+
+.asset-filter:hover { color: var(--text); border-color: var(--border-strong); }
+
+.asset-filter.is-active {
+  color: var(--green-dark);
+  background: var(--green-soft);
+  border-color: var(--green);
+  font-weight: 700;
+}
+
+.asset-filter:focus-visible {
+  outline: 0;
+  border-color: var(--green);
+  box-shadow: 0 0 0 4px rgba(22, 129, 95, .10);
+}

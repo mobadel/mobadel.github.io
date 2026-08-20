@@ -22,9 +22,38 @@
     usdt: { id: "usdt", code: "USDT", name: "تتر", englishName: "Tether", decimals: 4, group: "crypto", unit: null, localIcon: "assets/usdt-logo.svg" }
   };
 
+  /* دارایی‌هایی که از پراکسی می‌آیند نه از نوبیتکس. اینجا فقط
+     ظاهرشان تعریف می‌شود؛ نرخشان را loadProxyRates می‌آورد و تا وقتی
+     نرخ نیامده باشد در فهرست ظاهر نمی‌شوند.
+     افزودن دارایی جدید = یک ردیف اینجا و یک ردیف در ASSET_MAP
+     فایل api/rates.php. */
+  [
+    { id: "gold18", code: "18K",   name: "طلای ۱۸ عیار", englishName: "18K Gold",      decimals: 4, group: "gold", unit: "gram",  localIcon: "assets/gold-18k.svg" },
+    { id: "emami",  code: "EMAMI", name: "سکه امامی",    englishName: "Emami Coin",    decimals: 4, group: "coin", unit: "piece", localIcon: "assets/coin-emami.png" },
+    { id: "usd",    code: "USD",   name: "دلار",          englishName: "US Dollar",     decimals: 2, group: "fiat", unit: null,    localIcon: "assets/flags/us.svg" },
+    { id: "eur",    code: "EUR",   name: "یورو",          englishName: "Euro",          decimals: 2, group: "fiat", unit: null,    localIcon: "assets/flags/eu.svg" },
+    { id: "try",    code: "TRY",   name: "لیر ترکیه",     englishName: "Turkish Lira",  decimals: 2, group: "fiat", unit: null,    localIcon: "assets/flags/tr.svg" },
+    { id: "aed",    code: "AED",   name: "درهم امارات",   englishName: "UAE Dirham",    decimals: 2, group: "fiat", unit: null,    localIcon: "assets/flags/ae.svg" }
+  ].forEach(function (asset) { currencies[asset.id] = asset; });
+
+  // برچسب واحد: طلا به گرم است و سکه به عدد. بدون این، عددی که کاربر
+  // وارد می‌کند مبهم است.
+  var UNIT_LABELS = { gram: "گرم", piece: "عدد" };
+
+  function unitLabel(currency) {
+    return currency && currency.unit ? (UNIT_LABELS[currency.unit] || null) : null;
+  }
+
   var state = {
     from: "usdt", to: "irt", amount: 100, edited: "from", rate: null,
-    graph: {}, updatedAt: null, live: false, loading: false, dialogSide: null, lastFocused: null
+    graph: {}, updatedAt: null, live: false, loading: false, dialogSide: null, lastFocused: null,
+    filterGroup: "all", proxyAssets: null,
+    // دو منبع مستقل داریم. وضعیت هرکدام جدا نگه داشته می‌شود چون نوار
+    // وضعیت باید زمانِ همان منبعی را نشان بدهد که جفت فعلی از آن آمده.
+    sources: {
+      nobitex: { live: false, at: null },
+      proxy:   { live: false, at: null }
+    }
   };
 
   var elements = {
@@ -35,7 +64,7 @@
     refresh: document.getElementById("refresh"), dialog: document.getElementById("asset-dialog"),
     dialogTitle: document.getElementById("asset-dialog-title"), dialogClose: document.getElementById("dialog-close"),
     assetSearch: document.getElementById("asset-search"), assetList: document.getElementById("asset-list"),
-    assetEmpty: document.getElementById("asset-empty")
+    assetEmpty: document.getElementById("asset-empty"), assetFilters: document.getElementById("asset-filters")
   };
 
   var writing = false;
@@ -228,6 +257,33 @@
 
   function updateRate() { state.rate = findRate(state.from, state.to); }
 
+  // آیا نرخ این دارایی از پراکسی می‌آید؟ تومان از هیچ‌کدام نمی‌آید و
+  // همیشه در دسترس است.
+  function isProxyAsset(id) {
+    var group = groupOf(id);
+    return group === "gold" || group === "coin" || (group === "fiat" && id !== "irt");
+  }
+
+  /* نوار وضعیت باید دربارهٔ همین جفت راست بگوید، نه دربارهٔ کل سایت.
+     تبدیل دلار به بیت‌کوین از هر دو منبع عبور می‌کند، پس قدیمی‌ترین
+     زمان و بدبینانه‌ترین حالتِ «زنده بودن» نمایش داده می‌شود. */
+  function refreshPairStatus() {
+    var needed = [];
+    if (groupOf(state.from) === "crypto" || groupOf(state.to) === "crypto") needed.push("nobitex");
+    if (isProxyAsset(state.from) || isProxyAsset(state.to)) needed.push("proxy");
+    if (!needed.length) needed.push("nobitex");
+
+    var live = true;
+    var oldest = null;
+    needed.forEach(function (key) {
+      var source = state.sources[key];
+      if (!source.live) live = false;
+      if (source.at && (!oldest || source.at < oldest)) oldest = source.at;
+    });
+    state.live = live;
+    state.updatedAt = oldest;
+  }
+
   function convertEditedAmount() {
     if (!Number.isFinite(state.rate) || state.rate <= 0 || !Number.isFinite(state.amount)) return null;
     return state.edited === "from" ? state.amount * state.rate : state.amount / state.rate;
@@ -268,7 +324,9 @@
     var label = document.createElement("span");
     label.className = "currency-text";
     var code = document.createElement("strong"); code.textContent = currency.code;
-    var name = document.createElement("small"); name.textContent = currency.name;
+    var name = document.createElement("small");
+    var unit = unitLabel(currency);
+    name.textContent = unit ? currency.name + " · هر " + unit : currency.name;
     label.append(code, name); container.appendChild(label);
     var chevron = document.createElement("span");
     chevron.className = "currency-chevron"; chevron.setAttribute("aria-hidden", "true");
@@ -294,17 +352,21 @@
     if (!Number.isFinite(state.rate) || state.rate <= 0) {
       elements.rateValue.textContent = state.loading ? "در حال دریافت…" : "نرخ این تبدیل در دسترس نیست";
       elements.rateStatus.classList.toggle("error", !state.loading);
+      // دیگر فقط نوبیتکس نیست، پس متن عمومی شد.
       elements.rateStatus.innerHTML = '<span class="status-dot" aria-hidden="true"></span>' +
-        (state.loading ? "اتصال به نوبیتکس" : "بازار مستقیم تومانی موجود نیست");
+        (state.loading ? "در حال دریافت نرخ‌ها" : "نرخ این تبدیل در دسترس نیست");
       return;
     }
-    elements.rateValue.textContent = "۱ " + fromCurrency.name + " = " + formatNumber(state.rate, toCurrency.decimals) + " " + toCurrency.name;
+    // «۱ گرم طلای ۱۸ عیار» به‌جای «۱ طلای ۱۸ عیار»
+    var fromUnit = unitLabel(fromCurrency);
+    elements.rateValue.textContent = "۱ " + (fromUnit ? fromUnit + " " : "") + fromCurrency.name +
+      " = " + formatNumber(state.rate, toCurrency.decimals) + " " + toCurrency.name;
     elements.rateStatus.classList.toggle("error", !state.live);
     elements.rateStatus.innerHTML = '<span class="status-dot" aria-hidden="true"></span>' +
       (state.live ? "آخرین به‌روزرسانی " + formatTime(state.updatedAt) : "نمایش آخرین نرخ ذخیره‌شده");
   }
 
-  function paint() { updateRate(); paintConversion(); paintRate(); }
+  function paint() { updateRate(); refreshPairStatus(); paintConversion(); paintRate(); }
 
   function editableTokens(value) {
     var normalized = toEnglishDigits(value).replace(/٫/g, ".");
@@ -395,7 +457,10 @@
   function renderAssetList() {
     var query = normalizedSearch(elements.assetSearch.value);
     var counterpart = state.dialogSide ? state[state.dialogSide === "from" ? "to" : "from"] : null;
+    var allowedGroups = FILTER_GROUPS[state.filterGroup] || null;
     var assets = availableCurrencies(counterpart).filter(function (currency) {
+      // تگ دسته و متن جستجو با هم AND می‌شوند.
+      if (allowedGroups && allowedGroups.indexOf(currency.group || "crypto") === -1) return false;
       var haystack = normalizedSearch([currency.code, currency.name, currency.englishName].concat(currency.aliases || []).join(" "));
       return !query || haystack.indexOf(query) !== -1;
     });
@@ -410,7 +475,9 @@
       var label = document.createElement("span"); label.className = "asset-option-label";
       var name = document.createElement("strong"); name.textContent = currency.name;
       var english = document.createElement("small");
-      english.textContent = currency.englishName || currency.code;
+      // برای طلا و سکه، واحد مفیدتر از نام انگلیسی است.
+      var unit = unitLabel(currency);
+      english.textContent = unit ? "هر " + unit : (currency.englishName || currency.code);
       label.append(name, english);
       var code = document.createElement("b"); code.className = "asset-option-code"; code.textContent = currency.code;
       option.append(label, code);
@@ -419,10 +486,37 @@
     });
   }
 
+  /* تگ‌های دسته زیر فیلد جستجو. «طلا و سکه» عمداً یک تگ است چون
+     کاربر آن‌ها را یک خانواده می‌بیند، هرچند داخل کد دو دستهٔ جدا
+     هستند. تومان هم عمداً زیر «ارز» می‌آید. */
+  var FILTER_GROUPS = {
+    all: null,
+    crypto: ["crypto"],
+    metal: ["gold", "coin"],
+    fiat: ["fiat"]
+  };
+
+  function paintFilters() {
+    if (!elements.assetFilters || !elements.assetFilters.children) return;
+    Array.prototype.forEach.call(elements.assetFilters.children, function (button) {
+      var active = (button.dataset && button.dataset.group) === state.filterGroup;
+      button.classList.toggle("is-active", active);
+      button.setAttribute("aria-pressed", String(active));
+    });
+  }
+
+  function setFilterGroup(group) {
+    if (!Object.prototype.hasOwnProperty.call(FILTER_GROUPS, group)) return;
+    state.filterGroup = group;
+    paintFilters();
+    renderAssetList();
+  }
+
   function openDialog(side) {
     state.dialogSide = side; state.lastFocused = document.activeElement;
     elements.dialogTitle.textContent = side === "from" ? "انتخاب دارایی مبدأ" : "انتخاب دارایی مقصد";
     elements.assetSearch.value = ""; elements.dialog.hidden = false;
+    state.filterGroup = "all"; paintFilters();
     document.body.classList.add("dialog-open"); renderAssetList();
     window.setTimeout(function () { elements.assetSearch.focus(); }, 0);
   }
@@ -483,10 +577,48 @@
       var savedRate = Number(payload.rate || (payload.prices && payload.prices.usdt));
       if (Number.isFinite(savedRate) && savedRate > 0) {
         setEdge("usdt", "irt", savedRate);
-        state.updatedAt = payload.updated ? new Date(payload.updated) : null;
-        state.live = false; paint();
+        state.sources.nobitex.at = payload.updated ? new Date(payload.updated) : null;
+        state.sources.nobitex.live = false;
+        paint();
       }
     }).catch(function () { /* snapshot is only a fallback */ });
+  }
+
+  /* طلا، سکه و ارز فیات از پراکسی هم‌دامنه می‌آیند، نه مستقیم از
+     BrsApi: سهمیهٔ رایگان روزی ۱۵۰۰ درخواست است و کلید هم نباید در
+     جاوااسکریپت عمومی دیده شود. جزئیات در api/rates.php. */
+  /* یال‌های پراکسی جدا نگه داشته می‌شوند چون buildMarketGraph کل گراف
+     را از نو می‌سازد. نوبیتکس معمولاً دیرتر از پراکسی جواب می‌دهد، و
+     بدون این کار طلا و ارز فیات درست بعد از رسیدن پاسخ نوبیتکس از
+     فهرست ناپدید می‌شدند. */
+  function applyProxyEdges() {
+    var assets = state.proxyAssets;
+    if (!assets) return 0;
+    var applied = 0;
+    Object.keys(assets).forEach(function (id) {
+      if (!currencies[id]) return;
+      var toman = Number(assets[id] && assets[id].toman);
+      if (!Number.isFinite(toman) || toman <= 0) return;
+      setEdge(id, "irt", toman);
+      applied += 1;
+    });
+    return applied;
+  }
+
+  function loadProxyRates() {
+    return fetchJson("api/rates.php?t=" + Date.now(), 8000).then(function (payload) {
+      var assets = payload && payload.assets;
+      if (!assets || typeof assets !== "object") throw new Error("invalid rates payload");
+      state.proxyAssets = assets;
+      if (!applyProxyEdges()) throw new Error("no usable rates");
+      state.sources.proxy.live = !payload.stale;
+      state.sources.proxy.at = payload.updated ? new Date(payload.updated) : new Date();
+      paint();
+    }).catch(function () {
+      // نبودِ این منبع نباید بخش ارز دیجیتال را از کار بیندازد.
+      state.sources.proxy.live = false;
+      paint();
+    });
   }
 
   function loadLiveRates() {
@@ -496,10 +628,14 @@
     var namesRequest = fetchJson("data/currencies.json?t=" + Date.now(), 5000).catch(function () { return null; });
     return Promise.all([statsRequest, optionsRequest, namesRequest]).then(function (responses) {
       buildMarketGraph(responses[0]); applyOptions(responses[1]); applyCurrencyNames(responses[2]);
-      state.updatedAt = new Date(); state.live = true; state.loading = false; paint();
+      // buildMarketGraph گراف را از نو ساخت، پس یال‌های پراکسی باید
+      // دوباره سوار شوند.
+      applyProxyEdges();
+      state.sources.nobitex.live = true; state.sources.nobitex.at = new Date();
+      state.loading = false; paint();
       if (!elements.dialog.hidden) renderAssetList();
     }).catch(function () {
-      state.loading = false; state.live = false; paint();
+      state.loading = false; state.sources.nobitex.live = false; paint();
     }).finally(function () {
       elements.refresh.classList.remove("loading"); elements.refresh.disabled = false;
     });
@@ -508,7 +644,19 @@
   clearLegacyHash();
   onInput("from", elements.amountFrom); onInput("to", elements.amountTo);
   elements.swap.addEventListener("click", swapCurrencies);
-  elements.refresh.addEventListener("click", loadLiveRates);
+  // دکمهٔ تازه‌سازی باید هر دو منبع را تازه کند، نه فقط نوبیتکس.
+  function refreshAll() {
+    loadProxyRates();
+    return loadLiveRates();
+  }
+
+  elements.refresh.addEventListener("click", refreshAll);
+  if (elements.assetFilters) {
+    elements.assetFilters.addEventListener("click", function (event) {
+      var button = event.target && event.target.closest ? event.target.closest("[data-group]") : null;
+      if (button && button.dataset) setFilterGroup(button.dataset.group);
+    });
+  }
   elements.currencyFrom.addEventListener("click", function () { openDialog("from"); });
   elements.currencyTo.addEventListener("click", function () { openDialog("to"); });
   elements.dialogClose.addEventListener("click", closeDialog);
@@ -518,5 +666,6 @@
     if (!elements.dialog.hidden && event.key === "Escape") closeDialog();
   });
   paint();
-  loadSnapshot().finally(loadLiveRates);
+  paintFilters();
+  loadSnapshot().finally(refreshAll);
 })();
