@@ -15,9 +15,11 @@
     algo: "الگورند", ton: "تون‌کوین", shib: "شیبا اینو", pepe: "پپه", paxg: "پکس گلد"
   };
 
+  // دستهٔ هر دارایی تعیین می‌کند به چه چیزهایی تبدیل می‌شود. تومان
+  // عمداً در دستهٔ «فیات» است، نه دستهٔ جدا.
   var currencies = {
-    irt: { id: "irt", code: "IRT", name: "تومان", englishName: "Toman", decimals: 0, localIcon: "assets/flags/ir.svg" },
-    usdt: { id: "usdt", code: "USDT", name: "تتر", englishName: "Tether", decimals: 4, localIcon: "assets/usdt-logo.svg" }
+    irt: { id: "irt", code: "IRT", name: "تومان", englishName: "Toman", decimals: 0, group: "fiat", unit: null, localIcon: "assets/flags/ir.svg" },
+    usdt: { id: "usdt", code: "USDT", name: "تتر", englishName: "Tether", decimals: 4, group: "crypto", unit: null, localIcon: "assets/usdt-logo.svg" }
   };
 
   var state = {
@@ -113,10 +115,41 @@
       id: id, code: id === "irt" ? "IRT" : id.toUpperCase(), name: displayName(id, englishName),
       englishName: englishName,
       decimals: id === "irt" ? 0 : (option.displayPrecision ? decimalsFromPrecision(option.displayPrecision) : (current.decimals == null ? 8 : current.decimals)),
+      // این تابع کل رکورد را بازمی‌سازد، پس دسته و واحد باید صریحاً حفظ
+      // شوند وگرنه با هر به‌روزرسانی نرخ از بین می‌روند. هر دارایی‌ای که
+      // از نوبیتکس بیاید و دستهٔ از پیش تعیین‌شده نداشته باشد، ارز دیجیتال است.
+      group: option.group || current.group || (id === "irt" ? "fiat" : "crypto"),
+      unit: option.unit || current.unit || null,
       localIcon: current.localIcon || null, iconUrls: getOptionIconUrls(option, id),
       aliases: current.aliases || []
     };
     return currencies[id];
+  }
+
+  /* ── سیاست تبدیل ─────────────────────────────────────────────
+     دو منطقه داریم:
+       • شبکهٔ به‌هم‌پیوسته (ارز دیجیتال + فیات، شامل تومان): همه به همه
+       • برگ‌های تومانی (طلا + سکه): هر کدام فقط با تومان جفت می‌شوند
+     این لایه از لایهٔ نرخ جداست: اینکه مسیری برای محاسبه وجود دارد
+     به این معنا نیست که آن تبدیل مجاز است. بدون این جداسازی، طلا از
+     راه تومان به بیت‌کوین وصل می‌شد. ─────────────────────────── */
+
+  var MESH_GROUPS = { crypto: true, fiat: true };
+  var LEAF_GROUPS = { gold: true, coin: true };
+
+  function groupOf(id) {
+    var currency = currencies[id];
+    return (currency && currency.group) || "crypto";
+  }
+
+  function isPairAllowed(from, to) {
+    if (!from || !to || from === to) return false;
+    var fromGroup = groupOf(from);
+    var toGroup = groupOf(to);
+    if (LEAF_GROUPS[fromGroup] && LEAF_GROUPS[toGroup]) return false;
+    if (LEAF_GROUPS[fromGroup]) return to === "irt";
+    if (LEAF_GROUPS[toGroup]) return from === "irt";
+    return Boolean(MESH_GROUPS[fromGroup] && MESH_GROUPS[toGroup]);
   }
 
   function setEdge(from, to, rate) {
@@ -180,6 +213,7 @@
 
   function findRate(from, to) {
     if (from === to) return 1;
+    if (!isPairAllowed(from, to)) return null;
     var direct = directRate(from, to);
     if (direct) return direct;
     if (from === "irt" || to === "irt") return null;
@@ -337,9 +371,15 @@
     if (elements.dialog.hidden) { elements.amountFrom.focus(); elements.amountFrom.select(); }
   }
 
-  function availableCurrencies() {
+  // counterpartId دارایی طرف مقابل است. اگر داده شود، فهرست فقط
+  // گزینه‌هایی را نشان می‌دهد که با آن جفت مجاز می‌سازند؛ این‌طور کاربر
+  // هیچ‌وقت به بن‌بست «نرخ در دسترس نیست» نمی‌خورد.
+  function availableCurrencies(counterpartId) {
     return Object.keys(currencies).filter(function (id) {
-      return id === "irt" || (state.graph[id] && Object.keys(state.graph[id]).length);
+      var hasRate = id === "irt" || (state.graph[id] && Object.keys(state.graph[id]).length);
+      if (!hasRate) return false;
+      if (!counterpartId) return true;
+      return id === counterpartId || isPairAllowed(id, counterpartId);
     }).map(function (id) { return currencies[id]; }).sort(function (a, b) {
       var priority = { irt: 0, usdt: 1, btc: 2, eth: 3 };
       var aPriority = priority[a.id] == null ? 99 : priority[a.id];
@@ -354,7 +394,8 @@
 
   function renderAssetList() {
     var query = normalizedSearch(elements.assetSearch.value);
-    var assets = availableCurrencies().filter(function (currency) {
+    var counterpart = state.dialogSide ? state[state.dialogSide === "from" ? "to" : "from"] : null;
+    var assets = availableCurrencies(counterpart).filter(function (currency) {
       var haystack = normalizedSearch([currency.code, currency.name, currency.englishName].concat(currency.aliases || []).join(" "));
       return !query || haystack.indexOf(query) !== -1;
     });
@@ -399,6 +440,12 @@
     if (state[otherSide] === id) {
       var previous = state[side]; state[side] = id; state[otherSide] = previous;
     } else state[side] = id;
+    // جابه‌جایی بالا می‌تواند جفت نامعتبر بسازد (مثلاً طلا در برابر
+    // بیت‌کوین). در آن صورت طرف مقابل به تومان برمی‌گردد که با هر
+    // دارایی‌ای جفت مجاز می‌سازد.
+    if (!isPairAllowed(state.from, state.to)) {
+      state[otherSide] = state[side] === "irt" ? "usdt" : "irt";
+    }
     state.edited = "from"; state.amount = parseAmount(elements.amountFrom.value);
     closeDialog(); paint();
   }
