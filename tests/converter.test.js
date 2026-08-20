@@ -4,8 +4,8 @@ const vm = require("node:vm");
 
 const html = fs.readFileSync("index.html", "utf8");
 const styles = fs.readFileSync("assets/styles.css", "utf8");
-assert.match(html, /<title>تبدکس \| کامل‌ترین مبدل قیمت تتر، بیت کوین و ارزهای دیجیتال در ایران<\/title>/);
-assert.match(html, /<meta name="description" content="تبدیل آنلاین بیت کوین و ارزهای دیجیتال به یکدیگر، تتر و تومان با نرخ لحظه‌ای بازار ایران\. محاسبه سریع و رایگان قیمت\.">/);
+assert.match(html, /<title>تبدکس \| مبدل قیمت طلا، سکه، ارز و ارزهای دیجیتال در ایران<\/title>/);
+assert.match(html, /<meta name="description" content="تبدیل آنلاین طلای ۱۸ عیار، سکه امامی، دلار، یورو و ارزهای دیجیتال به تومان و به یکدیگر، با نرخ لحظه‌ای بازار ایران\. محاسبه سریع و رایگان\.">/);
 assert.match(html, /<link rel="canonical" href="https:\/\/tabdex\.ir\/">/);
 assert.match(html, /<link rel="icon" href="\/assets\/favicon-48x48\.png" type="image\/png" sizes="48x48">/);
 assert.match(html, /<link rel="apple-touch-icon" href="\/assets\/apple-touch-icon\.png" sizes="180x180">/);
@@ -47,7 +47,12 @@ class FakeElement {
   }
   addEventListener(name, callback) { (this.listeners[name] ||= []).push(callback); }
   dispatch(name, details = {}) {
-    (this.listeners[name] || []).forEach((callback) => callback({ key: details.key, target: this }));
+    // target قابل بازنویسی است تا بشود کلیک روی یک فرزند را روی
+    // شنوندهٔ والد شبیه‌سازی کرد (تگ‌های دسته از تفویض رویداد استفاده می‌کنند).
+    (this.listeners[name] || []).forEach((callback) => callback({ key: details.key, target: details.target || this }));
+  }
+  closest(selector) {
+    return selector === "[data-group]" && this.dataset.group ? this : null;
   }
   setAttribute(name, value) { this.attributes[name] = String(value); }
   appendChild(child) { this.children.push(child); return child; }
@@ -67,9 +72,15 @@ class FakeElement {
 const ids = [
   "amount-from", "amount-to", "currency-from", "currency-to", "page-title", "rate-value",
   "rate-status", "swap", "refresh", "asset-dialog", "asset-dialog-title", "dialog-close",
-  "asset-search", "asset-list", "asset-empty"
+  "asset-search", "asset-list", "asset-empty", "asset-filters"
 ];
 const elements = Object.fromEntries(ids.map((id) => [id, new FakeElement(id.includes("amount") || id === "asset-search" ? "input" : "div")]));
+const filterChips = Object.fromEntries(["all", "crypto", "metal", "fiat"].map((group) => {
+  const button = new FakeElement("button");
+  button.dataset.group = group;
+  return [group, button];
+}));
+elements["asset-filters"].children = Object.values(filterChips);
 elements["amount-from"].value = "۱۰۰";
 elements["asset-dialog"].hidden = true;
 elements["asset-dialog"].backdrop = new FakeElement();
@@ -111,7 +122,23 @@ const currencyNames = {
   }
 };
 
+// اعداد عمداً گرد انتخاب شده‌اند تا ادعاهای تست خوانا بمانند:
+// یورو ÷ دلار = ۱٫۲ دقیق.
+const proxyRates = {
+  updated: "2026-08-20T16:14:01+00:00",
+  stale: false,
+  assets: {
+    gold18: { toman: 20000000, group: "gold", unit: "gram", name: "طلای ۱۸ عیار" },
+    emami: { toman: 200000000, group: "coin", unit: "piece", name: "سکه امامی" },
+    usd: { toman: 200000, group: "fiat", unit: "unit", name: "دلار" },
+    eur: { toman: 240000, group: "fiat", unit: "unit", name: "یورو" },
+    try: { toman: 4000, group: "fiat", unit: "unit", name: "لیر ترکیه" },
+    aed: { toman: 54000, group: "fiat", unit: "unit", name: "درهم امارات" }
+  }
+};
+
 global.fetch = async (url) => {
+  if (String(url).includes("api/rates.php")) return { ok: true, json: async () => proxyRates };
   if (String(url).includes("data/prices.json")) return { ok: false, status: 404, json: async () => ({}) };
   if (String(url).includes("data/currencies.json")) return { ok: true, json: async () => currencyNames };
   if (String(url).includes("/market/stats")) return { ok: true, json: async () => stats };
@@ -139,7 +166,9 @@ setTimeout(() => {
 
   elements["currency-from"].dispatch("click");
   const optionsInDialog = elements["asset-list"].children;
-  assert.equal(optionsInDialog.length, 4);
+  // ۴ دارایی نوبیتکسی + ۶ دارایی پراکسی. طرف مقابل تومان است و با
+  // همه جفت مجاز می‌سازد، پس همه دیده می‌شوند.
+  assert.equal(optionsInDialog.length, 10);
   const bitcoinOption = optionsInDialog.find((item) => item.dataset.currency === "btc");
   assert.ok(bitcoinOption);
   assert.equal(bitcoinOption.children.length, 3);
@@ -172,6 +201,76 @@ setTimeout(() => {
   elements["swap"].dispatch("click");
   assert.match(elements["page-title"].textContent, /تتر به بیت‌کوین/);
   assert.ok(elements["rate-value"].textContent.startsWith("۱ تتر"));
+
+  /* ── تگ‌های دسته ─────────────────────────────────────────── */
+  const openDialog = (side) => elements[`currency-${side}`].dispatch("click");
+  const listIds = () => elements["asset-list"].children.map((item) => item.dataset.currency);
+  const clickChip = (group) => elements["asset-filters"].dispatch("click", { target: filterChips[group] });
+
+  // در این لحظه مقصد بیت‌کوین است، پس طلا و سکه اصلاً نباید در مبدأ
+  // پیشنهاد شوند — همان فیلتر شدن بر اساس طرف مقابل.
+  openDialog("from");
+  assert.ok(!listIds().includes("gold18"), "وقتی مقصد بیت‌کوین است طلا نباید پیشنهاد شود");
+  clickChip("metal");
+  assert.deepEqual(listIds(), [], "تگ طلا و سکه در برابر بیت‌کوین باید خالی باشد");
+
+  // مقصد را به تومان برمی‌گردانیم تا بقیهٔ تگ‌ها معنا پیدا کنند.
+  openDialog("to");
+  elements["asset-search"].value = "تومان";
+  elements["asset-search"].dispatch("input");
+  elements["asset-list"].children.find((item) => item.dataset.currency === "irt").dispatch("click");
+
+  openDialog("from");
+  assert.equal(elements["asset-filters"].children[0].attributes["aria-pressed"], "true", "تگ «همه» باید در آغاز فعال باشد");
+
+  clickChip("metal");
+  assert.deepEqual(listIds().sort(), ["emami", "gold18"], "تگ طلا و سکه فقط باید همان دو را نشان دهد");
+
+  clickChip("fiat");
+  // تومان عمداً در دستهٔ ارز است، نه دستهٔ جدا.
+  assert.deepEqual(listIds().sort(), ["aed", "eur", "irt", "try", "usd"], "تومان باید زیر تگ ارز بیاید");
+
+  clickChip("crypto");
+  assert.ok(!listIds().includes("irt"), "تومان نباید زیر تگ ارز دیجیتال بیاید");
+  assert.ok(listIds().includes("btc"));
+
+  // تگ و متن جستجو باید AND شوند، نه OR.
+  elements["asset-search"].value = "یورو";
+  elements["asset-search"].dispatch("input");
+  assert.equal(elements["asset-list"].children.length, 0, "یورو زیر تگ ارز دیجیتال نباید پیدا شود");
+
+  /* ── ماتریس مجاز/غیرمجاز ─────────────────────────────────── */
+  openDialog("from");
+  elements["asset-search"].value = "طلا";
+  elements["asset-search"].dispatch("input");
+  elements["asset-list"].children.find((item) => item.dataset.currency === "gold18").dispatch("click");
+  assert.match(elements["page-title"].textContent, /طلای ۱۸ عیار به تومان/);
+  // واحد باید در نرخ دیده شود وگرنه «۱» مبهم است.
+  assert.match(elements["rate-value"].textContent, /^۱ گرم طلای ۱۸ عیار = ۲۰٬۰۰۰٬۰۰۰ تومان$/);
+
+  // وقتی مبدأ طلاست، تنها تبدیل ممکن تومان است. خودِ طلا هم در فهرست
+  // می‌ماند چون کلیک روی دارایی طرف مقابل از قدیم یعنی جابه‌جایی دو طرف.
+  openDialog("to");
+  assert.deepEqual(listIds().sort(), ["gold18", "irt"], "طلا جز تومان با چیز دیگری جفت نمی‌شود");
+
+  /* ── فیات به فیات از راه تومان ───────────────────────────── */
+  openDialog("from");
+  elements["asset-search"].value = "یورو";
+  elements["asset-search"].dispatch("input");
+  elements["asset-list"].children.find((item) => item.dataset.currency === "eur").dispatch("click");
+
+  openDialog("to");
+  const dollarOption = elements["asset-list"].children.find((item) => item.dataset.currency === "usd");
+  assert.ok(dollarOption, "دلار باید در برابر یورو قابل انتخاب باشد");
+  dollarOption.dispatch("click");
+  assert.match(elements["rate-value"].textContent, /^۱ یورو = ۱٫۲ دلار$/);
+
+  // فیات به ارز دیجیتال هم باید مجاز باشد.
+  openDialog("to");
+  assert.ok(listIds().includes("btc"), "ارز فیات باید به ارز دیجیتال تبدیل شود");
+  // ولی طلا و سکه نه.
+  assert.ok(!listIds().includes("gold18"), "یورو نباید به طلا تبدیل شود");
+  assert.ok(!listIds().includes("emami"), "یورو نباید به سکه تبدیل شود");
 
   console.log("converter tests passed");
 }, 30);
