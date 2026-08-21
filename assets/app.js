@@ -139,6 +139,16 @@
     return currency && currency.unit ? (UNIT_LABELS[currency.unit] || null) : null;
   }
 
+  /* واحد را فقط وقتی جلوی نام می‌گذارد که نام خودش با آن شروع نشده
+     باشد. بدون این، «انس طلا» که واحدش هم «انس» است می‌شد
+     «۱ انس انس طلا». قاعده عمومی است تا اگر بعداً دارایی مشابهی
+     اضافه شد (مثلاً «گرم نقره») همین مشکل تکرار نشود. */
+  function unitPrefix(currency) {
+    var unit = unitLabel(currency);
+    if (!unit) return "";
+    return String((currency && currency.name) || "").indexOf(unit) === 0 ? "" : unit;
+  }
+
   var state = {
     from: "usdt", to: "irt", amount: 100, edited: "from", rate: null,
     graph: {}, updatedAt: null, live: false, loading: false, dialogSide: null, lastFocused: null,
@@ -457,7 +467,7 @@
   function paintDocumentMeta(heading, fromCurrency, toCurrency) {
     if (typeof document === "undefined") return;
 
-    var unit = unitLabel(fromCurrency);
+    var unit = unitPrefix(fromCurrency);
     var subject = (unit ? "هر " + unit + " " : "") + fromCurrency.name;
     document.title = heading + " | تبدکس";
 
@@ -492,7 +502,7 @@
       return;
     }
     // «۱ گرم طلای ۱۸ عیار» به‌جای «۱ طلای ۱۸ عیار»
-    var fromUnit = unitLabel(fromCurrency);
+    var fromUnit = unitPrefix(fromCurrency);
     elements.rateValue.textContent = "۱ " + (fromUnit ? fromUnit + " " : "") + fromCurrency.name +
       " = " + formatNumber(state.rate, toCurrency.decimals) + " " + toCurrency.name;
     elements.rateStatus.classList.toggle("error", !state.live);

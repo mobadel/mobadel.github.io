@@ -167,6 +167,7 @@ const proxyRates = {
   stale: false,
   assets: {
     gold18: { toman: 20000000, group: "gold", unit: "gram", name: "طلای ۱۸ عیار" },
+    goldounce: { toman: 860000000, group: "gold", unit: "ounce", name: "انس طلا" },
     emami: { toman: 200000000, group: "coin", unit: "piece", name: "سکه امامی" },
     usd: { toman: 200000, group: "fiat", unit: "unit", name: "دلار" },
     eur: { toman: 240000, group: "fiat", unit: "unit", name: "یورو" },
@@ -206,8 +207,8 @@ setTimeout(async () => {
 
   elements["currency-from"].dispatch("click");
   const optionsInDialog = elements["asset-list"].children;
-  // ۴ دارایی نوبیتکسی + ۸ دارایی پراکسی (شامل نقره و مس).
-  assert.equal(optionsInDialog.length, 12);
+  // ۴ دارایی نوبیتکسی + ۹ دارایی پراکسی (شامل انس طلا، نقره و مس).
+  assert.equal(optionsInDialog.length, 13);
 
   /* ترتیب باید بر اساس اهمیت باشد نه الفبا. قبلاً دلار ته فهرست ارزها
      می‌افتاد چون AED و EUR الفبایی جلوترند. */
@@ -263,7 +264,7 @@ setTimeout(async () => {
   openDialog("from");
   assert.ok(listIds().includes("gold18"), "طلا باید در برابر بیت‌کوین هم قابل انتخاب باشد");
   clickChip("metal");
-  assert.deepEqual(listIds().sort(), ["emami", "gold18"], "تگ طلا و سکه در برابر بیت‌کوین هم باید پر باشد");
+  assert.deepEqual(listIds().sort(), ["emami", "gold18", "goldounce"], "تگ طلا و سکه در برابر بیت‌کوین هم باید پر باشد");
 
   openDialog("to");
   elements["asset-search"].value = "تومان";
@@ -274,7 +275,7 @@ setTimeout(async () => {
   assert.equal(elements["asset-filters"].children[0].attributes["aria-pressed"], "true", "تگ «همه» باید در آغاز فعال باشد");
 
   clickChip("metal");
-  assert.deepEqual(listIds().sort(), ["emami", "gold18"], "تگ طلا و سکه فقط باید همان دو را نشان دهد");
+  assert.deepEqual(listIds().sort(), ["emami", "gold18", "goldounce"], "تگ طلا و سکه فقط اقلام همان دسته را نشان دهد");
 
   clickChip("fiat");
   // تومان عمداً در دستهٔ ارز است، نه دستهٔ جدا.
@@ -385,6 +386,31 @@ setTimeout(async () => {
   const copperOption = elements["asset-list"].children.find((item) => item.dataset.currency === "copper");
   assert.equal(copperOption.children[2].textContent, "بورس کالا");
   assert.equal(copperOption.children[1].children[1].textContent, "هر کیلو");
+
+  /* ── واحد نباید در نام تکرار شود ────────────────────────────
+     «انس طلا» واحدش هم «انس» است، پس نباید بشود «۱ انس انس طلا».
+     ولی «طلای ۱۸ عیار» که واحدش «گرم» است باید پیشوند بگیرد. */
+  media.pointerFine = false;
+  openDialog("from");
+  elements["asset-search"].value = "انس";
+  elements["asset-search"].dispatch("input");
+  elements["asset-list"].children.find((item) => item.dataset.currency === "goldounce").dispatch("click");
+  openDialog("to");
+  elements["asset-list"].children.find((item) => item.dataset.currency === "irt").dispatch("click");
+  assert.ok(
+    elements["rate-value"].textContent.startsWith("۱ انس طلا ="),
+    `واحد نباید تکرار شود، ولی نتیجه این بود: ${elements["rate-value"].textContent}`
+  );
+  assert.doesNotMatch(elements["rate-value"].textContent, /انس انس/, "«انس انس» نباید تکرار شود");
+
+  openDialog("from");
+  elements["asset-search"].value = "طلای ۱۸";
+  elements["asset-search"].dispatch("input");
+  elements["asset-list"].children.find((item) => item.dataset.currency === "gold18").dispatch("click");
+  assert.ok(
+    elements["rate-value"].textContent.startsWith("۱ گرم طلای ۱۸ عیار"),
+    "دارایی‌هایی که نامشان با واحد شروع نمی‌شود باید پیشوند واحد بگیرند"
+  );
 
   /* ── فوکوس هنگام باز شدن دیالوگ ────────────────────────────
      روی موبایل نباید فیلد جستجو فوکوس بگیرد، وگرنه کیبورد باز می‌شود

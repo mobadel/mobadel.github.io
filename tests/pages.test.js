@@ -105,6 +105,20 @@ const sitemap = fs.readFileSync(path.join(workdir, "_site", "sitemap.xml"), "utf
 assert.match(sitemap, /<loc>https:\/\/tabdex\.ir\/<\/loc>/);
 assert.match(sitemap, /<loc>https:\/\/tabdex\.ir\/melted-to-irt\/<\/loc>/);
 assert.match(sitemap, /<loc>https:\/\/tabdex\.ir\/irt-to-baharazadi\/<\/loc>/);
+// نقره و مس هم در هر دو جهت با تومان صفحه دارند
+["silver-to-irt", "irt-to-silver", "copper-to-irt", "irt-to-copper"].forEach((slug) => {
+  assert.match(sitemap, new RegExp(`<loc>https://tabdex\\.ir/${slug}/</loc>`), `${slug} باید در سایت‌مپ باشد`);
+  assert.ok(fs.existsSync(path.join(workdir, "_site", slug, "index.html")), `${slug} باید صفحهٔ واقعی داشته باشد`);
+});
+
+/* واحد نباید در توضیحات تکرار شود: «انس طلا» واحدش هم «انس» است. */
+const ouncePage = fs.readFileSync(path.join(workdir, "_site", "ounce-to-irt", "index.html"), "utf8");
+assert.doesNotMatch(ouncePage, /هر انس انس طلا/, "واحد نباید در توضیحات تکرار شود");
+assert.match(ouncePage, /قیمت انس طلا بر حسب تومان/);
+
+const silverPage = fs.readFileSync(path.join(workdir, "_site", "silver-to-irt", "index.html"), "utf8");
+assert.match(silverPage, /<h1 id="page-title">تبدیل نقره ۹۹۹ به تومان<\/h1>/);
+assert.match(silverPage, /هر گرم نقره ۹۹۹/, "نقره باید پیشوند واحد بگیرد چون نامش با آن شروع نمی‌شود");
 
 const pageCount = (sitemap.match(/<loc>/g) || []).length;
 assert.ok(pageCount > 50, `انتظار بیش از ۵۰ آدرس در سایت‌مپ، ${pageCount} بود`);
