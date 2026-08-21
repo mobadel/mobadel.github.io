@@ -207,14 +207,13 @@ setTimeout(() => {
   const listIds = () => elements["asset-list"].children.map((item) => item.dataset.currency);
   const clickChip = (group) => elements["asset-filters"].dispatch("click", { target: filterChips[group] });
 
-  // در این لحظه مقصد بیت‌کوین است، پس طلا و سکه اصلاً نباید در مبدأ
-  // پیشنهاد شوند — همان فیلتر شدن بر اساس طرف مقابل.
+  // محدودیت دسته‌ای برداشته شده: حتی وقتی مقصد بیت‌کوین است، طلا هم
+  // باید در مبدأ قابل انتخاب باشد.
   openDialog("from");
-  assert.ok(!listIds().includes("gold18"), "وقتی مقصد بیت‌کوین است طلا نباید پیشنهاد شود");
+  assert.ok(listIds().includes("gold18"), "طلا باید در برابر بیت‌کوین هم قابل انتخاب باشد");
   clickChip("metal");
-  assert.deepEqual(listIds(), [], "تگ طلا و سکه در برابر بیت‌کوین باید خالی باشد");
+  assert.deepEqual(listIds().sort(), ["emami", "gold18"], "تگ طلا و سکه در برابر بیت‌کوین هم باید پر باشد");
 
-  // مقصد را به تومان برمی‌گردانیم تا بقیهٔ تگ‌ها معنا پیدا کنند.
   openDialog("to");
   elements["asset-search"].value = "تومان";
   elements["asset-search"].dispatch("input");
@@ -239,19 +238,31 @@ setTimeout(() => {
   elements["asset-search"].dispatch("input");
   assert.equal(elements["asset-list"].children.length, 0, "یورو زیر تگ ارز دیجیتال نباید پیدا شود");
 
-  /* ── ماتریس مجاز/غیرمجاز ─────────────────────────────────── */
+  /* ── طلا: بدون نماد، با واحد، و قابل تبدیل به همه ─────────── */
   openDialog("from");
   elements["asset-search"].value = "طلا";
   elements["asset-search"].dispatch("input");
-  elements["asset-list"].children.find((item) => item.dataset.currency === "gold18").dispatch("click");
+  const goldOption = elements["asset-list"].children.find((item) => item.dataset.currency === "gold18");
+  // بیت‌کوین سه فرزند دارد (آیکون، برچسب، نماد) ولی طلا نماد ندارد.
+  assert.equal(goldOption.children.length, 2, "طلا نباید ستون نماد داشته باشد");
+  assert.equal(goldOption.children[1].children[0].textContent, "طلای ۱۸ عیار");
+  assert.equal(goldOption.children[1].children[1].textContent, "هر گرم");
+
+  goldOption.dispatch("click");
   assert.match(elements["page-title"].textContent, /طلای ۱۸ عیار به تومان/);
   // واحد باید در نرخ دیده شود وگرنه «۱» مبهم است.
   assert.match(elements["rate-value"].textContent, /^۱ گرم طلای ۱۸ عیار = ۲۰٬۰۰۰٬۰۰۰ تومان$/);
 
-  // وقتی مبدأ طلاست، تنها تبدیل ممکن تومان است. خودِ طلا هم در فهرست
-  // می‌ماند چون کلیک روی دارایی طرف مقابل از قدیم یعنی جابه‌جایی دو طرف.
+  // در خود مبدل هم خط پررنگ باید نام فارسی باشد نه نماد.
+  assert.equal(elements["currency-from"].children[1].children[0].textContent, "طلای ۱۸ عیار");
+  assert.equal(elements["currency-from"].children[1].children[1].textContent, "هر گرم");
+
+  // محدودیت برداشته شده: طلا حالا به همه چیز تبدیل می‌شود.
   openDialog("to");
-  assert.deepEqual(listIds().sort(), ["gold18", "irt"], "طلا جز تومان با چیز دیگری جفت نمی‌شود");
+  const fromGold = listIds();
+  ["irt", "btc", "eth", "usdt", "eur", "usd", "emami"].forEach((id) => {
+    assert.ok(fromGold.includes(id), `طلا باید به ${id} تبدیل شود`);
+  });
 
   /* ── فیات به فیات از راه تومان ───────────────────────────── */
   openDialog("from");
@@ -265,12 +276,12 @@ setTimeout(() => {
   dollarOption.dispatch("click");
   assert.match(elements["rate-value"].textContent, /^۱ یورو = ۱٫۲ دلار$/);
 
-  // فیات به ارز دیجیتال هم باید مجاز باشد.
+  // ارز فیات هم به همه چیز، از جمله طلا و سکه.
   openDialog("to");
-  assert.ok(listIds().includes("btc"), "ارز فیات باید به ارز دیجیتال تبدیل شود");
-  // ولی طلا و سکه نه.
-  assert.ok(!listIds().includes("gold18"), "یورو نباید به طلا تبدیل شود");
-  assert.ok(!listIds().includes("emami"), "یورو نباید به سکه تبدیل شود");
+  const fromEuro = listIds();
+  ["btc", "gold18", "emami", "irt", "usdt"].forEach((id) => {
+    assert.ok(fromEuro.includes(id), `یورو باید به ${id} تبدیل شود`);
+  });
 
   console.log("converter tests passed");
 }, 30);
