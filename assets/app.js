@@ -479,9 +479,9 @@
 
     var canonical = document.querySelector ? document.querySelector('link[rel="canonical"]') : null;
     if (canonical && canonical.setAttribute) {
-      canonical.setAttribute("href", "https://tabdex.ir" + pathForPair(state.from, state.to));
+      canonical.setAttribute("href", "https://tabdex.ir" + canonicalForPair(state.from, state.to));
     }
-    setMeta("property", "og:url", "https://tabdex.ir" + pathForPair(state.from, state.to));
+    setMeta("property", "og:url", "https://tabdex.ir" + canonicalForPair(state.from, state.to));
   }
 
   function setMeta(attribute, key, value) {
@@ -591,9 +591,20 @@
     return Number.isFinite(value) && value > 0 ? value : null;
   }
 
+  /* آدرسی که کاربر باید ببیند. جفت پیش‌فرض هم آدرس اسلاگ‌دار خودش را
+     می‌گیرد: اگر کسی از bitcoin-to-gold18 به تتر و تومان برگردد، باید
+     روی usdt-to-irt بنشیند نه اینکه به ریشه پرتاب شود. */
   function pathForPair(from, to) {
-    if (from === DEFAULT_FROM && to === DEFAULT_TO) return "/";
     return "/" + slugOf(from) + "-to-" + slugOf(to) + "/";
+  }
+
+  /* آدرسِ رسمی برای موتور جستجو. صفحهٔ اصلی همین جفت پیش‌فرض را نشان
+     می‌دهد، پس usdt-to-irt و ریشه محتوای یکسان دارند و باید یکی از
+     آن‌ها رسمی باشد؛ وگرنه دو آدرس با محتوای تکراری ایندکس می‌شوند.
+     ریشه انتخاب شده چون صفحهٔ اصلی سایت است و در سایت‌مپ هم همان است. */
+  function canonicalForPair(from, to) {
+    if (from === DEFAULT_FROM && to === DEFAULT_TO) return "/";
+    return pathForPair(from, to);
   }
 
   // بعد از هر تغییر جفت صدا زده می‌شود. pushState تا دکمهٔ بازگشت
