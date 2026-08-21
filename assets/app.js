@@ -159,7 +159,8 @@
     dialog: document.getElementById("asset-dialog"),
     dialogTitle: document.getElementById("asset-dialog-title"), dialogClose: document.getElementById("dialog-close"),
     assetSearch: document.getElementById("asset-search"), assetList: document.getElementById("asset-list"),
-    assetEmpty: document.getElementById("asset-empty"), assetFilters: document.getElementById("asset-filters")
+    assetEmpty: document.getElementById("asset-empty"), assetFilters: document.getElementById("asset-filters"),
+    dialogPanel: document.getElementById("asset-dialog-panel")
   };
 
   var writing = false;
@@ -719,7 +720,32 @@
     elements.assetSearch.value = ""; elements.dialog.hidden = false;
     state.filterGroup = "all"; paintFilters();
     document.body.classList.add("dialog-open"); renderAssetList();
-    window.setTimeout(function () { elements.assetSearch.focus(); }, 0);
+    window.setTimeout(function () {
+      /* روی موبایل فوکوس خودکار روی فیلد جستجو کیبورد را باز می‌کند و
+         فهرست دارایی‌ها را می‌پوشاند، پس کاربر مجبور می‌شود اول کیبورد
+         را ببندد. کیبورد فقط وقتی باید بیاید که خودِ کاربر روی فیلد
+         جستجو زده باشد.
+
+         روی دسکتاپ برعکس است: فوکوس خودکار یعنی می‌شود بلافاصله تایپ
+         کرد و هیچ ضرری هم ندارد. پس تفکیک بر اساس نوع اشاره‌گر است،
+         نه اندازهٔ صفحه؛ تبلت با قلم یا لپ‌تاپ لمسی هم درست رفتار کند. */
+      if (prefersAutoFocus()) {
+        elements.assetSearch.focus();
+      } else if (elements.dialogPanel && elements.dialogPanel.focus) {
+        // فوکوس باید داخل دیالوگ برود وگرنه کاربرِ صفحه‌کلید و
+        // صفحه‌خوان بیرون از پنجرهٔ باز گیر می‌کند.
+        elements.dialogPanel.focus();
+      }
+    }, 0);
+  }
+
+  function prefersAutoFocus() {
+    if (!window || typeof window.matchMedia !== "function") return false;
+    try {
+      return window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+    } catch (error) {
+      return false;
+    }
   }
 
   function closeDialog() {

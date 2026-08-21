@@ -1,4 +1,8 @@
 const assert = require("node:assert/strict");
+
+// بدون این، خطای داخل کال‌بک async به‌صورت unhandledRejection
+// رد می‌شود و تست بی‌صدا سبز می‌ماند.
+process.on("unhandledRejection", (error) => { console.error(error); process.exit(1); });
 const fs = require("node:fs");
 const vm = require("node:vm");
 
@@ -78,7 +82,7 @@ class FakeElement {
 const ids = [
   "amount-from", "amount-to", "currency-from", "currency-to", "page-title", "rate-value",
   "rate-status", "swap", "refresh", "asset-dialog", "asset-dialog-title", "dialog-close",
-  "asset-search", "asset-list", "asset-empty", "asset-filters"
+  "asset-search", "asset-list", "asset-empty", "asset-filters", "asset-dialog-panel"
 ];
 const elements = Object.fromEntries(ids.map((id) => [id, new FakeElement(id.includes("amount") || id === "asset-search" ? "input" : "div")]));
 const filterChips = Object.fromEntries(["all", "crypto", "metal", "commodity", "fiat"].map((group) => {
@@ -110,8 +114,11 @@ global.document = {
   addEventListener() {}
 };
 const windowListeners = {};
+// pointerFine را تست عوض می‌کند تا هر دو حالت موبایل و دسکتاپ سنجیده شود
+const media = { pointerFine: false };
 global.window = {
   setTimeout,
+  matchMedia(query) { return { matches: query.includes("pointer: fine") && media.pointerFine }; },
   addEventListener(name, callback) { (windowListeners[name] ||= []).push(callback); },
   dispatch(name) { (windowListeners[name] || []).forEach((callback) => callback({})); }
 };
@@ -181,7 +188,7 @@ global.fetch = async (url) => {
 
 vm.runInThisContext(fs.readFileSync("assets/app.js", "utf8"), { filename: "assets/app.js" });
 
-setTimeout(() => {
+setTimeout(async () => {
   assert.match(elements["page-title"].textContent, /تبدیل تتر به تومان/);
   assert.match(elements["rate-value"].textContent, /۱ تتر.*۱۰۰٬۰۰۰ تومان/);
   assert.equal(elements["amount-from"].value, "۱۰۰");
@@ -378,6 +385,28 @@ setTimeout(() => {
   const copperOption = elements["asset-list"].children.find((item) => item.dataset.currency === "copper");
   assert.equal(copperOption.children[2].textContent, "بورس کالا");
   assert.equal(copperOption.children[1].children[1].textContent, "هر کیلو");
+
+  /* ── فوکوس هنگام باز شدن دیالوگ ────────────────────────────
+     روی موبایل نباید فیلد جستجو فوکوس بگیرد، وگرنه کیبورد باز می‌شود
+     و فهرست دارایی‌ها را می‌پوشاند. */
+  await new Promise((resolve) => setTimeout(resolve, 5));
+
+  media.pointerFine = false;               // موبایل
+  document.activeElement = null;
+  openDialog("from");
+  await new Promise((resolve) => setTimeout(resolve, 5));
+  assert.notEqual(document.activeElement, elements["asset-search"], "روی موبایل فیلد جستجو نباید خودکار فوکوس بگیرد");
+  assert.equal(document.activeElement, elements["asset-dialog-panel"], "فوکوس باید داخل دیالوگ برود، نه بیرون آن");
+
+  media.pointerFine = true;                // دسکتاپ
+  document.activeElement = null;
+  openDialog("to");
+  await new Promise((resolve) => setTimeout(resolve, 5));
+  assert.equal(document.activeElement, elements["asset-search"], "روی دسکتاپ فوکوس خودکار باید بماند");
+
+  media.pointerFine = false;
+  assert.match(styles, /\.asset-dialog-panel:focus \{ outline: none; \}/, "فوکوس برنامه‌ای نباید حلقه نشان دهد");
+  assert.match(html, /id="asset-dialog-panel" tabindex="-1"/, "پنل باید قابل فوکوس برنامه‌ای باشد");
 
   console.log("converter tests passed");
 }, 30);
