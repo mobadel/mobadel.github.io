@@ -44,6 +44,11 @@
     { id: "quartercoin", name: "ربع سکه",           englishName: "Quarter Coin",    decimals: 4, group: "coin", unit: "piece",   localIcon: COIN_ICON },
     { id: "gramcoin",    name: "سکه یک گرمی",       englishName: "One Gram Coin",   decimals: 4, group: "coin", unit: "piece",   localIcon: COIN_ICON },
 
+    /* فلزات از گواهی سپردهٔ بورس کالا می‌آیند، نه از بازار آزاد. به‌جای
+       نماد لاتین، منبعشان نوشته می‌شود تا کاربر بداند قیمت از کجاست. */
+    { id: "silver", code: "بورس کالا", name: "نقره ۹۹۹", englishName: "Silver 999",     decimals: 4, group: "commodity", unit: "gram",     localIcon: "/assets/silver.svg" },
+    { id: "copper", code: "بورس کالا", name: "مس کاتد",  englishName: "Copper Cathode", decimals: 4, group: "commodity", unit: "kilogram", localIcon: "/assets/copper.svg" },
+
     // ارز فیات — این‌ها نماد دارند و نمادشان معنادار است.
     { id: "usd", code: "USD", name: "دلار",              englishName: "US Dollar",        decimals: 2, group: "fiat", unit: null, localIcon: "/assets/flags/us.svg" },
     { id: "eur", code: "EUR", name: "یورو",              englishName: "Euro",             decimals: 2, group: "fiat", unit: null, localIcon: "/assets/flags/eu.svg" },
@@ -76,7 +81,31 @@
 
   // برچسب واحد: طلا به گرم است و سکه به عدد. بدون این، عددی که کاربر
   // وارد می‌کند مبهم است.
-  var UNIT_LABELS = { gram: "گرم", piece: "عدد", mesghal: "مثقال", ounce: "انس" };
+  var UNIT_LABELS = { gram: "گرم", piece: "عدد", mesghal: "مثقال", ounce: "انس", kilogram: "کیلو" };
+
+  /* ترتیب فهرست دارایی‌ها. بدون این، مرتب‌سازی الفبایی بود و مثلاً دلار
+     ته فهرست ارزها می‌افتاد در حالی که پرکاربردترین است. هر چیزی که
+     اینجا نباشد بعد از این‌ها و به‌ترتیب الفبا می‌آید. */
+  var IMPORTANCE = [
+    "irt", "usdt",
+    // ارز دیجیتال
+    "btc", "eth", "usdc", "xrp", "bnb", "sol", "doge", "trx", "ada", "ton",
+    "shib", "dot", "avax", "link", "ltc", "bch", "atom", "near", "pepe",
+    // طلا و سکه
+    "gold18", "gold24", "goldmelted", "goldounce",
+    "emami", "bahar", "halfcoin", "quartercoin", "gramcoin",
+    // فلزات
+    "silver", "copper",
+    // ارز فیات
+    "usd", "eur", "gbp", "aed", "try", "chf", "cad", "aud", "cny", "jpy",
+    "rub", "sar", "qar", "kwd", "omr", "bhd", "iqd", "afn", "inr", "pkr",
+    "sek", "myr", "thb", "azn", "amd", "gel", "syp"
+  ];
+
+  var RANK = {};
+  IMPORTANCE.forEach(function (id, index) { RANK[id] = index; });
+
+  function rankOf(id) { return RANK[id] == null ? IMPORTANCE.length : RANK[id]; }
 
   /* ── اسلاگ آدرس ──────────────────────────────────────────────
      هر جفت تبدیل آدرس خودش را دارد: gold18-to-irt و برعکسش
@@ -127,7 +156,7 @@
     currencyFrom: document.getElementById("currency-from"), currencyTo: document.getElementById("currency-to"),
     pageTitle: document.getElementById("page-title"), rateValue: document.getElementById("rate-value"),
     rateStatus: document.getElementById("rate-status"), swap: document.getElementById("swap"),
-    refresh: document.getElementById("refresh"), dialog: document.getElementById("asset-dialog"),
+    dialog: document.getElementById("asset-dialog"),
     dialogTitle: document.getElementById("asset-dialog-title"), dialogClose: document.getElementById("dialog-close"),
     assetSearch: document.getElementById("asset-search"), assetList: document.getElementById("asset-list"),
     assetEmpty: document.getElementById("asset-empty"), assetFilters: document.getElementById("asset-filters")
@@ -606,15 +635,13 @@
       if (!counterpartId) return true;
       return id === counterpartId || isPairAllowed(id, counterpartId);
     }).map(function (id) { return currencies[id]; }).sort(function (a, b) {
-      var priority = { irt: 0, usdt: 1, btc: 2, eth: 3 };
-      var aPriority = priority[a.id] == null ? 99 : priority[a.id];
-      var bPriority = priority[b.id] == null ? 99 : priority[b.id];
-      // طلا و سکه نماد ندارند، پس با نام فارسی مرتب می‌شوند.
-      if (aPriority !== bPriority) return aPriority - bPriority;
-      if (a.code && b.code) return a.code.localeCompare(b.code, "en");
-      if (a.code) return 1;
-      if (b.code) return -1;
-      return String(a.name || "").localeCompare(String(b.name || ""), "fa");
+      var aRank = rankOf(a.id);
+      var bRank = rankOf(b.id);
+      if (aRank !== bRank) return aRank - bRank;
+      // هم‌رتبه‌ها (یعنی هر دو خارج از فهرست اهمیت) الفبایی می‌آیند.
+      var aKey = a.code || a.name || a.id;
+      var bKey = b.code || b.name || b.id;
+      return String(aKey).localeCompare(String(bKey), "fa");
     });
   }
 
@@ -666,6 +693,7 @@
     all: null,
     crypto: ["crypto"],
     metal: ["gold", "coin"],
+    commodity: ["commodity"],
     fiat: ["fiat"]
   };
 
@@ -795,7 +823,7 @@
   }
 
   function loadLiveRates() {
-    state.loading = true; elements.refresh.classList.add("loading"); elements.refresh.disabled = true; paintRate();
+    state.loading = true; paintRate();
     var statsRequest = attemptEndpoints(["/market/stats"], 12000);
     var optionsRequest = attemptEndpoints(["/v2/options"], 12000).catch(function () { return null; });
     var namesRequest = fetchJson("/data/currencies.json?t=" + Date.now(), 5000).catch(function () { return null; });
@@ -812,21 +840,17 @@
       if (!elements.dialog.hidden) renderAssetList();
     }).catch(function () {
       state.loading = false; state.sources.nobitex.live = false; paint();
-    }).finally(function () {
-      elements.refresh.classList.remove("loading"); elements.refresh.disabled = false;
     });
   }
 
   clearLegacyHash();
   onInput("from", elements.amountFrom); onInput("to", elements.amountTo);
   elements.swap.addEventListener("click", swapCurrencies);
-  // دکمهٔ تازه‌سازی باید هر دو منبع را تازه کند، نه فقط نوبیتکس.
+  // هر دو منبع با هم تازه می‌شوند.
   function refreshAll() {
     loadProxyRates();
     return loadLiveRates();
   }
-
-  elements.refresh.addEventListener("click", refreshAll);
   if (elements.assetFilters) {
     elements.assetFilters.addEventListener("click", function (event) {
       var button = event.target && event.target.closest ? event.target.closest("[data-group]") : null;

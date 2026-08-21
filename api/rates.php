@@ -19,6 +19,23 @@ const CACHE_TTL        = 120;
 const UPSTREAM_TIMEOUT = 12;
 const UPSTREAM_URL     = 'https://api.brsapi.ir/Market/Gold_Currency.php';
 
+/* گواهی سپردهٔ بورس کالا (نقره و مس) اندپوینت جداست و روزی یک‌بار
+   تسویه می‌شود، نه لحظه‌ای. پس کش خیلی طولانی‌تری می‌گیرد.
+
+   این عدد مهم است: سهمیهٔ رایگان BrsApi روی همهٔ سرویس‌هایش روی‌هم
+   ۱۵۰۰ درخواست در روز است. با TTL صد و بیست ثانیه، اندپوینت طلا و ارز
+   حدود ۷۲۰ درخواست می‌برد. اگر بورس کالا هم همان TTL را داشت، مجموع
+   به ۱۴۴۰ می‌رسید که خطرناک نزدیک سقف است. با ۹۰۰ ثانیه فقط حدود ۹۶
+   درخواست می‌شود و مجموع زیر ۸۵۰ می‌ماند. */
+const IME_CACHE_TTL = 900;
+const IME_URL       = 'https://api.brsapi.ir/IME/Certificate.php';
+
+/* نمادهای بورس کالا. قیمت‌ها به ریال‌اند. */
+const IME_MAP = [
+    'SilverBar'  => ['id' => 'silver', 'group' => 'commodity', 'unit' => 'gram'],
+    'CopperCthd' => ['id' => 'copper', 'group' => 'commodity', 'unit' => 'kilogram'],
+];
+
 /* افزودن دارایی جدید = یک ردیف در همین جدول. هیچ جای دیگری لازم
    نیست عوض شود. نمادها از پاسخ واقعی BrsApi گرفته شده‌اند.
 
@@ -215,6 +232,85 @@ foreach ($payload as $section) {
 
 if ($assets === []) {
     serveStale($cached, 'no_mapped_assets');
+}
+
+/* ── بورس کالا: نقره و مس ─────────────────────────────────────
+   کش مستقل با عمر طولانی‌تر. اگر این بخش شکست بخورد، بقیهٔ نرخ‌ها
+   نباید از دست بروند، پس هیچ خطایی اینجا کل پاسخ را متوقف نمی‌کند. */
+$imeCacheFile = $cacheDir . '/ime.json';
+$imeRows      = null;
+
+if (is_readable($imeCacheFile)) {
+    $imeRaw = @file_get_contents($imeCacheFile);
+    if ($imeRaw !== false) {
+        $imeDecoded = json_decode($imeRaw, true);
+        if (is_array($imeDecoded) && isset($imeDecoded['data'])) {
+            $imeAge = time() - (int) ($imeDecoded['fetched_unix'] ?? 0);
+            if ($imeAge >= 0 && $imeAge < IME_CACHE_TTL) {
+                $imeRows = $imeDecoded['data'];
+            }
+        }
+    }
+}
+
+if ($imeRows === null) {
+    $imeChannel = curl_init(IME_URL . '?key=' . urlencode($key));
+    curl_setopt_array($imeChannel, [
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_TIMEOUT        => UPSTREAM_TIMEOUT,
+        CURLOPT_CONNECTTIMEOUT => 8,
+        CURLOPT_USERAGENT      => 'tabdex-rates/1.0 (+https://tabdex.ir)',
+    ]);
+    $imeBody = curl_exec($imeChannel);
+    $imeCode = curl_getinfo($imeChannel, CURLINFO_HTTP_CODE);
+    curl_close($imeChannel);
+
+    if ($imeBody !== false && $imeCode === 200) {
+        $imePayload = json_decode((string) $imeBody, true);
+        if (is_array($imePayload) && !empty($imePayload['data'])) {
+            $imeRows = $imePayload['data'];
+            $imeEncoded = json_encode(
+                ['fetched_unix' => time(), 'data' => $imeRows],
+                JSON_UNESCAPED_UNICODE
+            );
+            $imeTemp = $imeCacheFile . '.' . getmypid() . '.tmp';
+            if (@file_put_contents($imeTemp, $imeEncoded) !== false) {
+                @rename($imeTemp, $imeCacheFile);
+            }
+        }
+    }
+
+    // اگر تازه‌سازی نشد، کش قدیمی بهتر از هیچ است.
+    if ($imeRows === null && isset($imeDecoded['data'])) {
+        $imeRows = $imeDecoded['data'];
+    }
+}
+
+if (is_array($imeRows)) {
+    foreach ($imeRows as $row) {
+        if (!is_array($row) || !isset($row['contract_code'])) {
+            continue;
+        }
+        $code = (string) $row['contract_code'];
+        if (!isset(IME_MAP[$code])) {
+            continue;
+        }
+        $rial = (float) ($row['pl'] ?? 0);
+        if ($rial <= 0) {
+            continue;
+        }
+        $meta = IME_MAP[$code];
+        $assets[$meta['id']] = [
+            // بورس کالا همیشه ریال می‌دهد.
+            'toman'  => $rial / 10,
+            'group'  => $meta['group'],
+            'unit'   => $meta['unit'],
+            'name'   => (string) ($row['commodity'] ?? $meta['id']),
+            'change' => (float) ($row['plp'] ?? 0),
+            // تاریخ آخرین معامله، چون بورس کالا فقط شنبه تا چهارشنبه باز است
+            'traded' => (string) ($row['date_update'] ?? ''),
+        ];
+    }
 }
 
 $result = [
