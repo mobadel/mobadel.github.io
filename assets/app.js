@@ -18,8 +18,8 @@
   // دستهٔ هر دارایی تعیین می‌کند به چه چیزهایی تبدیل می‌شود. تومان
   // عمداً در دستهٔ «فیات» است، نه دستهٔ جدا.
   var currencies = {
-    irt: { id: "irt", code: "IRT", name: "تومان", englishName: "Toman", decimals: 0, group: "fiat", unit: null, localIcon: "assets/flags/ir.svg" },
-    usdt: { id: "usdt", code: "USDT", name: "تتر", englishName: "Tether", decimals: 4, group: "crypto", unit: null, localIcon: "assets/usdt-logo.svg" }
+    irt: { id: "irt", code: "IRT", name: "تومان", englishName: "Toman", decimals: 0, group: "fiat", unit: null, localIcon: "/assets/flags/ir.svg" },
+    usdt: { id: "usdt", code: "USDT", name: "تتر", englishName: "Tether", decimals: 4, group: "crypto", unit: null, localIcon: "/assets/usdt-logo.svg" }
   };
 
   /* دارایی‌هایی که از پراکسی می‌آیند نه از نوبیتکس. اینجا فقط
@@ -27,8 +27,8 @@
      نرخ نیامده باشد در فهرست ظاهر نمی‌شوند.
      افزودن دارایی جدید = یک ردیف اینجا و یک ردیف در ASSET_MAP
      فایل api/rates.php. */
-  var GOLD_ICON = "assets/gold-18k.svg";
-  var COIN_ICON = "assets/coin-emami.png";
+  var GOLD_ICON = "/assets/gold-18k.svg";
+  var COIN_ICON = "/assets/coin-emami.png";
 
   [
     // طلا و سکه — نماد ندارند، چون «۱۸K» یا «EMAMI» چیزی به کاربر
@@ -45,38 +45,66 @@
     { id: "gramcoin",    name: "سکه یک گرمی",       englishName: "One Gram Coin",   decimals: 4, group: "coin", unit: "piece",   localIcon: COIN_ICON },
 
     // ارز فیات — این‌ها نماد دارند و نمادشان معنادار است.
-    { id: "usd", code: "USD", name: "دلار",              englishName: "US Dollar",        decimals: 2, group: "fiat", unit: null, localIcon: "assets/flags/us.svg" },
-    { id: "eur", code: "EUR", name: "یورو",              englishName: "Euro",             decimals: 2, group: "fiat", unit: null, localIcon: "assets/flags/eu.svg" },
-    { id: "gbp", code: "GBP", name: "پوند",              englishName: "British Pound",    decimals: 2, group: "fiat", unit: null, localIcon: "assets/flags/gb.svg" },
-    { id: "chf", code: "CHF", name: "فرانک سوئیس",       englishName: "Swiss Franc",      decimals: 2, group: "fiat", unit: null, localIcon: "assets/flags/ch.svg" },
-    { id: "aed", code: "AED", name: "درهم امارات",       englishName: "UAE Dirham",       decimals: 2, group: "fiat", unit: null, localIcon: "assets/flags/ae.svg" },
-    { id: "try", code: "TRY", name: "لیر ترکیه",         englishName: "Turkish Lira",     decimals: 2, group: "fiat", unit: null, localIcon: "assets/flags/tr.svg" },
-    { id: "jpy", code: "JPY", name: "یکصد ین ژاپن",      englishName: "100 Japanese Yen", decimals: 2, group: "fiat", unit: null, localIcon: "assets/flags/jp.svg" },
-    { id: "cny", code: "CNY", name: "یوآن چین",          englishName: "Chinese Yuan",     decimals: 2, group: "fiat", unit: null, localIcon: "assets/flags/cn.svg" },
-    { id: "aud", code: "AUD", name: "دلار استرالیا",     englishName: "Australian Dollar", decimals: 2, group: "fiat", unit: null, localIcon: "assets/flags/au.svg" },
-    { id: "cad", code: "CAD", name: "دلار کانادا",       englishName: "Canadian Dollar",  decimals: 2, group: "fiat", unit: null, localIcon: "assets/flags/ca.svg" },
-    { id: "rub", code: "RUB", name: "روبل روسیه",        englishName: "Russian Ruble",    decimals: 2, group: "fiat", unit: null, localIcon: "assets/flags/ru.svg" },
-    { id: "sek", code: "SEK", name: "کرون سوئد",         englishName: "Swedish Krona",    decimals: 2, group: "fiat", unit: null, localIcon: "assets/flags/se.svg" },
-    { id: "inr", code: "INR", name: "روپیه هند",         englishName: "Indian Rupee",     decimals: 2, group: "fiat", unit: null, localIcon: "assets/flags/in.svg" },
-    { id: "pkr", code: "PKR", name: "روپیه پاکستان",     englishName: "Pakistani Rupee",  decimals: 2, group: "fiat", unit: null, localIcon: "assets/flags/pk.svg" },
-    { id: "afn", code: "AFN", name: "افغانی",            englishName: "Afghan Afghani",   decimals: 2, group: "fiat", unit: null, localIcon: "assets/flags/af.svg" },
-    { id: "myr", code: "MYR", name: "رینگیت مالزی",      englishName: "Malaysian Ringgit", decimals: 2, group: "fiat", unit: null, localIcon: "assets/flags/my.svg" },
-    { id: "thb", code: "THB", name: "بات تایلند",        englishName: "Thai Baht",        decimals: 2, group: "fiat", unit: null, localIcon: "assets/flags/th.svg" },
-    { id: "sar", code: "SAR", name: "ریال عربستان",      englishName: "Saudi Riyal",      decimals: 2, group: "fiat", unit: null, localIcon: "assets/flags/sa.svg" },
-    { id: "qar", code: "QAR", name: "ریال قطر",          englishName: "Qatari Riyal",     decimals: 2, group: "fiat", unit: null, localIcon: "assets/flags/qa.svg" },
-    { id: "kwd", code: "KWD", name: "دینار کویت",        englishName: "Kuwaiti Dinar",    decimals: 2, group: "fiat", unit: null, localIcon: "assets/flags/kw.svg" },
-    { id: "bhd", code: "BHD", name: "دینار بحرین",       englishName: "Bahraini Dinar",   decimals: 2, group: "fiat", unit: null, localIcon: "assets/flags/bh.svg" },
-    { id: "omr", code: "OMR", name: "ریال عمان",         englishName: "Omani Rial",       decimals: 2, group: "fiat", unit: null, localIcon: "assets/flags/om.svg" },
-    { id: "iqd", code: "IQD", name: "دینار عراق",        englishName: "Iraqi Dinar",      decimals: 2, group: "fiat", unit: null, localIcon: "assets/flags/iq.svg" },
-    { id: "syp", code: "SYP", name: "لیر سوریه",         englishName: "Syrian Pound",     decimals: 2, group: "fiat", unit: null, localIcon: "assets/flags/sy.svg" },
-    { id: "azn", code: "AZN", name: "منات آذربایجان",    englishName: "Azerbaijani Manat", decimals: 2, group: "fiat", unit: null, localIcon: "assets/flags/az.svg" },
-    { id: "amd", code: "AMD", name: "درام ارمنستان",     englishName: "Armenian Dram",    decimals: 2, group: "fiat", unit: null, localIcon: "assets/flags/am.svg" },
-    { id: "gel", code: "GEL", name: "لاری گرجستان",      englishName: "Georgian Lari",    decimals: 2, group: "fiat", unit: null, localIcon: "assets/flags/ge.svg" }
+    { id: "usd", code: "USD", name: "دلار",              englishName: "US Dollar",        decimals: 2, group: "fiat", unit: null, localIcon: "/assets/flags/us.svg" },
+    { id: "eur", code: "EUR", name: "یورو",              englishName: "Euro",             decimals: 2, group: "fiat", unit: null, localIcon: "/assets/flags/eu.svg" },
+    { id: "gbp", code: "GBP", name: "پوند",              englishName: "British Pound",    decimals: 2, group: "fiat", unit: null, localIcon: "/assets/flags/gb.svg" },
+    { id: "chf", code: "CHF", name: "فرانک سوئیس",       englishName: "Swiss Franc",      decimals: 2, group: "fiat", unit: null, localIcon: "/assets/flags/ch.svg" },
+    { id: "aed", code: "AED", name: "درهم امارات",       englishName: "UAE Dirham",       decimals: 2, group: "fiat", unit: null, localIcon: "/assets/flags/ae.svg" },
+    { id: "try", code: "TRY", name: "لیر ترکیه",         englishName: "Turkish Lira",     decimals: 2, group: "fiat", unit: null, localIcon: "/assets/flags/tr.svg" },
+    { id: "jpy", code: "JPY", name: "یکصد ین ژاپن",      englishName: "100 Japanese Yen", decimals: 2, group: "fiat", unit: null, localIcon: "/assets/flags/jp.svg" },
+    { id: "cny", code: "CNY", name: "یوآن چین",          englishName: "Chinese Yuan",     decimals: 2, group: "fiat", unit: null, localIcon: "/assets/flags/cn.svg" },
+    { id: "aud", code: "AUD", name: "دلار استرالیا",     englishName: "Australian Dollar", decimals: 2, group: "fiat", unit: null, localIcon: "/assets/flags/au.svg" },
+    { id: "cad", code: "CAD", name: "دلار کانادا",       englishName: "Canadian Dollar",  decimals: 2, group: "fiat", unit: null, localIcon: "/assets/flags/ca.svg" },
+    { id: "rub", code: "RUB", name: "روبل روسیه",        englishName: "Russian Ruble",    decimals: 2, group: "fiat", unit: null, localIcon: "/assets/flags/ru.svg" },
+    { id: "sek", code: "SEK", name: "کرون سوئد",         englishName: "Swedish Krona",    decimals: 2, group: "fiat", unit: null, localIcon: "/assets/flags/se.svg" },
+    { id: "inr", code: "INR", name: "روپیه هند",         englishName: "Indian Rupee",     decimals: 2, group: "fiat", unit: null, localIcon: "/assets/flags/in.svg" },
+    { id: "pkr", code: "PKR", name: "روپیه پاکستان",     englishName: "Pakistani Rupee",  decimals: 2, group: "fiat", unit: null, localIcon: "/assets/flags/pk.svg" },
+    { id: "afn", code: "AFN", name: "افغانی",            englishName: "Afghan Afghani",   decimals: 2, group: "fiat", unit: null, localIcon: "/assets/flags/af.svg" },
+    { id: "myr", code: "MYR", name: "رینگیت مالزی",      englishName: "Malaysian Ringgit", decimals: 2, group: "fiat", unit: null, localIcon: "/assets/flags/my.svg" },
+    { id: "thb", code: "THB", name: "بات تایلند",        englishName: "Thai Baht",        decimals: 2, group: "fiat", unit: null, localIcon: "/assets/flags/th.svg" },
+    { id: "sar", code: "SAR", name: "ریال عربستان",      englishName: "Saudi Riyal",      decimals: 2, group: "fiat", unit: null, localIcon: "/assets/flags/sa.svg" },
+    { id: "qar", code: "QAR", name: "ریال قطر",          englishName: "Qatari Riyal",     decimals: 2, group: "fiat", unit: null, localIcon: "/assets/flags/qa.svg" },
+    { id: "kwd", code: "KWD", name: "دینار کویت",        englishName: "Kuwaiti Dinar",    decimals: 2, group: "fiat", unit: null, localIcon: "/assets/flags/kw.svg" },
+    { id: "bhd", code: "BHD", name: "دینار بحرین",       englishName: "Bahraini Dinar",   decimals: 2, group: "fiat", unit: null, localIcon: "/assets/flags/bh.svg" },
+    { id: "omr", code: "OMR", name: "ریال عمان",         englishName: "Omani Rial",       decimals: 2, group: "fiat", unit: null, localIcon: "/assets/flags/om.svg" },
+    { id: "iqd", code: "IQD", name: "دینار عراق",        englishName: "Iraqi Dinar",      decimals: 2, group: "fiat", unit: null, localIcon: "/assets/flags/iq.svg" },
+    { id: "syp", code: "SYP", name: "لیر سوریه",         englishName: "Syrian Pound",     decimals: 2, group: "fiat", unit: null, localIcon: "/assets/flags/sy.svg" },
+    { id: "azn", code: "AZN", name: "منات آذربایجان",    englishName: "Azerbaijani Manat", decimals: 2, group: "fiat", unit: null, localIcon: "/assets/flags/az.svg" },
+    { id: "amd", code: "AMD", name: "درام ارمنستان",     englishName: "Armenian Dram",    decimals: 2, group: "fiat", unit: null, localIcon: "/assets/flags/am.svg" },
+    { id: "gel", code: "GEL", name: "لاری گرجستان",      englishName: "Georgian Lari",    decimals: 2, group: "fiat", unit: null, localIcon: "/assets/flags/ge.svg" }
   ].forEach(function (asset) { currencies[asset.id] = asset; });
 
   // برچسب واحد: طلا به گرم است و سکه به عدد. بدون این، عددی که کاربر
   // وارد می‌کند مبهم است.
   var UNIT_LABELS = { gram: "گرم", piece: "عدد", mesghal: "مثقال", ounce: "انس" };
+
+  /* ── اسلاگ آدرس ──────────────────────────────────────────────
+     هر جفت تبدیل آدرس خودش را دارد: gold18-to-irt و برعکسش
+     irt-to-gold18. برای بیشتر دارایی‌ها اسلاگ همان شناسه است؛ فقط
+     این چند مورد اسلاگ خواناتری دارند. */
+  var SLUG_OVERRIDES = {
+    goldmelted: "melted",
+    goldounce: "ounce",
+    bahar: "baharazadi",
+    halfcoin: "nim",
+    quartercoin: "rob",
+    gramcoin: "gerami"
+  };
+
+  var SLUG_TO_ID = {};
+  Object.keys(SLUG_OVERRIDES).forEach(function (id) { SLUG_TO_ID[SLUG_OVERRIDES[id]] = id; });
+
+  function slugOf(id) { return SLUG_OVERRIDES[id] || id; }
+
+  function idFromSlug(slug) {
+    slug = String(slug || "").toLowerCase();
+    return SLUG_TO_ID[slug] || slug;
+  }
+
+  // صفحهٔ اصلی همین جفت پیش‌فرض را نشان می‌دهد، پس عمداً آدرس جداگانه
+  // نمی‌گیرد؛ وگرنه دو آدرس با محتوای یکسان می‌داشتیم.
+  var DEFAULT_FROM = "usdt";
+  var DEFAULT_TO = "irt";
 
   function unitLabel(currency) {
     return currency && currency.unit ? (UNIT_LABELS[currency.unit] || null) : null;
@@ -85,7 +113,7 @@
   var state = {
     from: "usdt", to: "irt", amount: 100, edited: "from", rate: null,
     graph: {}, updatedAt: null, live: false, loading: false, dialogSide: null, lastFocused: null,
-    filterGroup: "all", proxyAssets: null,
+    filterGroup: "all", proxyAssets: null, pendingRoute: null,
     // دو منبع مستقل داریم. وضعیت هرکدام جدا نگه داشته می‌شود چون نوار
     // وضعیت باید زمانِ همان منبعی را نشان بدهد که جفت فعلی از آن آمده.
     sources: {
@@ -382,12 +410,44 @@
     var fromCurrency = currencies[state.from];
     var toCurrency = currencies[state.to];
     if (!fromCurrency || !toCurrency) return;
-    elements.pageTitle.textContent = "تبدیل " + fromCurrency.name + " به " + toCurrency.name;
+    var heading = "تبدیل " + fromCurrency.name + " به " + toCurrency.name;
+    elements.pageTitle.textContent = heading;
+    paintDocumentMeta(heading, fromCurrency, toCurrency);
     paintCurrency(elements.currencyFrom, fromCurrency);
     paintCurrency(elements.currencyTo, toCurrency);
     var result = convertEditedAmount();
     if (state.edited === "from") setInput(elements.amountTo, result === null ? "" : formatNumber(result, toCurrency.decimals));
     else setInput(elements.amountFrom, result === null ? "" : formatNumber(result, fromCurrency.decimals));
+  }
+
+  /* عنوان و متای صفحه با جفت فعلی هم‌راستا می‌شوند. صفحه‌های ایستایی
+     که هنگام دیپلوی ساخته می‌شوند همین مقادیر را از ابتدا در HTML
+     دارند؛ این تابع برای بقیهٔ آدرس‌هاست که از بازنویسی می‌آیند و
+     برای وقتی که کاربر بدون بارگذاری دوباره جفت را عوض می‌کند. */
+  function paintDocumentMeta(heading, fromCurrency, toCurrency) {
+    if (typeof document === "undefined") return;
+
+    var unit = unitLabel(fromCurrency);
+    var subject = (unit ? "هر " + unit + " " : "") + fromCurrency.name;
+    document.title = heading + " | تبدکس";
+
+    var description = "محاسبهٔ لحظه‌ای " + heading + ". قیمت " + subject +
+      " بر حسب " + toCurrency.name + " با نرخ روز بازار ایران.";
+    setMeta("name", "description", description);
+    setMeta("property", "og:title", document.title);
+    setMeta("property", "og:description", description);
+
+    var canonical = document.querySelector ? document.querySelector('link[rel="canonical"]') : null;
+    if (canonical && canonical.setAttribute) {
+      canonical.setAttribute("href", "https://tabdex.ir" + pathForPair(state.from, state.to));
+    }
+    setMeta("property", "og:url", "https://tabdex.ir" + pathForPair(state.from, state.to));
+  }
+
+  function setMeta(attribute, key, value) {
+    if (!document.querySelector) return;
+    var tag = document.querySelector("meta[" + attribute + '="' + key + '"]');
+    if (tag && tag.setAttribute) tag.setAttribute("content", value);
   }
 
   function paintRate() {
@@ -467,13 +527,72 @@
     if (location.hash) history.replaceState(null, "", location.pathname + location.search);
   }
 
+  /* ── مسیریابی ────────────────────────────────────────────────
+     آدرس‌ها به شکل /btc-to-irt/ هستند و روی سرور همه به index.html
+     بازنویسی می‌شوند (rules در .htaccess). پارامتر amount هم پشتیبانی
+     می‌شود: /btc-to-irt/?amount=300
+
+     عمداً فقط هنگام بارگذاری خوانده می‌شود. تغییر مقدار توسط کاربر
+     نباید آدرس را عوض کند؛ فقط تغییر جفت دارایی آدرس را عوض می‌کند. */
+
+  function parseRoute(pathname) {
+    var match = String(pathname || "").match(/\/([a-z0-9]+)-to-([a-z0-9]+)\/?$/i);
+    if (!match) return null;
+    var from = idFromSlug(match[1]);
+    var to = idFromSlug(match[2]);
+    if (from === to) return null;
+    return { from: from, to: to };
+  }
+
+  function parseAmountParam(search) {
+    var match = String(search || "").match(/[?&]amount=([^&]+)/);
+    if (!match) return null;
+    var value = parseAmount(decodeURIComponent(match[1]));
+    return Number.isFinite(value) && value > 0 ? value : null;
+  }
+
+  function pathForPair(from, to) {
+    if (from === DEFAULT_FROM && to === DEFAULT_TO) return "/";
+    return "/" + slugOf(from) + "-to-" + slugOf(to) + "/";
+  }
+
+  // بعد از هر تغییر جفت صدا زده می‌شود. pushState تا دکمهٔ بازگشت
+  // مرورگر کاربر را به جفت قبلی برگرداند.
+  function syncRoute() {
+    var target = pathForPair(state.from, state.to);
+    if (location.pathname === target) return;
+    try {
+      history.pushState({ from: state.from, to: state.to }, "", target);
+    } catch (error) {
+      /* اگر مرورگر اجازه نداد، آدرس دست‌نخورده می‌ماند و برنامه کار می‌کند */
+    }
+  }
+
+  function applyRoute(route) {
+    if (!route || !currencies[route.from] || !currencies[route.to]) return false;
+    state.from = route.from;
+    state.to = route.to;
+    return true;
+  }
+
+  /* رمزارزها هنگام بوت هنوز وجود ندارند؛ فقط بعد از پاسخ نوبیتکس
+     ساخته می‌شوند. پس اگر آدرس ورودی به دارایی‌ای اشاره کند که هنوز
+     نیامده، کنار گذاشته می‌شود و به‌محض رسیدن داده اعمال می‌گردد.
+     بدون این، ورود مستقیم به /btc-to-irt/ به جفت پیش‌فرض می‌افتاد. */
+  function resolvePendingRoute() {
+    if (!state.pendingRoute) return false;
+    if (!applyRoute(state.pendingRoute)) return false;
+    state.pendingRoute = null;
+    return true;
+  }
+
   function swapCurrencies() {
     var visibleResult = parseAmount(elements.amountTo.value);
     var previousFrom = state.from;
     state.from = state.to; state.to = previousFrom; state.edited = "from";
     state.amount = Number.isFinite(visibleResult) ? visibleResult : 0;
     setInput(elements.amountFrom, formatNumber(state.amount, currencies[state.from].decimals));
-    elements.swap.classList.toggle("turned"); paint();
+    elements.swap.classList.toggle("turned"); syncRoute(); paint();
     if (elements.dialog.hidden) { elements.amountFrom.focus(); elements.amountFrom.select(); }
   }
 
@@ -595,7 +714,7 @@
       state[otherSide] = state[side] === "irt" ? "usdt" : "irt";
     }
     state.edited = "from"; state.amount = parseAmount(elements.amountFrom.value);
-    closeDialog(); paint();
+    closeDialog(); syncRoute(); paint();
   }
 
   function withTimeout(promise, milliseconds) {
@@ -627,7 +746,7 @@
   }
 
   function loadSnapshot() {
-    return fetchJson("data/prices.json?t=" + Date.now(), 5000).then(function (payload) {
+    return fetchJson("/data/prices.json?t=" + Date.now(), 5000).then(function (payload) {
       var savedRate = Number(payload.rate || (payload.prices && payload.prices.usdt));
       if (Number.isFinite(savedRate) && savedRate > 0) {
         setEdge("usdt", "irt", savedRate);
@@ -660,7 +779,7 @@
   }
 
   function loadProxyRates() {
-    return fetchJson("api/rates.php?t=" + Date.now(), 8000).then(function (payload) {
+    return fetchJson("/api/rates.php?t=" + Date.now(), 8000).then(function (payload) {
       var assets = payload && payload.assets;
       if (!assets || typeof assets !== "object") throw new Error("invalid rates payload");
       state.proxyAssets = assets;
@@ -679,12 +798,15 @@
     state.loading = true; elements.refresh.classList.add("loading"); elements.refresh.disabled = true; paintRate();
     var statsRequest = attemptEndpoints(["/market/stats"], 12000);
     var optionsRequest = attemptEndpoints(["/v2/options"], 12000).catch(function () { return null; });
-    var namesRequest = fetchJson("data/currencies.json?t=" + Date.now(), 5000).catch(function () { return null; });
+    var namesRequest = fetchJson("/data/currencies.json?t=" + Date.now(), 5000).catch(function () { return null; });
     return Promise.all([statsRequest, optionsRequest, namesRequest]).then(function (responses) {
       buildMarketGraph(responses[0]); applyOptions(responses[1]); applyCurrencyNames(responses[2]);
       // buildMarketGraph گراف را از نو ساخت، پس یال‌های پراکسی باید
       // دوباره سوار شوند.
       applyProxyEdges();
+      // رمزارزها تازه حالا وجود دارند، پس آدرسی که منتظر مانده بود
+      // می‌تواند اعمال شود.
+      resolvePendingRoute();
       state.sources.nobitex.live = true; state.sources.nobitex.at = new Date();
       state.loading = false; paint();
       if (!elements.dialog.hidden) renderAssetList();
@@ -719,6 +841,24 @@
   document.addEventListener("keydown", function (event) {
     if (!elements.dialog.hidden && event.key === "Escape") closeDialog();
   });
+  // آدرس ورودی، جفت و مقدار اولیه را تعیین می‌کند. قبل از اولین paint
+  // انجام می‌شود تا صفحه یک‌بار با جفت پیش‌فرض رسم و بعد عوض نشود.
+  var bootRoute = parseRoute(location.pathname);
+  if (!applyRoute(bootRoute)) state.pendingRoute = bootRoute;
+  var initialAmount = parseAmountParam(location.search);
+  if (initialAmount !== null) {
+    state.amount = initialAmount;
+    state.edited = "from";
+    setInput(elements.amountFrom, formatNumber(initialAmount, currencies[state.from].decimals));
+  }
+
+  // دکمهٔ بازگشت مرورگر باید به جفت قبلی برگردد، نه از سایت بیرون ببرد.
+  if (window && typeof window.addEventListener === "function") {
+    window.addEventListener("popstate", function () {
+      if (applyRoute(parseRoute(location.pathname))) paint();
+    });
+  }
+
   paint();
   paintFilters();
   loadSnapshot().finally(refreshAll);

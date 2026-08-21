@@ -29,7 +29,17 @@ jobs:
           set -euo pipefail
           mkdir -p _site
           cp index.html robots.txt sitemap.xml _site/
+          cp .htaccess _site/
           cp -R assets data scripts api _site/
+
+      # صفحه‌های ایستای جفت‌های پرجستجو و سایت‌مپ. بقیهٔ آدرس‌ها از راه
+      # بازنویسی در .htaccess کار می‌کنند. sitemap.xml را بازنویسی
+      # می‌کند، پس باید بعد از کپی بالا اجرا شود.
+      - name: ساخت صفحه‌های جفت‌ها
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/build-pages.mjs
 
       # نرخ لحظه‌ای را هنگام دیپلوی می‌گیرد و فقط داخل _site می‌نویسد.
       # نه کرون دارد، نه کامیتی در ریپو می‌سازد. اگر نوبیتکس در دسترس
