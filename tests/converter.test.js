@@ -85,16 +85,41 @@ elements["amount-from"].value = "۱۰۰";
 elements["asset-dialog"].hidden = true;
 elements["asset-dialog"].backdrop = new FakeElement();
 
+// تگ‌های head که برنامه هنگام تغییر جفت به‌روزشان می‌کند
+const headTags = {
+  'link[rel="canonical"]': new FakeElement("link"),
+  'meta[name="description"]': new FakeElement("meta"),
+  'meta[property="og:title"]': new FakeElement("meta"),
+  'meta[property="og:description"]': new FakeElement("meta"),
+  'meta[property="og:url"]': new FakeElement("meta")
+};
+
 global.document = {
   activeElement: null,
+  title: "",
   body: new FakeElement("body"),
   getElementById: (id) => elements[id],
   createElement: (tag) => new FakeElement(tag),
+  querySelector: (selector) => headTags[selector] || null,
   addEventListener() {}
 };
-global.window = { setTimeout };
+const windowListeners = {};
+global.window = {
+  setTimeout,
+  addEventListener(name, callback) { (windowListeners[name] ||= []).push(callback); },
+  dispatch(name) { (windowListeners[name] || []).forEach((callback) => callback({})); }
+};
 global.location = { hash: "", pathname: "/", search: "" };
-global.history = { replaceState() {} };
+// تاریخچهٔ جعلی: آدرس را روی location می‌نشاند تا بشود بررسی کرد
+// چه چیزی به نوار آدرس رفته.
+const historyStack = [];
+global.history = {
+  replaceState(stateObject, title, url) { if (url) location.pathname = url.split("?")[0]; },
+  pushState(stateObject, title, url) {
+    historyStack.push(url);
+    if (url) location.pathname = url.split("?")[0];
+  }
+};
 
 const stats = {
   status: "ok",
@@ -282,6 +307,41 @@ setTimeout(() => {
   ["btc", "gold18", "emami", "irt", "usdt"].forEach((id) => {
     assert.ok(fromEuro.includes(id), `یورو باید به ${id} تبدیل شود`);
   });
+
+  /* ── مسیریابی ─────────────────────────────────────────────── */
+
+  // تغییر جفت باید آدرس را عوض کند.
+  openDialog("from");
+  elements["asset-search"].value = "btc";
+  elements["asset-search"].dispatch("input");
+  elements["asset-list"].children.find((item) => item.dataset.currency === "btc").dispatch("click");
+  openDialog("to");
+  elements["asset-list"].children.find((item) => item.dataset.currency === "irt").dispatch("click");
+  assert.equal(location.pathname, "/btc-to-irt/", "تغییر جفت باید آدرس را عوض کند");
+  assert.equal(document.title, "تبدیل بیت‌کوین به تومان | تبدکس");
+  assert.equal(headTags['link[rel="canonical"]'].attributes.href, "https://tabdex.ir/btc-to-irt/");
+
+  // ولی تغییر مقدار نباید آدرس را دست بزند.
+  const beforeAmount = location.pathname;
+  const historyDepth = historyStack.length;
+  elements["amount-from"].value = "۷۷۷";
+  elements["amount-from"].selectionStart = 3;
+  elements["amount-from"].dispatch("input");
+  assert.equal(location.pathname, beforeAmount, "تغییر مقدار نباید آدرس را عوض کند");
+  assert.equal(historyStack.length, historyDepth, "تغییر مقدار نباید رکورد تاریخچه بسازد");
+
+  // جابه‌جایی طرفین آدرس معکوس می‌سازد.
+  elements["swap"].dispatch("click");
+  assert.equal(location.pathname, "/irt-to-btc/", "جابه‌جایی باید آدرس معکوس بسازد");
+
+  // جفت پیش‌فرض عمداً به ریشه برمی‌گردد تا دو آدرس با محتوای یکسان نداشته باشیم.
+  openDialog("from");
+  elements["asset-search"].value = "usdt";
+  elements["asset-search"].dispatch("input");
+  elements["asset-list"].children.find((item) => item.dataset.currency === "usdt").dispatch("click");
+  openDialog("to");
+  elements["asset-list"].children.find((item) => item.dataset.currency === "irt").dispatch("click");
+  assert.equal(location.pathname, "/", "جفت پیش‌فرض باید روی ریشه بماند");
 
   console.log("converter tests passed");
 }, 30);

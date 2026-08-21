@@ -1,0 +1,38 @@
+# تبدکس — قواعد سرور (LiteSpeed، سازگار با mod_rewrite آپاچی)
+
+Options -MultiViews
+DirectoryIndex index.html
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+
+  # اگر فایل یا پوشهٔ واقعی وجود دارد، دست نزن. صفحه‌های ایستایی که
+  # هنگام دیپلوی ساخته می‌شوند از همین راه سرو می‌شوند و بازنویسی
+  # سراغشان نمی‌رود.
+  RewriteCond %{REQUEST_FILENAME} -f [OR]
+  RewriteCond %{REQUEST_FILENAME} -d
+  RewriteRule ^ - [L]
+
+  # هر مسیر تبدیل به شکل /btc-to-irt/ یا /gold18-to-irt به index.html
+  # می‌رسد و جاوااسکریپت جفت را از روی آدرس می‌خواند. تعداد این جفت‌ها
+  # ده‌ها هزار است، پس ساختن فایل برای همه‌شان ممکن نیست.
+  # رشتهٔ پرس‌وجو (?amount=300) خودکار حفظ می‌شود.
+  RewriteRule ^[a-z0-9]+-to-[a-z0-9]+/?$ index.html [L]
+</IfModule>
+
+# فشرده‌سازی متن
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/css text/plain text/xml application/javascript application/json image/svg+xml
+</IfModule>
+
+<IfModule mod_expires.c>
+  ExpiresActive On
+  # فایل‌های نسخه‌دار (app.js?v=…) طولانی کش می‌شوند
+  ExpiresByType text/css "access plus 1 year"
+  ExpiresByType application/javascript "access plus 1 year"
+  ExpiresByType image/svg+xml "access plus 1 year"
+  ExpiresByType image/png "access plus 1 year"
+  ExpiresByType font/woff2 "access plus 1 year"
+  # خودِ HTML باید تازه بماند وگرنه تغییر جفت‌ها دیر به کاربر می‌رسد
+  ExpiresByType text/html "access plus 0 seconds"
+</IfModule>
