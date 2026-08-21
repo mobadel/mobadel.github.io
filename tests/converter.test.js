@@ -365,14 +365,23 @@ setTimeout(async () => {
   elements["swap"].dispatch("click");
   assert.equal(location.pathname, "/irt-to-btc/", "جابه‌جایی باید آدرس معکوس بسازد");
 
-  // جفت پیش‌فرض عمداً به ریشه برمی‌گردد تا دو آدرس با محتوای یکسان نداشته باشیم.
+  /* رسیدن به جفت پیش‌فرض از یک صفحهٔ دیگر باید آدرس اسلاگ‌دار بدهد،
+     نه پرتاب به ریشه. ریشه فقط نقطهٔ شروع است. */
   openDialog("from");
   elements["asset-search"].value = "usdt";
   elements["asset-search"].dispatch("input");
   elements["asset-list"].children.find((item) => item.dataset.currency === "usdt").dispatch("click");
   openDialog("to");
   elements["asset-list"].children.find((item) => item.dataset.currency === "irt").dispatch("click");
-  assert.equal(location.pathname, "/", "جفت پیش‌فرض باید روی ریشه بماند");
+  assert.equal(location.pathname, "/usdt-to-irt/", "رسیدن به جفت پیش‌فرض باید آدرس اسلاگ‌دار بدهد");
+
+  /* ولی آدرس رسمی همچنان ریشه است، وگرنه دو آدرس با محتوای یکسان
+     ایندکس می‌شوند. */
+  assert.equal(
+    headTags['link[rel="canonical"]'].attributes.href,
+    "https://tabdex.ir/",
+    "canonical جفت پیش‌فرض باید ریشه بماند"
+  );
 
   /* ── فلزات: منبع به‌جای نماد لاتین ────────────────────────── */
   openDialog("from");
