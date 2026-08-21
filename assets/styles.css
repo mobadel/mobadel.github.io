@@ -101,6 +101,10 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
   shape-rendering: geometricPrecision;
 }
 
+/* پنل دیالوگ روی موبایل برنامه‌ای فوکوس می‌گیرد تا فوکوس داخل پنجره
+   بماند؛ ولی چون کاربر خودش آنجا نزده، نباید حلقهٔ فوکوس ببیند. */
+.asset-dialog-panel:focus { outline: none; }
+
 .swap-button:focus-visible, .currency-badge:focus-visible,
 .dialog-close:focus-visible, .asset-option:focus-visible, input:focus-visible {
   outline: 3px solid rgba(22, 129, 95, .20);
