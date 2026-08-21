@@ -39,6 +39,9 @@ const ASSETS = {
   goldmelted: { slug: "melted",     name: "طلای آب‌شده",  unit: "مثقال" },
   goldounce:  { slug: "ounce",      name: "انس طلا",      unit: "انس" },
 
+  silver: { slug: "silver", name: "نقره ۹۹۹", unit: "گرم" },
+  copper: { slug: "copper", name: "مس کاتد",  unit: "کیلو" },
+
   emami:       { slug: "emami",      name: "سکه امامی",      unit: "عدد" },
   bahar:       { slug: "baharazadi", name: "سکه بهار آزادی", unit: "عدد" },
   halfcoin:    { slug: "nim",        name: "نیم سکه",        unit: "عدد" },
@@ -63,6 +66,7 @@ const WITH_TOMAN = [
   "usdt", "btc", "eth", "usdc", "xrp", "doge", "trx", "sol", "ada", "shib", "ton",
   "gold18", "gold24", "goldmelted", "goldounce",
   "emami", "bahar", "halfcoin", "quartercoin", "gramcoin",
+  "silver", "copper",
   "usd", "eur", "gbp", "aed", "try", "chf", "cad", "aud"
 ];
 
@@ -91,7 +95,14 @@ function buildPairs() {
   return pairs;
 }
 
-const subjectOf = (asset) => (asset.unit ? `هر ${asset.unit} ${asset.name}` : asset.name);
+/* واحد فقط وقتی جلوی نام می‌آید که نام خودش با آن شروع نشده باشد،
+   وگرنه «انس طلا» می‌شود «هر انس انس طلا». همین قاعده در unitPrefix
+   فایل assets/app.js هم هست و تست هم‌خوانی‌شان را بررسی می‌کند. */
+const subjectOf = (asset) => {
+  if (!asset.unit) return asset.name;
+  if (asset.name.startsWith(asset.unit)) return asset.name;
+  return `هر ${asset.unit} ${asset.name}`;
+};
 
 function metaFor(from, to) {
   const heading = `تبدیل ${from.name} به ${to.name}`;
