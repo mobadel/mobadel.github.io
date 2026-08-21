@@ -27,18 +27,56 @@
      نرخ نیامده باشد در فهرست ظاهر نمی‌شوند.
      افزودن دارایی جدید = یک ردیف اینجا و یک ردیف در ASSET_MAP
      فایل api/rates.php. */
+  var GOLD_ICON = "assets/gold-18k.svg";
+  var COIN_ICON = "assets/coin-emami.png";
+
   [
-    { id: "gold18", code: "18K",   name: "طلای ۱۸ عیار", englishName: "18K Gold",      decimals: 4, group: "gold", unit: "gram",  localIcon: "assets/gold-18k.svg" },
-    { id: "emami",  code: "EMAMI", name: "سکه امامی",    englishName: "Emami Coin",    decimals: 4, group: "coin", unit: "piece", localIcon: "assets/coin-emami.png" },
-    { id: "usd",    code: "USD",   name: "دلار",          englishName: "US Dollar",     decimals: 2, group: "fiat", unit: null,    localIcon: "assets/flags/us.svg" },
-    { id: "eur",    code: "EUR",   name: "یورو",          englishName: "Euro",          decimals: 2, group: "fiat", unit: null,    localIcon: "assets/flags/eu.svg" },
-    { id: "try",    code: "TRY",   name: "لیر ترکیه",     englishName: "Turkish Lira",  decimals: 2, group: "fiat", unit: null,    localIcon: "assets/flags/tr.svg" },
-    { id: "aed",    code: "AED",   name: "درهم امارات",   englishName: "UAE Dirham",    decimals: 2, group: "fiat", unit: null,    localIcon: "assets/flags/ae.svg" }
+    // طلا و سکه — نماد ندارند، چون «۱۸K» یا «EMAMI» چیزی به کاربر
+    // فارسی‌زبان نمی‌گوید. به‌جایش نام و واحد نمایش داده می‌شود.
+    { id: "gold18",      name: "طلای ۱۸ عیار",     englishName: "18K Gold",        decimals: 4, group: "gold", unit: "gram",    localIcon: GOLD_ICON },
+    { id: "gold24",      name: "طلای ۲۴ عیار",     englishName: "24K Gold",        decimals: 4, group: "gold", unit: "gram",    localIcon: GOLD_ICON },
+    { id: "goldmelted",  name: "طلای آب‌شده",       englishName: "Melted Gold",     decimals: 4, group: "gold", unit: "mesghal", localIcon: GOLD_ICON },
+    { id: "goldounce",   name: "انس طلا",           englishName: "Gold Ounce",      decimals: 4, group: "gold", unit: "ounce",   localIcon: GOLD_ICON },
+
+    { id: "emami",       name: "سکه امامی",         englishName: "Emami Coin",      decimals: 4, group: "coin", unit: "piece",   localIcon: COIN_ICON },
+    { id: "bahar",       name: "سکه بهار آزادی",    englishName: "Bahar Azadi Coin", decimals: 4, group: "coin", unit: "piece",  localIcon: COIN_ICON },
+    { id: "halfcoin",    name: "نیم سکه",           englishName: "Half Coin",       decimals: 4, group: "coin", unit: "piece",   localIcon: COIN_ICON },
+    { id: "quartercoin", name: "ربع سکه",           englishName: "Quarter Coin",    decimals: 4, group: "coin", unit: "piece",   localIcon: COIN_ICON },
+    { id: "gramcoin",    name: "سکه یک گرمی",       englishName: "One Gram Coin",   decimals: 4, group: "coin", unit: "piece",   localIcon: COIN_ICON },
+
+    // ارز فیات — این‌ها نماد دارند و نمادشان معنادار است.
+    { id: "usd", code: "USD", name: "دلار",              englishName: "US Dollar",        decimals: 2, group: "fiat", unit: null, localIcon: "assets/flags/us.svg" },
+    { id: "eur", code: "EUR", name: "یورو",              englishName: "Euro",             decimals: 2, group: "fiat", unit: null, localIcon: "assets/flags/eu.svg" },
+    { id: "gbp", code: "GBP", name: "پوند",              englishName: "British Pound",    decimals: 2, group: "fiat", unit: null, localIcon: "assets/flags/gb.svg" },
+    { id: "chf", code: "CHF", name: "فرانک سوئیس",       englishName: "Swiss Franc",      decimals: 2, group: "fiat", unit: null, localIcon: "assets/flags/ch.svg" },
+    { id: "aed", code: "AED", name: "درهم امارات",       englishName: "UAE Dirham",       decimals: 2, group: "fiat", unit: null, localIcon: "assets/flags/ae.svg" },
+    { id: "try", code: "TRY", name: "لیر ترکیه",         englishName: "Turkish Lira",     decimals: 2, group: "fiat", unit: null, localIcon: "assets/flags/tr.svg" },
+    { id: "jpy", code: "JPY", name: "یکصد ین ژاپن",      englishName: "100 Japanese Yen", decimals: 2, group: "fiat", unit: null, localIcon: "assets/flags/jp.svg" },
+    { id: "cny", code: "CNY", name: "یوآن چین",          englishName: "Chinese Yuan",     decimals: 2, group: "fiat", unit: null, localIcon: "assets/flags/cn.svg" },
+    { id: "aud", code: "AUD", name: "دلار استرالیا",     englishName: "Australian Dollar", decimals: 2, group: "fiat", unit: null, localIcon: "assets/flags/au.svg" },
+    { id: "cad", code: "CAD", name: "دلار کانادا",       englishName: "Canadian Dollar",  decimals: 2, group: "fiat", unit: null, localIcon: "assets/flags/ca.svg" },
+    { id: "rub", code: "RUB", name: "روبل روسیه",        englishName: "Russian Ruble",    decimals: 2, group: "fiat", unit: null, localIcon: "assets/flags/ru.svg" },
+    { id: "sek", code: "SEK", name: "کرون سوئد",         englishName: "Swedish Krona",    decimals: 2, group: "fiat", unit: null, localIcon: "assets/flags/se.svg" },
+    { id: "inr", code: "INR", name: "روپیه هند",         englishName: "Indian Rupee",     decimals: 2, group: "fiat", unit: null, localIcon: "assets/flags/in.svg" },
+    { id: "pkr", code: "PKR", name: "روپیه پاکستان",     englishName: "Pakistani Rupee",  decimals: 2, group: "fiat", unit: null, localIcon: "assets/flags/pk.svg" },
+    { id: "afn", code: "AFN", name: "افغانی",            englishName: "Afghan Afghani",   decimals: 2, group: "fiat", unit: null, localIcon: "assets/flags/af.svg" },
+    { id: "myr", code: "MYR", name: "رینگیت مالزی",      englishName: "Malaysian Ringgit", decimals: 2, group: "fiat", unit: null, localIcon: "assets/flags/my.svg" },
+    { id: "thb", code: "THB", name: "بات تایلند",        englishName: "Thai Baht",        decimals: 2, group: "fiat", unit: null, localIcon: "assets/flags/th.svg" },
+    { id: "sar", code: "SAR", name: "ریال عربستان",      englishName: "Saudi Riyal",      decimals: 2, group: "fiat", unit: null, localIcon: "assets/flags/sa.svg" },
+    { id: "qar", code: "QAR", name: "ریال قطر",          englishName: "Qatari Riyal",     decimals: 2, group: "fiat", unit: null, localIcon: "assets/flags/qa.svg" },
+    { id: "kwd", code: "KWD", name: "دینار کویت",        englishName: "Kuwaiti Dinar",    decimals: 2, group: "fiat", unit: null, localIcon: "assets/flags/kw.svg" },
+    { id: "bhd", code: "BHD", name: "دینار بحرین",       englishName: "Bahraini Dinar",   decimals: 2, group: "fiat", unit: null, localIcon: "assets/flags/bh.svg" },
+    { id: "omr", code: "OMR", name: "ریال عمان",         englishName: "Omani Rial",       decimals: 2, group: "fiat", unit: null, localIcon: "assets/flags/om.svg" },
+    { id: "iqd", code: "IQD", name: "دینار عراق",        englishName: "Iraqi Dinar",      decimals: 2, group: "fiat", unit: null, localIcon: "assets/flags/iq.svg" },
+    { id: "syp", code: "SYP", name: "لیر سوریه",         englishName: "Syrian Pound",     decimals: 2, group: "fiat", unit: null, localIcon: "assets/flags/sy.svg" },
+    { id: "azn", code: "AZN", name: "منات آذربایجان",    englishName: "Azerbaijani Manat", decimals: 2, group: "fiat", unit: null, localIcon: "assets/flags/az.svg" },
+    { id: "amd", code: "AMD", name: "درام ارمنستان",     englishName: "Armenian Dram",    decimals: 2, group: "fiat", unit: null, localIcon: "assets/flags/am.svg" },
+    { id: "gel", code: "GEL", name: "لاری گرجستان",      englishName: "Georgian Lari",    decimals: 2, group: "fiat", unit: null, localIcon: "assets/flags/ge.svg" }
   ].forEach(function (asset) { currencies[asset.id] = asset; });
 
   // برچسب واحد: طلا به گرم است و سکه به عدد. بدون این، عددی که کاربر
   // وارد می‌کند مبهم است.
-  var UNIT_LABELS = { gram: "گرم", piece: "عدد" };
+  var UNIT_LABELS = { gram: "گرم", piece: "عدد", mesghal: "مثقال", ounce: "انس" };
 
   function unitLabel(currency) {
     return currency && currency.unit ? (UNIT_LABELS[currency.unit] || null) : null;
@@ -156,15 +194,12 @@
   }
 
   /* ── سیاست تبدیل ─────────────────────────────────────────────
-     دو منطقه داریم:
-       • شبکهٔ به‌هم‌پیوسته (ارز دیجیتال + فیات، شامل تومان): همه به همه
-       • برگ‌های تومانی (طلا + سکه): هر کدام فقط با تومان جفت می‌شوند
-     این لایه از لایهٔ نرخ جداست: اینکه مسیری برای محاسبه وجود دارد
-     به این معنا نیست که آن تبدیل مجاز است. بدون این جداسازی، طلا از
-     راه تومان به بیت‌کوین وصل می‌شد. ─────────────────────────── */
+     هر دارایی به هر دارایی دیگری تبدیل می‌شود. محدودیت دسته‌ای که
+     قبلاً طلا و سکه را فقط به تومان وصل می‌کرد برداشته شد.
 
-  var MESH_GROUPS = { crypto: true, fiat: true };
-  var LEAF_GROUPS = { gold: true, coin: true };
+     دسته‌ها همچنان وجود دارند، ولی نقششان عوض شده: حالا فقط برای
+     تگ‌های فیلتر در فهرست و برای تشخیص منبعِ نرخ در نوار وضعیت
+     به کار می‌روند، نه برای محدود کردن تبدیل. ─────────────────── */
 
   function groupOf(id) {
     var currency = currencies[id];
@@ -172,13 +207,7 @@
   }
 
   function isPairAllowed(from, to) {
-    if (!from || !to || from === to) return false;
-    var fromGroup = groupOf(from);
-    var toGroup = groupOf(to);
-    if (LEAF_GROUPS[fromGroup] && LEAF_GROUPS[toGroup]) return false;
-    if (LEAF_GROUPS[fromGroup]) return to === "irt";
-    if (LEAF_GROUPS[toGroup]) return from === "irt";
-    return Boolean(MESH_GROUPS[fromGroup] && MESH_GROUPS[toGroup]);
+    return Boolean(from && to && from !== to);
   }
 
   function setEdge(from, to, rate) {
@@ -293,6 +322,13 @@
     writing = true; input.value = value; writing = false;
   }
 
+  // وقتی هیچ تصویری بار نشود، این دو حرف داخل دایره نشان داده می‌شود.
+  // طلا و سکه نماد ندارند، پس برایشان از نام فارسی استفاده می‌شود.
+  function fallbackGlyph(currency) {
+    var source = currency.code || currency.name || currency.id || "";
+    return String(source).slice(0, 2);
+  }
+
   function createCurrencyIcon(currency, className) {
     var wrap = document.createElement("span");
     wrap.className = "currency-icon" + (className ? " " + className : "");
@@ -307,12 +343,12 @@
         index += 1;
         if (sources[index]) image.src = sources[index];
         else {
-          image.remove(); wrap.classList.add("letter-icon"); wrap.textContent = currency.code.slice(0, 2);
+          image.remove(); wrap.classList.add("letter-icon"); wrap.textContent = fallbackGlyph(currency);
         }
       });
       wrap.appendChild(image);
     } else {
-      wrap.classList.add("letter-icon"); wrap.textContent = currency.code.slice(0, 2);
+      wrap.classList.add("letter-icon"); wrap.textContent = fallbackGlyph(currency);
     }
     return wrap;
   }
@@ -323,10 +359,18 @@
     container.appendChild(createCurrencyIcon(currency));
     var label = document.createElement("span");
     label.className = "currency-text";
-    var code = document.createElement("strong"); code.textContent = currency.code;
-    var name = document.createElement("small");
+    // طلا و سکه نماد ندارند: خط پررنگ خودِ نام فارسی است و خط کم‌رنگ
+    // واحد. برای بقیه همان نماد بالا و نام پایین می‌ماند.
     var unit = unitLabel(currency);
-    name.textContent = unit ? currency.name + " · هر " + unit : currency.name;
+    var code = document.createElement("strong");
+    var name = document.createElement("small");
+    if (unit) {
+      code.textContent = currency.name;
+      name.textContent = "هر " + unit;
+    } else {
+      code.textContent = currency.code;
+      name.textContent = currency.name;
+    }
     label.append(code, name); container.appendChild(label);
     var chevron = document.createElement("span");
     chevron.className = "currency-chevron"; chevron.setAttribute("aria-hidden", "true");
@@ -446,7 +490,12 @@
       var priority = { irt: 0, usdt: 1, btc: 2, eth: 3 };
       var aPriority = priority[a.id] == null ? 99 : priority[a.id];
       var bPriority = priority[b.id] == null ? 99 : priority[b.id];
-      return aPriority - bPriority || a.code.localeCompare(b.code, "en");
+      // طلا و سکه نماد ندارند، پس با نام فارسی مرتب می‌شوند.
+      if (aPriority !== bPriority) return aPriority - bPriority;
+      if (a.code && b.code) return a.code.localeCompare(b.code, "en");
+      if (a.code) return 1;
+      if (b.code) return -1;
+      return String(a.name || "").localeCompare(String(b.name || ""), "fa");
     });
   }
 
@@ -479,8 +528,13 @@
       var unit = unitLabel(currency);
       english.textContent = unit ? "هر " + unit : (currency.englishName || currency.code);
       label.append(name, english);
-      var code = document.createElement("b"); code.className = "asset-option-code"; code.textContent = currency.code;
-      option.append(label, code);
+      // طلا و سکه نماد ندارند، پس ستون سمت چپ برایشان ساخته نمی‌شود.
+      if (currency.code) {
+        var code = document.createElement("b"); code.className = "asset-option-code"; code.textContent = currency.code;
+        option.append(label, code);
+      } else {
+        option.append(label);
+      }
       option.addEventListener("click", function () { selectCurrency(currency.id); });
       elements.assetList.appendChild(option);
     });

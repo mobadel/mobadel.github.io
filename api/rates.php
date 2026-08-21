@@ -20,14 +20,52 @@ const UPSTREAM_TIMEOUT = 12;
 const UPSTREAM_URL     = 'https://api.brsapi.ir/Market/Gold_Currency.php';
 
 /* افزودن دارایی جدید = یک ردیف در همین جدول. هیچ جای دیگری لازم
-   نیست عوض شود. نمادها از پاسخ واقعی BrsApi گرفته شده‌اند. */
+   نیست عوض شود. نمادها از پاسخ واقعی BrsApi گرفته شده‌اند.
+
+   USDT_IRT عمداً اینجا نیست: تتر از نوبیتکس می‌آید و دو منبع برای یک
+   دارایی یعنی دو نرخ ناسازگار در یک گراف. */
 const ASSET_MAP = [
-    'IR_GOLD_18K'   => ['id' => 'gold18', 'group' => 'gold', 'unit' => 'gram'],
-    'IR_COIN_EMAMI' => ['id' => 'emami',  'group' => 'coin', 'unit' => 'piece'],
-    'USD'           => ['id' => 'usd',    'group' => 'fiat', 'unit' => 'unit'],
-    'EUR'           => ['id' => 'eur',    'group' => 'fiat', 'unit' => 'unit'],
-    'TRY'           => ['id' => 'try',    'group' => 'fiat', 'unit' => 'unit'],
-    'AED'           => ['id' => 'aed',    'group' => 'fiat', 'unit' => 'unit'],
+    // طلا
+    'IR_GOLD_18K'     => ['id' => 'gold18',      'group' => 'gold', 'unit' => 'gram'],
+    'IR_GOLD_24K'     => ['id' => 'gold24',      'group' => 'gold', 'unit' => 'gram'],
+    'IR_GOLD_MELTED'  => ['id' => 'goldmelted',  'group' => 'gold', 'unit' => 'mesghal'],
+    'XAUUSD'          => ['id' => 'goldounce',   'group' => 'gold', 'unit' => 'ounce'],
+
+    // سکه
+    'IR_COIN_EMAMI'   => ['id' => 'emami',       'group' => 'coin', 'unit' => 'piece'],
+    'IR_COIN_BAHAR'   => ['id' => 'bahar',       'group' => 'coin', 'unit' => 'piece'],
+    'IR_COIN_HALF'    => ['id' => 'halfcoin',    'group' => 'coin', 'unit' => 'piece'],
+    'IR_COIN_QUARTER' => ['id' => 'quartercoin', 'group' => 'coin', 'unit' => 'piece'],
+    'IR_COIN_1G'      => ['id' => 'gramcoin',    'group' => 'coin', 'unit' => 'piece'],
+
+    // ارز فیات
+    'USD' => ['id' => 'usd', 'group' => 'fiat', 'unit' => 'unit'],
+    'EUR' => ['id' => 'eur', 'group' => 'fiat', 'unit' => 'unit'],
+    'GBP' => ['id' => 'gbp', 'group' => 'fiat', 'unit' => 'unit'],
+    'CHF' => ['id' => 'chf', 'group' => 'fiat', 'unit' => 'unit'],
+    'AED' => ['id' => 'aed', 'group' => 'fiat', 'unit' => 'unit'],
+    'TRY' => ['id' => 'try', 'group' => 'fiat', 'unit' => 'unit'],
+    'JPY' => ['id' => 'jpy', 'group' => 'fiat', 'unit' => 'unit'],
+    'CNY' => ['id' => 'cny', 'group' => 'fiat', 'unit' => 'unit'],
+    'AUD' => ['id' => 'aud', 'group' => 'fiat', 'unit' => 'unit'],
+    'CAD' => ['id' => 'cad', 'group' => 'fiat', 'unit' => 'unit'],
+    'RUB' => ['id' => 'rub', 'group' => 'fiat', 'unit' => 'unit'],
+    'SEK' => ['id' => 'sek', 'group' => 'fiat', 'unit' => 'unit'],
+    'INR' => ['id' => 'inr', 'group' => 'fiat', 'unit' => 'unit'],
+    'PKR' => ['id' => 'pkr', 'group' => 'fiat', 'unit' => 'unit'],
+    'AFN' => ['id' => 'afn', 'group' => 'fiat', 'unit' => 'unit'],
+    'MYR' => ['id' => 'myr', 'group' => 'fiat', 'unit' => 'unit'],
+    'THB' => ['id' => 'thb', 'group' => 'fiat', 'unit' => 'unit'],
+    'SAR' => ['id' => 'sar', 'group' => 'fiat', 'unit' => 'unit'],
+    'QAR' => ['id' => 'qar', 'group' => 'fiat', 'unit' => 'unit'],
+    'KWD' => ['id' => 'kwd', 'group' => 'fiat', 'unit' => 'unit'],
+    'BHD' => ['id' => 'bhd', 'group' => 'fiat', 'unit' => 'unit'],
+    'OMR' => ['id' => 'omr', 'group' => 'fiat', 'unit' => 'unit'],
+    'IQD' => ['id' => 'iqd', 'group' => 'fiat', 'unit' => 'unit'],
+    'SYP' => ['id' => 'syp', 'group' => 'fiat', 'unit' => 'unit'],
+    'AZN' => ['id' => 'azn', 'group' => 'fiat', 'unit' => 'unit'],
+    'AMD' => ['id' => 'amd', 'group' => 'fiat', 'unit' => 'unit'],
+    'GEL' => ['id' => 'gel', 'group' => 'fiat', 'unit' => 'unit'],
 ];
 
 header('Content-Type: application/json; charset=utf-8');
@@ -107,7 +145,25 @@ if (!is_array($payload)) {
     serveStale($cached, 'upstream_not_json');
 }
 
-/* ── نرمال‌سازی به قرارداد خودمان ────────────────────────────── */
+/* ── نرمال‌سازی به قرارداد خودمان ──────────────────────────────
+
+   همهٔ نرخ‌ها باید تومانی باشند چون گراف تبدیل در مرورگر بر پایهٔ
+   تومان است. ولی BrsApi انس طلا (XAUUSD) را به دلار می‌دهد، پس اول
+   نرخ دلار را پیدا می‌کنیم تا بتوانیم تبدیلش کنیم. بدون این، انس طلا
+   با عدد ۴۵۸۲ به‌عنوان تومان وارد گراف می‌شد. */
+$usdToman = 0.0;
+foreach ($payload as $section) {
+    if (!is_array($section)) {
+        continue;
+    }
+    foreach ($section as $row) {
+        if (is_array($row) && ($row['symbol'] ?? '') === 'USD') {
+            $usdToman = (float) ($row['price'] ?? 0);
+            break 2;
+        }
+    }
+}
+
 $assets = [];
 $latest = 0;
 
@@ -127,11 +183,24 @@ foreach ($payload as $section) {
         if ($price <= 0) {
             continue;
         }
+        $rowUnit = (string) ($row['unit'] ?? '');
+
         // BrsApi اقلام ایرانی را به تومان می‌دهد، ولی اگر روزی واحد را
         // به ریال عوض کرد، بی‌سروصدا صد برابر غلط نشویم.
-        if (str_contains((string) ($row['unit'] ?? ''), 'ریال')) {
+        if (str_contains($rowUnit, 'ریال')) {
             $price /= 10;
         }
+
+        // اقلام دلاری (فعلاً فقط انس طلا) به تومان تبدیل می‌شوند.
+        // اگر نرخ دلار در دسترس نباشد، قلم را می‌اندازیم بیرون؛ نمایش
+        // نشدن خیلی بهتر از نمایشِ عددی است که هزاران برابر غلط است.
+        if (str_contains($rowUnit, 'دلار')) {
+            if ($usdToman <= 0) {
+                continue;
+            }
+            $price *= $usdToman;
+        }
+
         $meta = ASSET_MAP[$symbol];
         $assets[$meta['id']] = [
             'toman'  => $price,
