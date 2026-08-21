@@ -47,7 +47,7 @@
     /* فلزات از گواهی سپردهٔ بورس کالا می‌آیند، نه از بازار آزاد. به‌جای
        نماد لاتین، منبعشان نوشته می‌شود تا کاربر بداند قیمت از کجاست. */
     { id: "silver", code: "بورس کالا", name: "نقره ۹۹۹", englishName: "Silver 999",     decimals: 4, group: "commodity", unit: "gram",     localIcon: "/assets/silver.svg" },
-    { id: "copper", code: "بورس کالا", name: "مس کاتد",  englishName: "Copper Cathode", decimals: 4, group: "commodity", unit: "kilogram", localIcon: "/assets/copper.svg" },
+    { id: "copper", code: "بورس کالا", name: "مس",       englishName: "Copper Cathode", decimals: 4, group: "commodity", unit: "kilogram", localIcon: "/assets/copper.svg" },
 
     // ارز فیات — این‌ها نماد دارند و نمادشان معنادار است.
     { id: "usd", code: "USD", name: "دلار",              englishName: "US Dollar",        decimals: 2, group: "fiat", unit: null, localIcon: "/assets/flags/us.svg" },

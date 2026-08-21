@@ -40,7 +40,7 @@ const ASSETS = {
   goldounce:  { slug: "ounce",      name: "انس طلا",      unit: "انس" },
 
   silver: { slug: "silver", name: "نقره ۹۹۹", unit: "گرم" },
-  copper: { slug: "copper", name: "مس کاتد",  unit: "کیلو" },
+  copper: { slug: "copper", name: "مس",      unit: "کیلو" },
 
   emami:       { slug: "emami",      name: "سکه امامی",      unit: "عدد" },
   bahar:       { slug: "baharazadi", name: "سکه بهار آزادی", unit: "عدد" },

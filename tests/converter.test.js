@@ -394,6 +394,7 @@ setTimeout(async () => {
 
   const copperOption = elements["asset-list"].children.find((item) => item.dataset.currency === "copper");
   assert.equal(copperOption.children[2].textContent, "بورس کالا");
+  assert.equal(copperOption.children[1].children[0].textContent, "مس", "عنوان مس باید کوتاه باشد، نه «مس کاتد»");
   assert.equal(copperOption.children[1].children[1].textContent, "هر کیلو");
 
   /* ── واحد نباید در نام تکرار شود ────────────────────────────
