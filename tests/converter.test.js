@@ -10,6 +10,12 @@ assert.match(html, /<link rel="canonical" href="https:\/\/tabdex\.ir\/">/);
 assert.match(html, /<link rel="icon" href="\/assets\/favicon-48x48\.png" type="image\/png" sizes="48x48">/);
 assert.match(html, /<link rel="apple-touch-icon" href="\/assets\/apple-touch-icon\.png" sizes="180x180">/);
 assert.doesNotMatch(html, /mobadel\.github\.io/);
+// دکمهٔ به‌روزرسانی حذف شد؛ نباید هیچ ردی از آن بماند
+assert.doesNotMatch(html, /refresh-button|id="refresh"/, "دکمهٔ به‌روزرسانی باید حذف شده باشد");
+assert.doesNotMatch(styles, /\.refresh-button/, "استایل دکمهٔ به‌روزرسانی باید حذف شده باشد");
+// عنوان و زیرعنوان دارایی باید یک‌خطی بمانند
+assert.match(styles, /\.currency-text strong,\s*\n\.currency-text small \{[^}]*white-space: nowrap/);
+assert.match(styles, /\.currency-badge \{[\s\S]*?flex: 0 0 auto;/);
 assert.ok(fs.existsSync("assets/favicon.ico"));
 assert.ok(fs.existsSync("assets/favicon-48x48.png"));
 assert.ok(fs.existsSync("assets/apple-touch-icon.png"));
@@ -75,7 +81,7 @@ const ids = [
   "asset-search", "asset-list", "asset-empty", "asset-filters"
 ];
 const elements = Object.fromEntries(ids.map((id) => [id, new FakeElement(id.includes("amount") || id === "asset-search" ? "input" : "div")]));
-const filterChips = Object.fromEntries(["all", "crypto", "metal", "fiat"].map((group) => {
+const filterChips = Object.fromEntries(["all", "crypto", "metal", "commodity", "fiat"].map((group) => {
   const button = new FakeElement("button");
   button.dataset.group = group;
   return [group, button];
@@ -158,7 +164,9 @@ const proxyRates = {
     usd: { toman: 200000, group: "fiat", unit: "unit", name: "دلار" },
     eur: { toman: 240000, group: "fiat", unit: "unit", name: "یورو" },
     try: { toman: 4000, group: "fiat", unit: "unit", name: "لیر ترکیه" },
-    aed: { toman: 54000, group: "fiat", unit: "unit", name: "درهم امارات" }
+    aed: { toman: 54000, group: "fiat", unit: "unit", name: "درهم امارات" },
+    silver: { toman: 420000, group: "commodity", unit: "gram", name: "شمش نقره" },
+    copper: { toman: 2397310, group: "commodity", unit: "kilogram", name: "مس کاتد" }
   }
 };
 
@@ -191,9 +199,20 @@ setTimeout(() => {
 
   elements["currency-from"].dispatch("click");
   const optionsInDialog = elements["asset-list"].children;
-  // ۴ دارایی نوبیتکسی + ۶ دارایی پراکسی. طرف مقابل تومان است و با
-  // همه جفت مجاز می‌سازد، پس همه دیده می‌شوند.
-  assert.equal(optionsInDialog.length, 10);
+  // ۴ دارایی نوبیتکسی + ۸ دارایی پراکسی (شامل نقره و مس).
+  assert.equal(optionsInDialog.length, 12);
+
+  /* ترتیب باید بر اساس اهمیت باشد نه الفبا. قبلاً دلار ته فهرست ارزها
+     می‌افتاد چون AED و EUR الفبایی جلوترند. */
+  const order = optionsInDialog.map((item) => item.dataset.currency);
+  assert.equal(order[0], "irt", "تومان باید اول باشد");
+  assert.equal(order[1], "usdt", "تتر باید دوم باشد");
+  assert.ok(order.indexOf("btc") < order.indexOf("eth"), "بیت‌کوین قبل از اتریوم");
+  assert.ok(order.indexOf("usd") < order.indexOf("eur"), "دلار باید قبل از یورو بیاید");
+  assert.ok(order.indexOf("usd") < order.indexOf("aed"), "دلار باید قبل از درهم بیاید");
+  assert.ok(order.indexOf("usd") < order.indexOf("try"), "دلار باید قبل از لیر بیاید");
+  assert.ok(order.indexOf("gold18") < order.indexOf("emami"), "طلای ۱۸ قبل از سکه امامی");
+  assert.ok(order.indexOf("silver") < order.indexOf("usd"), "فلزات قبل از ارز فیات");
   const bitcoinOption = optionsInDialog.find((item) => item.dataset.currency === "btc");
   assert.ok(bitcoinOption);
   assert.equal(bitcoinOption.children.length, 3);
@@ -254,9 +273,13 @@ setTimeout(() => {
   // تومان عمداً در دستهٔ ارز است، نه دستهٔ جدا.
   assert.deepEqual(listIds().sort(), ["aed", "eur", "irt", "try", "usd"], "تومان باید زیر تگ ارز بیاید");
 
+  clickChip("commodity");
+  assert.deepEqual(listIds().sort(), ["copper", "silver"], "تگ فلزات فقط نقره و مس");
+
   clickChip("crypto");
   assert.ok(!listIds().includes("irt"), "تومان نباید زیر تگ ارز دیجیتال بیاید");
   assert.ok(listIds().includes("btc"));
+  assert.ok(!listIds().includes("silver"), "نقره نباید زیر تگ ارز دیجیتال بیاید");
 
   // تگ و متن جستجو باید AND شوند، نه OR.
   elements["asset-search"].value = "یورو";
@@ -342,6 +365,19 @@ setTimeout(() => {
   openDialog("to");
   elements["asset-list"].children.find((item) => item.dataset.currency === "irt").dispatch("click");
   assert.equal(location.pathname, "/", "جفت پیش‌فرض باید روی ریشه بماند");
+
+  /* ── فلزات: منبع به‌جای نماد لاتین ────────────────────────── */
+  openDialog("from");
+  clickChip("commodity");
+  const silverOption = elements["asset-list"].children.find((item) => item.dataset.currency === "silver");
+  assert.equal(silverOption.children.length, 3, "نقره باید ستون سوم داشته باشد");
+  assert.equal(silverOption.children[2].textContent, "بورس کالا", "به‌جای نماد لاتین باید منبع نوشته شود");
+  assert.equal(silverOption.children[1].children[0].textContent, "نقره ۹۹۹");
+  assert.equal(silverOption.children[1].children[1].textContent, "هر گرم");
+
+  const copperOption = elements["asset-list"].children.find((item) => item.dataset.currency === "copper");
+  assert.equal(copperOption.children[2].textContent, "بورس کالا");
+  assert.equal(copperOption.children[1].children[1].textContent, "هر کیلو");
 
   console.log("converter tests passed");
 }, 30);

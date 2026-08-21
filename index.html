@@ -33,7 +33,7 @@
   <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png" sizes="180x180">
   <link rel="preload" href="assets/fonts/Vazirmatn-Regular.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="assets/fonts/Vazirmatn-Bold.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="assets/styles.css?v=20260819-3">
+  <link rel="stylesheet" href="assets/styles.css?v=20260821-1">
 
   <script type="application/ld+json">
   {
@@ -83,10 +83,6 @@
         </span>
         <span>تبدکس</span>
       </a>
-
-      <button class="refresh-button" id="refresh" type="button" aria-label="به‌روزرسانی نرخ" title="به‌روزرسانی نرخ">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6v5h-5M4 18v-5h5"/><path d="M18.5 10a7 7 0 0 0-12-3L4 9m16 6-2.5 2a7 7 0 0 1-12-3"/></svg>
-      </button>
     </div>
   </header>
 
@@ -102,7 +98,7 @@
         <strong class="rate-value" id="rate-value">در حال دریافت…</strong>
         <span class="rate-status" id="rate-status">
           <span class="status-dot" aria-hidden="true"></span>
-          اتصال به نوبیتکس
+          در حال دریافت نرخ‌ها
         </span>
       </div>
 
@@ -162,6 +158,7 @@
         <button class="asset-filter is-active" type="button" data-group="all" aria-pressed="true">همه</button>
         <button class="asset-filter" type="button" data-group="crypto" aria-pressed="false">ارز دیجیتال</button>
         <button class="asset-filter" type="button" data-group="metal" aria-pressed="false">طلا و سکه</button>
+        <button class="asset-filter" type="button" data-group="commodity" aria-pressed="false">فلزات</button>
         <button class="asset-filter" type="button" data-group="fiat" aria-pressed="false">ارز</button>
       </div>
       <div class="asset-list" id="asset-list" role="listbox" aria-label="فهرست دارایی‌ها"></div>
@@ -169,6 +166,6 @@
     </section>
   </div>
 
-  <script src="assets/app.js?v=20260820-3"></script>
+  <script src="assets/app.js?v=20260821-1"></script>
 </body>
 </html>

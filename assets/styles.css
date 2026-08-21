@@ -101,29 +101,12 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
   shape-rendering: geometricPrecision;
 }
 
-.refresh-button {
-  display: grid;
-  width: 42px;
-  height: 42px;
-  place-items: center;
-  border: 1px solid var(--border);
-  border-radius: 50%;
-  color: var(--muted);
-  background: rgba(255, 255, 255, .75);
-  cursor: pointer;
-  transition: border-color .18s, color .18s, transform .18s, background .18s;
-}
-
-.refresh-button:hover { color: var(--green-dark); border-color: var(--border-strong); background: #fff; }
-.refresh-button:active { transform: scale(.94); }
-.refresh-button.loading svg { animation: spin .75s linear infinite; }
-.refresh-button:focus-visible, .swap-button:focus-visible, .currency-badge:focus-visible,
+.swap-button:focus-visible, .currency-badge:focus-visible,
 .dialog-close:focus-visible, .asset-option:focus-visible, input:focus-visible {
   outline: 3px solid rgba(22, 129, 95, .20);
   outline-offset: 2px;
 }
 
-@keyframes spin { to { transform: rotate(-360deg); } }
 
 .page-main { padding: 50px 0 72px; }
 
@@ -232,6 +215,8 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
 
 .field-control input {
   width: 100%;
+  /* فیلد مقدار کوتاه می‌شود تا نام دارایی نشکند */
+  flex: 1 1 auto;
   min-width: 0;
   padding: 8px 4px;
   border: 0;
@@ -250,6 +235,11 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
 
 .currency-badge {
   display: flex;
+  /* بدون flex: 0 0 auto، فیلد مقدار تمام جا را می‌گیرد و نام‌های بلند
+     مثل «سکه بهار آزادی» دو یا سه خطی می‌شوند. حالا دکمه به اندازهٔ
+     متنش عریض می‌شود و فیلد مقدار کوتاه می‌آید. */
+  flex: 0 0 auto;
+  max-width: 62%;
   min-width: 132px;
   align-items: center;
   gap: 10px;
@@ -289,6 +279,11 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
   line-height: 1.25;
 }
 
+/* عنوان و زیرعنوان همیشه یک‌خطی می‌مانند. unicode-bidi: plaintext جهت
+   را از خود متن می‌گیرد، چون این خط برای ارز یک نماد لاتین است و برای
+   طلا و سکه یک نام فارسی. */
+.currency-text strong,
+.currency-text small { white-space: nowrap; unicode-bidi: plaintext; }
 .currency-text strong { font-size: 15px; direction: ltr; }
 .currency-text small { color: var(--muted); font-size: 12px; }
 
@@ -437,7 +432,28 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
 .asset-option-label strong { overflow: hidden; font-size: 14px; text-overflow: ellipsis; white-space: nowrap; }
 .asset-option-label small { overflow: hidden; color: var(--muted); font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
 
-.asset-option-code { color: var(--muted); font-size: 13px; direction: ltr; }
+/* ستون سمت چپ گاهی نماد لاتین است و گاهی «بورس کالا»؛ plaintext جهت
+   را از خود متن تشخیص می‌دهد و nowrap نمی‌گذارد دو خطی شود. */
+.asset-option-code {
+  color: var(--muted);
+  font-size: 13px;
+  direction: ltr;
+  unicode-bidi: plaintext;
+  white-space: nowrap;
+}
+
+/* نام و توضیح دارایی در فهرست هم باید یک‌خطی بماند؛ اگر جا نبود با
+   سه‌نقطه کوتاه شود، نه اینکه ارتفاع ردیف را دو برابر کند. */
+.asset-option-label { min-width: 0; }
+
+.asset-option-label strong,
+.asset-option-label small {
+  display: block;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  unicode-bidi: plaintext;
+}
 .asset-empty { margin: 28px 0; color: var(--muted); text-align: center; }
 
 @media (max-width: 560px) {
