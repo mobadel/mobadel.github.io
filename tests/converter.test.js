@@ -155,7 +155,7 @@ const currencyNames = {
   currencies: {
     irt: { fa: "تومان", en: "Toman", alt: "ریال" },
     usdt: { fa: "تتر", en: "Tether", alt: "" },
-    btc: { fa: "بیت‌کوین", en: "Bitcoin", alt: "" },
+    btc: { fa: "بیت کوین", en: "Bitcoin", alt: "" },
     eth: { fa: "اتریوم", en: "Ethereum", alt: "اتر" }
   }
 };
@@ -215,7 +215,7 @@ setTimeout(async () => {
   const order = optionsInDialog.map((item) => item.dataset.currency);
   assert.equal(order[0], "irt", "تومان باید اول باشد");
   assert.equal(order[1], "usdt", "تتر باید دوم باشد");
-  assert.ok(order.indexOf("btc") < order.indexOf("eth"), "بیت‌کوین قبل از اتریوم");
+  assert.ok(order.indexOf("btc") < order.indexOf("eth"), "بیت کوین قبل از اتریوم");
   assert.ok(order.indexOf("usd") < order.indexOf("eur"), "دلار باید قبل از یورو بیاید");
   assert.ok(order.indexOf("usd") < order.indexOf("aed"), "دلار باید قبل از درهم بیاید");
   assert.ok(order.indexOf("usd") < order.indexOf("try"), "دلار باید قبل از لیر بیاید");
@@ -224,7 +224,7 @@ setTimeout(async () => {
   const bitcoinOption = optionsInDialog.find((item) => item.dataset.currency === "btc");
   assert.ok(bitcoinOption);
   assert.equal(bitcoinOption.children.length, 3);
-  assert.equal(bitcoinOption.children[1].children[0].textContent, "بیت‌کوین");
+  assert.equal(bitcoinOption.children[1].children[0].textContent, "بیت کوین");
   assert.equal(bitcoinOption.children[1].children[1].textContent, "Bitcoin");
   assert.equal(bitcoinOption.children[2].textContent, "BTC");
 
@@ -242,7 +242,7 @@ setTimeout(async () => {
   elements["asset-search"].dispatch("input");
   assert.equal(elements["asset-list"].children.length, 1);
   elements["asset-list"].children[0].dispatch("click");
-  assert.match(elements["page-title"].textContent, /بیت‌کوین به تومان/);
+  assert.match(elements["page-title"].textContent, /بیت کوین به تومان/);
   assert.match(elements["rate-value"].textContent, /۵٬۰۰۰٬۰۰۰٬۰۰۰ تومان/);
 
   elements["currency-to"].dispatch("click");
@@ -251,7 +251,7 @@ setTimeout(async () => {
   assert.match(elements["rate-value"].textContent, /۵۱٬۰۰۰ تتر/);
 
   elements["swap"].dispatch("click");
-  assert.match(elements["page-title"].textContent, /تتر به بیت‌کوین/);
+  assert.match(elements["page-title"].textContent, /تتر به بیت کوین/);
   assert.ok(elements["rate-value"].textContent.startsWith("۱ تتر"));
 
   /* ── تگ‌های دسته ─────────────────────────────────────────── */
@@ -259,12 +259,12 @@ setTimeout(async () => {
   const listIds = () => elements["asset-list"].children.map((item) => item.dataset.currency);
   const clickChip = (group) => elements["asset-filters"].dispatch("click", { target: filterChips[group] });
 
-  // محدودیت دسته‌ای برداشته شده: حتی وقتی مقصد بیت‌کوین است، طلا هم
+  // محدودیت دسته‌ای برداشته شده: حتی وقتی مقصد بیت کوین است، طلا هم
   // باید در مبدأ قابل انتخاب باشد.
   openDialog("from");
-  assert.ok(listIds().includes("gold18"), "طلا باید در برابر بیت‌کوین هم قابل انتخاب باشد");
+  assert.ok(listIds().includes("gold18"), "طلا باید در برابر بیت کوین هم قابل انتخاب باشد");
   clickChip("metal");
-  assert.deepEqual(listIds().sort(), ["emami", "gold18", "goldounce"], "تگ طلا و سکه در برابر بیت‌کوین هم باید پر باشد");
+  assert.deepEqual(listIds().sort(), ["emami", "gold18", "goldounce"], "تگ طلا و سکه در برابر بیت کوین هم باید پر باشد");
 
   openDialog("to");
   elements["asset-search"].value = "تومان";
@@ -299,7 +299,7 @@ setTimeout(async () => {
   elements["asset-search"].value = "طلا";
   elements["asset-search"].dispatch("input");
   const goldOption = elements["asset-list"].children.find((item) => item.dataset.currency === "gold18");
-  // بیت‌کوین سه فرزند دارد (آیکون، برچسب، نماد) ولی طلا نماد ندارد.
+  // بیت کوین سه فرزند دارد (آیکون، برچسب، نماد) ولی طلا نماد ندارد.
   assert.equal(goldOption.children.length, 2, "طلا نباید ستون نماد داشته باشد");
   assert.equal(goldOption.children[1].children[0].textContent, "طلای ۱۸ عیار");
   assert.equal(goldOption.children[1].children[1].textContent, "هر گرم");
@@ -349,7 +349,7 @@ setTimeout(async () => {
   openDialog("to");
   elements["asset-list"].children.find((item) => item.dataset.currency === "irt").dispatch("click");
   assert.equal(location.pathname, "/btc-to-irt/", "تغییر جفت باید آدرس را عوض کند");
-  assert.equal(document.title, "تبدیل بیت‌کوین به تومان | تبدکس");
+  assert.equal(document.title, "تبدیل بیت کوین به تومان | تبدکس");
   assert.equal(headTags['link[rel="canonical"]'].attributes.href, "https://tabdex.ir/btc-to-irt/");
 
   // ولی تغییر مقدار نباید آدرس را دست بزند.

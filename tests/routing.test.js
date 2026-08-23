@@ -161,16 +161,16 @@ function loadAt(pathname, search = "") {
      ورود مستقیم به /btc-to-irt/ روی جفت پیش‌فرض می‌ماند. */
   const cryptoPage = loadAt("/btc-to-irt/");
   await new Promise((resolve) => setTimeout(resolve, 120));
-  assert.equal(cryptoPage.heading(), "تبدیل بیت‌کوین به تومان", "آدرس رمزارزی باید بعد از رسیدن داده اعمال شود");
+  assert.equal(cryptoPage.heading(), "تبدیل بیت کوین به تومان", "آدرس رمزارزی باید بعد از رسیدن داده اعمال شود");
 
   const cryptoPair = loadAt("/eth-to-btc/");
   await new Promise((resolve) => setTimeout(resolve, 120));
-  assert.equal(cryptoPair.heading(), "تبدیل اتریوم به بیت‌کوین");
+  assert.equal(cryptoPair.heading(), "تبدیل اتریوم به بیت کوین");
 
   // ترکیب رمزارز و دارایی پراکسی هم باید کار کند.
   const mixed = loadAt("/btc-to-gold18/", "?amount=2");
   await new Promise((resolve) => setTimeout(resolve, 120));
-  assert.equal(mixed.heading(), "تبدیل بیت‌کوین به طلای ۱۸ عیار");
+  assert.equal(mixed.heading(), "تبدیل بیت کوین به طلای ۱۸ عیار");
   assert.equal(mixed.elements["amount-from"].value, "۲");
 
   console.log("routing tests passed");
