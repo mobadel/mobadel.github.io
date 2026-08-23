@@ -98,18 +98,12 @@ function buildPairs() {
 /* واحد فقط وقتی جلوی نام می‌آید که نام خودش با آن شروع نشده باشد،
    وگرنه «انس طلا» می‌شود «هر انس انس طلا». همین قاعده در unitPrefix
    فایل assets/app.js هم هست و تست هم‌خوانی‌شان را بررسی می‌کند. */
-const subjectOf = (asset) => {
-  if (!asset.unit) return asset.name;
-  if (asset.name.startsWith(asset.unit)) return asset.name;
-  return `هر ${asset.unit} ${asset.name}`;
-};
-
 function metaFor(from, to) {
   const heading = `تبدیل ${from.name} به ${to.name}`;
   return {
     heading,
-    title: `${heading} | تبدکس`,
-    description: `محاسبهٔ لحظه‌ای ${heading}. قیمت ${subjectOf(from)} بر حسب ${to.name} با نرخ روز بازار ایران.`,
+    title: `${heading} | مبدل قیمت | تبدکس`,
+    description: `${heading} با قیمت لحظه ای. مبدل نرخ ${from.name} به ${to.name}.`,
     path: `/${from.slug}-to-${to.slug}/`
   };
 }

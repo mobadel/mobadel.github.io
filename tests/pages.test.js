@@ -89,10 +89,10 @@ const generated = path.join(workdir, "_site", "gold18-to-irt", "index.html");
 assert.ok(fs.existsSync(generated), "صفحهٔ gold18-to-irt ساخته نشد");
 
 const html = fs.readFileSync(generated, "utf8");
-assert.match(html, /<title>تبدیل طلای ۱۸ عیار به تومان \| تبدکس<\/title>/);
+assert.match(html, /<title>تبدیل طلای ۱۸ عیار به تومان \| مبدل قیمت \| تبدکس<\/title>/);
+assert.match(html, /<meta name="description" content="تبدیل طلای ۱۸ عیار به تومان با قیمت لحظه ای\. مبدل نرخ طلای ۱۸ عیار به تومان\.">/);
 assert.match(html, /<link rel="canonical" href="https:\/\/tabdex\.ir\/gold18-to-irt\/">/);
 assert.match(html, /<h1 id="page-title">تبدیل طلای ۱۸ عیار به تومان<\/h1>/);
-assert.match(html, /هر گرم طلای ۱۸ عیار/, "توضیحات باید واحد را داشته باشد");
 // مسیرها باید مطلق شده باشند وگرنه از داخل پوشه به فایل نمی‌رسند
 assert.match(html, /src="\/assets\/app\.js/);
 assert.doesNotMatch(html, /src="assets\//);
@@ -111,14 +111,13 @@ assert.match(sitemap, /<loc>https:\/\/tabdex\.ir\/irt-to-baharazadi\/<\/loc>/);
   assert.ok(fs.existsSync(path.join(workdir, "_site", slug, "index.html")), `${slug} باید صفحهٔ واقعی داشته باشد`);
 });
 
-/* واحد نباید در توضیحات تکرار شود: «انس طلا» واحدش هم «انس» است. */
+/* نام فارسی دارایی‌ها باید بدون افزودن واحد در قالب توضیحات بیاید. */
 const ouncePage = fs.readFileSync(path.join(workdir, "_site", "ounce-to-irt", "index.html"), "utf8");
-assert.doesNotMatch(ouncePage, /هر انس انس طلا/, "واحد نباید در توضیحات تکرار شود");
-assert.match(ouncePage, /قیمت انس طلا بر حسب تومان/);
+assert.match(ouncePage, /تبدیل انس طلا به تومان با قیمت لحظه ای\. مبدل نرخ انس طلا به تومان\./);
 
 const silverPage = fs.readFileSync(path.join(workdir, "_site", "silver-to-irt", "index.html"), "utf8");
 assert.match(silverPage, /<h1 id="page-title">تبدیل نقره ۹۹۹ به تومان<\/h1>/);
-assert.match(silverPage, /هر گرم نقره ۹۹۹/, "نقره باید پیشوند واحد بگیرد چون نامش با آن شروع نمی‌شود");
+assert.match(silverPage, /تبدیل نقره ۹۹۹ به تومان با قیمت لحظه ای\. مبدل نرخ نقره ۹۹۹ به تومان\./);
 
 const pageCount = (sitemap.match(/<loc>/g) || []).length;
 assert.ok(pageCount > 50, `انتظار بیش از ۵۰ آدرس در سایت‌مپ، ${pageCount} بود`);

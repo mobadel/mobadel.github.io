@@ -8,8 +8,8 @@ const vm = require("node:vm");
 
 const html = fs.readFileSync("index.html", "utf8");
 const styles = fs.readFileSync("assets/styles.css", "utf8");
-assert.match(html, /<title>تبدکس \| مبدل قیمت طلا، سکه، ارز و ارزهای دیجیتال در ایران<\/title>/);
-assert.match(html, /<meta name="description" content="تبدیل آنلاین طلای ۱۸ عیار، سکه امامی، دلار، یورو و ارزهای دیجیتال به تومان و به یکدیگر، با نرخ لحظه‌ای بازار ایران\. محاسبه سریع و رایگان\.">/);
+assert.match(html, /<title>تبدیل قیمت دلار، طلا، ارز دیجیتال و سایر دارایی‌ها \| مبدل قیمت \| تبدکس<\/title>/);
+assert.match(html, /<meta name="description" content="تبدیل قیمت دلار، طلا، سکه، تتر، بیت کوین، ارزهای دیجیتال، نقره و سایر دارایی‌ها با نرخ لحظه ای بازار ایران و جهان در تبدکس\.">/);
 assert.match(html, /<link rel="canonical" href="https:\/\/tabdex\.ir\/">/);
 assert.match(html, /<link rel="icon" href="\/assets\/favicon-48x48\.png" type="image\/png" sizes="48x48">/);
 assert.match(html, /<link rel="apple-touch-icon" href="\/assets\/apple-touch-icon\.png" sizes="180x180">/);
@@ -101,6 +101,8 @@ const headTags = {
   'meta[name="description"]': new FakeElement("meta"),
   'meta[property="og:title"]': new FakeElement("meta"),
   'meta[property="og:description"]': new FakeElement("meta"),
+  'meta[name="twitter:title"]': new FakeElement("meta"),
+  'meta[name="twitter:description"]': new FakeElement("meta"),
   'meta[property="og:url"]': new FakeElement("meta")
 };
 
@@ -349,7 +351,8 @@ setTimeout(async () => {
   openDialog("to");
   elements["asset-list"].children.find((item) => item.dataset.currency === "irt").dispatch("click");
   assert.equal(location.pathname, "/btc-to-irt/", "تغییر جفت باید آدرس را عوض کند");
-  assert.equal(document.title, "تبدیل بیت کوین به تومان | تبدکس");
+  assert.equal(document.title, "تبدیل بیت کوین به تومان | مبدل قیمت | تبدکس");
+  assert.equal(headTags['meta[name="description"]'].attributes.content, "تبدیل بیت کوین به تومان با قیمت لحظه ای. مبدل نرخ بیت کوین به تومان.");
   assert.equal(headTags['link[rel="canonical"]'].attributes.href, "https://tabdex.ir/btc-to-irt/");
 
   // ولی تغییر مقدار نباید آدرس را دست بزند.
