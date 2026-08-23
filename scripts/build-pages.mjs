@@ -23,7 +23,7 @@ const ORIGIN = "https://tabdex.ir";
 const ASSETS = {
   irt:  { slug: "irt",  name: "تومان" },
   usdt: { slug: "usdt", name: "تتر" },
-  btc:  { slug: "btc",  name: "بیت‌کوین" },
+  btc:  { slug: "btc",  name: "بیت کوین" },
   eth:  { slug: "eth",  name: "اتریوم" },
   usdc: { slug: "usdc", name: "یو‌اس‌دی کوین" },
   xrp:  { slug: "xrp",  name: "ریپل" },
