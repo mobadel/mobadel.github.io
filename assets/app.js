@@ -5,6 +5,9 @@
   "۰۱۲۳۴۵۶۷۸۹".split("").forEach(function (digit, index) { DIGIT_MAP[digit] = String(index); });
   "٠١٢٣٤٥٦٧٨٩".split("").forEach(function (digit, index) { DIGIT_MAP[digit] = String(index); });
 
+  var HOME_TITLE = "تبدیل قیمت دلار، طلا، ارز دیجیتال و سایر دارایی‌ها | مبدل قیمت | تبدکس";
+  var HOME_DESCRIPTION = "تبدیل قیمت دلار، طلا، سکه، تتر، بیت کوین، ارزهای دیجیتال، نقره و سایر دارایی‌ها با نرخ لحظه ای بازار ایران و جهان در تبدکس.";
+
   var PERSIAN_NAMES = {
     irt: "تومان", usdt: "تتر", btc: "بیت کوین", eth: "اتریوم", ltc: "لایت‌کوین",
     xrp: "ریپل", bch: "بیت کوین کش", bnb: "بایننس کوین", doge: "دوج‌کوین",
@@ -467,21 +470,23 @@
   function paintDocumentMeta(heading, fromCurrency, toCurrency) {
     if (typeof document === "undefined") return;
 
-    var unit = unitPrefix(fromCurrency);
-    var subject = (unit ? "هر " + unit + " " : "") + fromCurrency.name;
-    document.title = heading + " | تبدکس";
+    var pairPath = canonicalForPair(state.from, state.to);
+    var isHome = pairPath === "/";
+    document.title = isHome ? HOME_TITLE : heading + " | مبدل قیمت | تبدکس";
 
-    var description = "محاسبهٔ لحظه‌ای " + heading + ". قیمت " + subject +
-      " بر حسب " + toCurrency.name + " با نرخ روز بازار ایران.";
+    var description = isHome ? HOME_DESCRIPTION : heading + " با قیمت لحظه ای. مبدل نرخ " +
+      fromCurrency.name + " به " + toCurrency.name + ".";
     setMeta("name", "description", description);
     setMeta("property", "og:title", document.title);
     setMeta("property", "og:description", description);
+    setMeta("name", "twitter:title", document.title);
+    setMeta("name", "twitter:description", description);
 
     var canonical = document.querySelector ? document.querySelector('link[rel="canonical"]') : null;
     if (canonical && canonical.setAttribute) {
-      canonical.setAttribute("href", "https://tabdex.ir" + canonicalForPair(state.from, state.to));
+      canonical.setAttribute("href", "https://tabdex.ir" + pairPath);
     }
-    setMeta("property", "og:url", "https://tabdex.ir" + canonicalForPair(state.from, state.to));
+    setMeta("property", "og:url", "https://tabdex.ir" + pairPath);
   }
 
   function setMeta(attribute, key, value) {

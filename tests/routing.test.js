@@ -89,6 +89,8 @@ function loadAt(pathname, search = "") {
     'meta[name="description"]': new FakeElement("meta"),
     'meta[property="og:title"]': new FakeElement("meta"),
     'meta[property="og:description"]': new FakeElement("meta"),
+    'meta[name="twitter:title"]': new FakeElement("meta"),
+    'meta[name="twitter:description"]': new FakeElement("meta"),
     'meta[property="og:url"]': new FakeElement("meta")
   };
 
@@ -147,7 +149,10 @@ function loadAt(pathname, search = "") {
   assert.equal(loadAt("/btc-to-btc/").heading(), "تبدیل تتر به تومان", "جفت یکسان باید نادیده گرفته شود");
 
   // ── ریشه همان پیش‌فرض می‌ماند ─────────────────────────────────
-  assert.equal(loadAt("/").heading(), "تبدیل تتر به تومان");
+  const rootPage = loadAt("/");
+  assert.equal(rootPage.heading(), "تبدیل تتر به تومان");
+  assert.equal(document.title, "تبدیل قیمت دلار، طلا، ارز دیجیتال و سایر دارایی‌ها | مبدل قیمت | تبدکس");
+  assert.equal(rootPage.headTags['meta[name="description"]'].attributes.content, "تبدیل قیمت دلار، طلا، سکه، تتر، بیت کوین، ارزهای دیجیتال، نقره و سایر دارایی‌ها با نرخ لحظه ای بازار ایران و جهان در تبدکس.");
 
   /* آدرس اسلاگ‌دار جفت پیش‌فرض هم باید مستقیماً کار کند، چون کاربر با
      عوض کردن جفت روی همین آدرس می‌نشیند و ممکن است لینکش را بفرستد.
