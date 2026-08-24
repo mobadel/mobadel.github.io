@@ -152,6 +152,11 @@
     return String((currency && currency.name) || "").indexOf(unit) === 0 ? "" : unit;
   }
 
+  function unitizedName(currency) {
+    var unit = unitPrefix(currency);
+    return (unit ? unit + " " : "") + currency.name;
+  }
+
   var state = {
     from: "usd", to: "irt", amount: 100, edited: "from", rate: null,
     graph: {}, updatedAt: null, live: false, loading: false, dialogSide: null, lastFocused: null,
@@ -521,9 +526,9 @@
       return;
     }
     var reverseRate = 1 / state.rate;
-    elements.pairContentRate.textContent = "هر یک " + fromCurrency.name + " معادل " +
-      formatNumber(state.rate, toCurrency.decimals) + " " + toCurrency.name + " و هر یک " + toCurrency.name +
-      " برابر با " + formatNumber(reverseRate, fromCurrency.decimals) + " " + fromCurrency.name + " است.";
+    elements.pairContentRate.textContent = "هر یک " + unitizedName(fromCurrency) + " معادل " +
+      formatNumber(state.rate, toCurrency.decimals) + " " + unitizedName(toCurrency) + " و هر یک " + unitizedName(toCurrency) +
+      " برابر با " + formatNumber(reverseRate, fromCurrency.decimals) + " " + unitizedName(fromCurrency) + " است.";
   }
 
   function paint() { updateRate(); refreshPairStatus(); paintConversion(); paintRate(); paintPairContent(); }
