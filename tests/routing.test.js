@@ -145,12 +145,12 @@ function loadAt(pathname, search = "") {
   assert.equal(loadAt("/emami-to-irt").heading(), "تبدیل سکه امامی به تومان");
 
   // ── آدرس نامعتبر نباید صفحه را بشکند؛ به پیش‌فرض برمی‌گردد ─────
-  assert.equal(loadAt("/totally-unknown-thing/").heading(), "تبدیل تتر به تومان", "اسلاگ ناشناخته باید بی‌خطر باشد");
-  assert.equal(loadAt("/btc-to-btc/").heading(), "تبدیل تتر به تومان", "جفت یکسان باید نادیده گرفته شود");
+  assert.equal(loadAt("/totally-unknown-thing/").heading(), "تبدیل دلار به تومان", "اسلاگ ناشناخته باید بی‌خطر باشد");
+  assert.equal(loadAt("/btc-to-btc/").heading(), "تبدیل دلار به تومان", "جفت یکسان باید نادیده گرفته شود");
 
   // ── ریشه همان پیش‌فرض می‌ماند ─────────────────────────────────
   const rootPage = loadAt("/");
-  assert.equal(rootPage.heading(), "تبدیل تتر به تومان");
+  assert.equal(rootPage.heading(), "تبدیل دلار به تومان");
   assert.equal(document.title, "تبدیل قیمت دلار، طلا، ارز دیجیتال و سایر دارایی‌ها | مبدل قیمت | تبدکس");
   assert.equal(rootPage.headTags['meta[name="description"]'].attributes.content, "تبدیل قیمت دلار، طلا، سکه، تتر، بیت کوین، ارزهای دیجیتال، نقره و سایر دارایی‌ها با نرخ لحظه ای بازار ایران و جهان در تبدکس.");
 
@@ -158,6 +158,10 @@ function loadAt(pathname, search = "") {
      عوض کردن جفت روی همین آدرس می‌نشیند و ممکن است لینکش را بفرستد.
      فایل ایستا ندارد و از راه بازنویسی سرو می‌شود. */
   assert.equal(loadAt("/usdt-to-irt/").heading(), "تبدیل تتر به تومان");
+  const dollarPage = loadAt("/usd-to-irt/");
+  assert.equal(dollarPage.heading(), "تبدیل دلار به تومان");
+  assert.equal(document.title, "تبدیل دلار به تومان | مبدل قیمت | تبدکس");
+  assert.equal(dollarPage.headTags['link[rel="canonical"]'].attributes.href, "https://tabdex.ir/usd-to-irt/");
   assert.equal(loadAt("/irt-to-usdt/").heading(), "تبدیل تومان به تتر");
 
   /* ── رمزارزها هنگام بوت هنوز وجود ندارند ──────────────────────

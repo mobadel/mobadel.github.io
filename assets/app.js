@@ -133,9 +133,9 @@
     return SLUG_TO_ID[slug] || slug;
   }
 
-  // صفحهٔ اصلی همین جفت پیش‌فرض را نشان می‌دهد، پس عمداً آدرس جداگانه
-  // نمی‌گیرد؛ وگرنه دو آدرس با محتوای یکسان می‌داشتیم.
-  var DEFAULT_FROM = "usdt";
+  // جفتی که هنگام ورود به صفحهٔ اصلی نشان داده می‌شود. مسیر ریشه فقط
+  // نقطهٔ ورود است؛ خود جفت‌ها همیشه آدرس مستقلشان را دارند.
+  var DEFAULT_FROM = "usd";
   var DEFAULT_TO = "irt";
 
   function unitLabel(currency) {
@@ -153,7 +153,7 @@
   }
 
   var state = {
-    from: "usdt", to: "irt", amount: 100, edited: "from", rate: null,
+    from: "usd", to: "irt", amount: 100, edited: "from", rate: null,
     graph: {}, updatedAt: null, live: false, loading: false, dialogSide: null, lastFocused: null,
     filterGroup: "all", proxyAssets: null, pendingRoute: null,
     // دو منبع مستقل داریم. وضعیت هرکدام جدا نگه داشته می‌شود چون نوار
@@ -603,12 +603,11 @@
     return "/" + slugOf(from) + "-to-" + slugOf(to) + "/";
   }
 
-  /* آدرسِ رسمی برای موتور جستجو. صفحهٔ اصلی همین جفت پیش‌فرض را نشان
-     می‌دهد، پس usdt-to-irt و ریشه محتوای یکسان دارند و باید یکی از
-     آن‌ها رسمی باشد؛ وگرنه دو آدرس با محتوای تکراری ایندکس می‌شوند.
-     ریشه انتخاب شده چون صفحهٔ اصلی سایت است و در سایت‌مپ هم همان است. */
+  /* ریشه متای عمومی صفحهٔ اصلی را دارد. ورود مستقیم به هر جفت یا
+     رسیدن به آن حین کار، از جمله جفت پیش‌فرض، canonical مستقل همان
+     جفت را می‌گیرد و به ریشه تبدیل نمی‌شود. */
   function canonicalForPair(from, to) {
-    if (from === DEFAULT_FROM && to === DEFAULT_TO) return "/";
+    if (String(location.pathname || "/") === "/") return "/";
     return pathForPair(from, to);
   }
 
