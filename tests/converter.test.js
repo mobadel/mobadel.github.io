@@ -18,7 +18,7 @@ assert.match(html, /<h1 id="page-title">تبدیل دلار به تومان<\/h1
 assert.match(html, /<h2 class="rate-value" id="rate-value">/);
 assert.match(html, /<h2 id="pair-content-title">تبدیل دلار به تومان با قیمت لحظه ای و سریع<\/h2>/);
 assert.doesNotMatch(html, /<h2 id="asset-dialog-title">/);
-assert.match(html, /<script src="\/assets\/app\.js\?v=20260824-3"><\/script>/);
+assert.match(html, /<script src="\/assets\/app\.js\?v=20260824-4"><\/script>/);
 // دکمهٔ به‌روزرسانی حذف شد؛ نباید هیچ ردی از آن بماند
 assert.doesNotMatch(html, /refresh-button|id="refresh"/, "دکمهٔ به‌روزرسانی باید حذف شده باشد");
 assert.doesNotMatch(styles, /\.refresh-button/, "استایل دکمهٔ به‌روزرسانی باید حذف شده باشد");
@@ -320,6 +320,7 @@ setTimeout(async () => {
   assert.match(elements["page-title"].textContent, /طلای ۱۸ عیار به تومان/);
   // واحد باید در نرخ دیده شود وگرنه «۱» مبهم است.
   assert.match(elements["rate-value"].textContent, /^۱ گرم طلای ۱۸ عیار = ۲۰٬۰۰۰٬۰۰۰ تومان$/);
+  assert.match(elements["pair-content-rate"].textContent, /^هر یک گرم طلای ۱۸ عیار معادل/);
 
   // در خود مبدل هم خط پررنگ باید نام فارسی باشد نه نماد.
   assert.equal(elements["currency-from"].children[1].children[0].textContent, "طلای ۱۸ عیار");
@@ -414,6 +415,8 @@ setTimeout(async () => {
   assert.equal(copperOption.children[2].textContent, "بورس کالا");
   assert.equal(copperOption.children[1].children[0].textContent, "مس", "عنوان مس باید کوتاه باشد، نه «مس کاتد»");
   assert.equal(copperOption.children[1].children[1].textContent, "هر کیلو");
+  copperOption.dispatch("click");
+  assert.match(elements["pair-content-rate"].textContent, /^هر یک کیلو مس معادل/);
 
   /* ── واحد نباید در نام تکرار شود ────────────────────────────
      «انس طلا» واحدش هم «انس» است، پس نباید بشود «۱ انس انس طلا».
