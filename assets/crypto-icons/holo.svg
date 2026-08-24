@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <defs>
+    <clipPath id="disc">
+      <circle cx="64" cy="64" r="64"/>
+    </clipPath>
+    <filter id="soft" x="-50%" y="-50%" width="200%" height="200%" color-interpolation-filters="sRGB">
+      <feGaussianBlur stdDeviation="24"/>
+    </filter>
+  </defs>
+
+  <g clip-path="url(#disc)">
+    <rect width="128" height="128" fill="#58dfcf"/>
+    <g filter="url(#soft)">
+      <circle cx="14" cy="12" r="52" fill="#e0f36f"/>
+      <circle cx="112" cy="12" r="48" fill="#00d2f2"/>
+      <circle cx="3" cy="69" r="42" fill="#43c8f3"/>
+      <circle cx="65" cy="132" r="53" fill="#e1ee70"/>
+      <circle cx="126" cy="106" r="46" fill="#b4dce4"/>
+    </g>
+  </g>
+
+  <g fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round">
+    <ellipse cx="47.849" cy="63.717" rx="16.029" ry="47.674" stroke-width="5.556"/>
+    <ellipse cx="79.697" cy="63.717" rx="16.029" ry="47.674" stroke-width="5.556"/>
+    <ellipse cx="63.745" cy="63.659" rx="47.674" ry="15.952" stroke-width="5.811"/>
+  </g>
+</svg>

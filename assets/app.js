@@ -225,22 +225,11 @@
     return PERSIAN_NAMES[id] || englishName || id.toUpperCase();
   }
 
-  function getOptionIconUrls(option, id) {
-    var values = [
-      option.icon, option.iconUrl, option.icon_url, option.iconPath,
-      option.logo, option.logoUrl, option.logo_url,
-      option.image, option.imageUrl, option.image_url
-    ];
-    var urls = values.map(function (value) {
-      if (typeof value !== "string") return null;
-      if (value.indexOf("//") === 0) return "https:" + value;
-      if (value.indexOf("/") === 0) return "https://nobitex.ir" + value;
-      return value;
-    }).filter(function (value) {
-      return value && /^https:\/\/([a-z0-9-]+\.)*nobitex\.ir\//i.test(value);
-    });
-    if (id !== "irt") urls.push("https://cdn.nobitex.ir/crypto/" + encodeURIComponent(id) + ".svg");
-    return urls;
+  function localCryptoIcon(id) {
+    // NXT20 شاخص تجمیعی بازار است و آیکون رسمی منتشرشده ندارد.
+    if (id === "nxt20") return null;
+    var pngIcons = { sent: true, tao: true, zk: true };
+    return "/assets/crypto-icons/" + encodeURIComponent(id) + (pngIcons[id] ? ".png" : ".svg");
   }
 
   function upsertCurrency(id, option) {
@@ -258,7 +247,8 @@
       // از نوبیتکس بیاید و دستهٔ از پیش تعیین‌شده نداشته باشد، ارز دیجیتال است.
       group: option.group || current.group || (id === "irt" ? "fiat" : "crypto"),
       unit: option.unit || current.unit || null,
-      localIcon: current.localIcon || null, iconUrls: getOptionIconUrls(option, id),
+      localIcon: current.localIcon || (id === "irt" ? null : localCryptoIcon(id)),
+      iconUrls: [],
       aliases: current.aliases || []
     };
     return currencies[id];

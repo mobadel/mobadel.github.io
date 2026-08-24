@@ -76,6 +76,12 @@ assert.deepEqual(relativeFetches, [], "مسیر fetch باید ریشه‌ای �
 
 assert.match(app, /var GOLD_ICON = "\//);
 assert.match(app, /var COIN_ICON = "\//);
+assert.doesNotMatch(app, /cdn\.nobitex\.ir\/crypto/, "آیکون رمزارز نباید در مرورگر از CDN نوبیتکس بارگیری شود");
+assert.match(app, /"\/assets\/crypto-icons\/"/, "آیکون رمزارز باید از مسیر محلی سایت خوانده شود");
+for (const symbol of ["btc", "eth", "doge", "sent", "tao", "zk"]) {
+  const extensions = symbol === "sent" || symbol === "tao" || symbol === "zk" ? ["png"] : ["svg"];
+  assert.ok(extensions.some((extension) => fs.existsSync(`assets/crypto-icons/${symbol}.${extension}`)), `آیکون محلی ${symbol} وجود ندارد`);
+}
 
 /* ── ۳) اسکریپت واقعاً اجرا شود و خروجی درست بدهد ─────────────── */
 const workdir = fs.mkdtempSync(path.join(os.tmpdir(), "tabdex-pages-"));

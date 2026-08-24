@@ -15,7 +15,7 @@ assert.match(html, /<link rel="icon" href="\/assets\/favicon-48x48\.png" type="i
 assert.match(html, /<link rel="apple-touch-icon" href="\/assets\/apple-touch-icon\.png" sizes="180x180">/);
 assert.doesNotMatch(html, /mobadel\.github\.io/);
 assert.match(html, /<h1 id="page-title">تبدیل دلار به تومان<\/h1>/);
-assert.match(html, /<script src="\/assets\/app\.js\?v=20260824-1"><\/script>/);
+assert.match(html, /<script src="\/assets\/app\.js\?v=20260824-2"><\/script>/);
 // دکمهٔ به‌روزرسانی حذف شد؛ نباید هیچ ردی از آن بماند
 assert.doesNotMatch(html, /refresh-button|id="refresh"/, "دکمهٔ به‌روزرسانی باید حذف شده باشد");
 assert.doesNotMatch(styles, /\.refresh-button/, "استایل دکمهٔ به‌روزرسانی باید حذف شده باشد");
