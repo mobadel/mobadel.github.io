@@ -97,8 +97,9 @@ assert.match(html, /<h1 id="page-title">تبدیل طلای ۱۸ عیار به �
 assert.match(html, /src="\/assets\/app\.js/);
 assert.doesNotMatch(html, /src="assets\//);
 
-// جفت پیش‌فرض نباید صفحهٔ جدا بگیرد
-assert.ok(!fs.existsSync(path.join(workdir, "_site", "usdt-to-irt")), "جفت پیش‌فرض نباید صفحهٔ جدا داشته باشد");
+// همهٔ جفت‌ها، حتی جفت نمایش‌داده‌شده روی خانه، صفحهٔ مستقل دارند.
+assert.ok(fs.existsSync(path.join(workdir, "_site", "usdt-to-irt")), "تتر به تومان باید صفحهٔ واقعی داشته باشد");
+assert.ok(fs.existsSync(path.join(workdir, "_site", "usd-to-irt")), "دلار به تومان باید صفحهٔ واقعی داشته باشد");
 assert.ok(fs.existsSync(path.join(workdir, "_site", "irt-to-usdt")), "جهت معکوس باید صفحه داشته باشد");
 
 const sitemap = fs.readFileSync(path.join(workdir, "_site", "sitemap.xml"), "utf8");

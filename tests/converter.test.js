@@ -14,6 +14,8 @@ assert.match(html, /<link rel="canonical" href="https:\/\/tabdex\.ir\/">/);
 assert.match(html, /<link rel="icon" href="\/assets\/favicon-48x48\.png" type="image\/png" sizes="48x48">/);
 assert.match(html, /<link rel="apple-touch-icon" href="\/assets\/apple-touch-icon\.png" sizes="180x180">/);
 assert.doesNotMatch(html, /mobadel\.github\.io/);
+assert.match(html, /<h1 id="page-title">تبدیل دلار به تومان<\/h1>/);
+assert.match(html, /<script src="\/assets\/app\.js\?v=20260824-1"><\/script>/);
 // دکمهٔ به‌روزرسانی حذف شد؛ نباید هیچ ردی از آن بماند
 assert.doesNotMatch(html, /refresh-button|id="refresh"/, "دکمهٔ به‌روزرسانی باید حذف شده باشد");
 assert.doesNotMatch(styles, /\.refresh-button/, "استایل دکمهٔ به‌روزرسانی باید حذف شده باشد");
@@ -192,10 +194,11 @@ global.fetch = async (url) => {
 vm.runInThisContext(fs.readFileSync("assets/app.js", "utf8"), { filename: "assets/app.js" });
 
 setTimeout(async () => {
-  assert.match(elements["page-title"].textContent, /تبدیل تتر به تومان/);
-  assert.match(elements["rate-value"].textContent, /۱ تتر.*۱۰۰٬۰۰۰ تومان/);
+  assert.match(elements["page-title"].textContent, /تبدیل دلار به تومان/);
+  assert.match(elements["rate-value"].textContent, /۱ دلار.*۲۰۰٬۰۰۰ تومان/);
   assert.equal(elements["amount-from"].value, "۱۰۰");
-  assert.equal(elements["amount-to"].value, "۱۰٬۰۰۰٬۰۰۰");
+  assert.equal(elements["amount-to"].value, "۲۰٬۰۰۰٬۰۰۰");
+  assert.equal(document.title, "تبدیل قیمت دلار، طلا، ارز دیجیتال و سایر دارایی‌ها | مبدل قیمت | تبدکس");
 
   elements["amount-from"].value = "100.55";
   elements["amount-from"].selectionStart = elements["amount-from"].value.length;
@@ -368,23 +371,28 @@ setTimeout(async () => {
   elements["swap"].dispatch("click");
   assert.equal(location.pathname, "/irt-to-btc/", "جابه‌جایی باید آدرس معکوس بسازد");
 
-  /* رسیدن به جفت پیش‌فرض از یک صفحهٔ دیگر باید آدرس اسلاگ‌دار بدهد،
-     نه پرتاب به ریشه. ریشه فقط نقطهٔ شروع است. */
+  // تتر به تومان، با وجود نمایش‌دادن همین جفت در نسخه‌های قدیمی خانه،
+  // باید مسیر و canonical مستقل خودش را داشته باشد.
   openDialog("from");
   elements["asset-search"].value = "usdt";
   elements["asset-search"].dispatch("input");
   elements["asset-list"].children.find((item) => item.dataset.currency === "usdt").dispatch("click");
   openDialog("to");
   elements["asset-list"].children.find((item) => item.dataset.currency === "irt").dispatch("click");
-  assert.equal(location.pathname, "/usdt-to-irt/", "رسیدن به جفت پیش‌فرض باید آدرس اسلاگ‌دار بدهد");
-
-  /* ولی آدرس رسمی همچنان ریشه است، وگرنه دو آدرس با محتوای یکسان
-     ایندکس می‌شوند. */
+  assert.equal(location.pathname, "/usdt-to-irt/", "تتر به تومان باید آدرس اسلاگ‌دار بدهد");
   assert.equal(
     headTags['link[rel="canonical"]'].attributes.href,
-    "https://tabdex.ir/",
-    "canonical جفت پیش‌فرض باید ریشه بماند"
+    "https://tabdex.ir/usdt-to-irt/",
+    "canonical تتر به تومان باید مستقل باشد"
   );
+
+  // برگشتن به جفت پیش‌فرض جدید هم نباید آدرس را به خانه تبدیل کند.
+  openDialog("from");
+  elements["asset-search"].value = "usd";
+  elements["asset-search"].dispatch("input");
+  elements["asset-list"].children.find((item) => item.dataset.currency === "usd").dispatch("click");
+  assert.equal(location.pathname, "/usd-to-irt/", "دلار به تومان باید آدرس مستقل خودش را نشان دهد");
+  assert.equal(headTags['link[rel="canonical"]'].attributes.href, "https://tabdex.ir/usd-to-irt/");
 
   /* ── فلزات: منبع به‌جای نماد لاتین ────────────────────────── */
   openDialog("from");

@@ -58,9 +58,6 @@ const ASSETS = {
   aud: { slug: "aud", name: "دلار استرالیا" }
 };
 
-// جفت پیش‌فرض روی صفحهٔ اصلی است و آدرس جداگانه نمی‌گیرد.
-const DEFAULT_PAIR = ["usdt", "irt"];
-
 // هر کدام از این‌ها در هر دو جهت با تومان صفحه می‌گیرد.
 const WITH_TOMAN = [
   "usdt", "btc", "eth", "usdc", "xrp", "doge", "trx", "sol", "ada", "shib", "ton",
@@ -84,7 +81,6 @@ function buildPairs() {
   const seen = new Set();
   const add = (from, to) => {
     if (from === to) return;
-    if (from === DEFAULT_PAIR[0] && to === DEFAULT_PAIR[1]) return;
     const key = `${from}>${to}`;
     if (seen.has(key)) return;
     seen.add(key);
