@@ -168,6 +168,9 @@
     amountFrom: document.getElementById("amount-from"), amountTo: document.getElementById("amount-to"),
     currencyFrom: document.getElementById("currency-from"), currencyTo: document.getElementById("currency-to"),
     pageTitle: document.getElementById("page-title"), rateValue: document.getElementById("rate-value"),
+    pairContentTitle: document.getElementById("pair-content-title"),
+    pairContentIntro: document.getElementById("pair-content-intro"),
+    pairContentRate: document.getElementById("pair-content-rate"),
     rateStatus: document.getElementById("rate-status"), swap: document.getElementById("swap"),
     dialog: document.getElementById("asset-dialog"),
     dialogTitle: document.getElementById("asset-dialog-title"), dialogClose: document.getElementById("dialog-close"),
@@ -225,22 +228,11 @@
     return PERSIAN_NAMES[id] || englishName || id.toUpperCase();
   }
 
-  function getOptionIconUrls(option, id) {
-    var values = [
-      option.icon, option.iconUrl, option.icon_url, option.iconPath,
-      option.logo, option.logoUrl, option.logo_url,
-      option.image, option.imageUrl, option.image_url
-    ];
-    var urls = values.map(function (value) {
-      if (typeof value !== "string") return null;
-      if (value.indexOf("//") === 0) return "https:" + value;
-      if (value.indexOf("/") === 0) return "https://nobitex.ir" + value;
-      return value;
-    }).filter(function (value) {
-      return value && /^https:\/\/([a-z0-9-]+\.)*nobitex\.ir\//i.test(value);
-    });
-    if (id !== "irt") urls.push("https://cdn.nobitex.ir/crypto/" + encodeURIComponent(id) + ".svg");
-    return urls;
+  function localCryptoIcon(id) {
+    // NXT20 شاخص تجمیعی بازار است و آیکون رسمی منتشرشده ندارد.
+    if (id === "nxt20") return null;
+    var pngIcons = { sent: true, tao: true, zk: true };
+    return "/assets/crypto-icons/" + encodeURIComponent(id) + (pngIcons[id] ? ".png" : ".svg");
   }
 
   function upsertCurrency(id, option) {
@@ -258,7 +250,8 @@
       // از نوبیتکس بیاید و دستهٔ از پیش تعیین‌شده نداشته باشد، ارز دیجیتال است.
       group: option.group || current.group || (id === "irt" ? "fiat" : "crypto"),
       unit: option.unit || current.unit || null,
-      localIcon: current.localIcon || null, iconUrls: getOptionIconUrls(option, id),
+      localIcon: current.localIcon || (id === "irt" ? null : localCryptoIcon(id)),
+      iconUrls: [],
       aliases: current.aliases || []
     };
     return currencies[id];
@@ -515,7 +508,25 @@
       (state.live ? "آخرین به‌روزرسانی " + formatTime(state.updatedAt) : "نمایش آخرین نرخ ذخیره‌شده");
   }
 
-  function paint() { updateRate(); refreshPairStatus(); paintConversion(); paintRate(); }
+  function paintPairContent() {
+    var fromCurrency = currencies[state.from];
+    var toCurrency = currencies[state.to];
+    if (!fromCurrency || !toCurrency || !elements.pairContentTitle) return;
+    elements.pairContentTitle.textContent = "تبدیل " + fromCurrency.name + " به " + toCurrency.name +
+      " با قیمت لحظه ای و سریع";
+    elements.pairContentIntro.textContent = "با سرویس مبدل تبدکس، می‌توانید به‌سادگی " + fromCurrency.name +
+      " خود را به " + toCurrency.name + " تبدیل کنید. قیمت لحظه ای هر دارایی به شما کمک می‌کند قبل از انجام تبدیل، ارزش دارایی خود را مشاهده کنید.";
+    if (!Number.isFinite(state.rate) || state.rate <= 0) {
+      elements.pairContentRate.textContent = "در حال دریافت نرخ لحظه ای " + fromCurrency.name + " و " + toCurrency.name + "…";
+      return;
+    }
+    var reverseRate = 1 / state.rate;
+    elements.pairContentRate.textContent = "هر یک واحد " + fromCurrency.name + " معادل " +
+      formatNumber(state.rate, toCurrency.decimals) + " " + toCurrency.name + " و هر یک " + toCurrency.name +
+      " برابر با " + formatNumber(reverseRate, fromCurrency.decimals) + " " + fromCurrency.name + " است.";
+  }
+
+  function paint() { updateRate(); refreshPairStatus(); paintConversion(); paintRate(); paintPairContent(); }
 
   function editableTokens(value) {
     var normalized = toEnglishDigits(value).replace(/٫/g, ".");

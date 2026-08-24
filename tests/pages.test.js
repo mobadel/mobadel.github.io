@@ -76,6 +76,12 @@ assert.deepEqual(relativeFetches, [], "مسیر fetch باید ریشه‌ای �
 
 assert.match(app, /var GOLD_ICON = "\//);
 assert.match(app, /var COIN_ICON = "\//);
+assert.doesNotMatch(app, /cdn\.nobitex\.ir\/crypto/, "آیکون رمزارز نباید در مرورگر از CDN نوبیتکس بارگیری شود");
+assert.match(app, /"\/assets\/crypto-icons\/"/, "آیکون رمزارز باید از مسیر محلی سایت خوانده شود");
+for (const symbol of ["btc", "eth", "doge", "sent", "tao", "zk"]) {
+  const extensions = symbol === "sent" || symbol === "tao" || symbol === "zk" ? ["png"] : ["svg"];
+  assert.ok(extensions.some((extension) => fs.existsSync(`assets/crypto-icons/${symbol}.${extension}`)), `آیکون محلی ${symbol} وجود ندارد`);
+}
 
 /* ── ۳) اسکریپت واقعاً اجرا شود و خروجی درست بدهد ─────────────── */
 const workdir = fs.mkdtempSync(path.join(os.tmpdir(), "tabdex-pages-"));
@@ -93,6 +99,8 @@ assert.match(html, /<title>تبدیل طلای ۱۸ عیار به تومان \| 
 assert.match(html, /<meta name="description" content="تبدیل طلای ۱۸ عیار به تومان با قیمت لحظه ای\. مبدل نرخ طلای ۱۸ عیار به تومان\.">/);
 assert.match(html, /<link rel="canonical" href="https:\/\/tabdex\.ir\/gold18-to-irt\/">/);
 assert.match(html, /<h1 id="page-title">تبدیل طلای ۱۸ عیار به تومان<\/h1>/);
+assert.match(html, /<h2 id="pair-content-title">تبدیل طلای ۱۸ عیار به تومان با قیمت لحظه ای و سریع<\/h2>/);
+assert.match(html, /<p id="pair-content-intro">با سرویس مبدل تبدکس، می‌توانید به‌سادگی طلای ۱۸ عیار خود را به تومان تبدیل کنید\./);
 // مسیرها باید مطلق شده باشند وگرنه از داخل پوشه به فایل نمی‌رسند
 assert.match(html, /src="\/assets\/app\.js/);
 assert.doesNotMatch(html, /src="assets\//);

@@ -15,7 +15,10 @@ assert.match(html, /<link rel="icon" href="\/assets\/favicon-48x48\.png" type="i
 assert.match(html, /<link rel="apple-touch-icon" href="\/assets\/apple-touch-icon\.png" sizes="180x180">/);
 assert.doesNotMatch(html, /mobadel\.github\.io/);
 assert.match(html, /<h1 id="page-title">تبدیل دلار به تومان<\/h1>/);
-assert.match(html, /<script src="\/assets\/app\.js\?v=20260824-1"><\/script>/);
+assert.match(html, /<h2 class="rate-value" id="rate-value">/);
+assert.match(html, /<h2 id="pair-content-title">تبدیل دلار به تومان با قیمت لحظه ای و سریع<\/h2>/);
+assert.doesNotMatch(html, /<h2 id="asset-dialog-title">/);
+assert.match(html, /<script src="\/assets\/app\.js\?v=20260824-2"><\/script>/);
 // دکمهٔ به‌روزرسانی حذف شد؛ نباید هیچ ردی از آن بماند
 assert.doesNotMatch(html, /refresh-button|id="refresh"/, "دکمهٔ به‌روزرسانی باید حذف شده باشد");
 assert.doesNotMatch(styles, /\.refresh-button/, "استایل دکمهٔ به‌روزرسانی باید حذف شده باشد");
@@ -83,6 +86,7 @@ class FakeElement {
 
 const ids = [
   "amount-from", "amount-to", "currency-from", "currency-to", "page-title", "rate-value",
+  "pair-content-title", "pair-content-intro", "pair-content-rate",
   "rate-status", "swap", "refresh", "asset-dialog", "asset-dialog-title", "dialog-close",
   "asset-search", "asset-list", "asset-empty", "asset-filters", "asset-dialog-panel"
 ];
@@ -196,6 +200,9 @@ vm.runInThisContext(fs.readFileSync("assets/app.js", "utf8"), { filename: "asset
 setTimeout(async () => {
   assert.match(elements["page-title"].textContent, /تبدیل دلار به تومان/);
   assert.match(elements["rate-value"].textContent, /۱ دلار.*۲۰۰٬۰۰۰ تومان/);
+  assert.equal(elements["pair-content-title"].textContent, "تبدیل دلار به تومان با قیمت لحظه ای و سریع");
+  assert.match(elements["pair-content-intro"].textContent, /دلار خود را به تومان تبدیل کنید/);
+  assert.equal(elements["pair-content-rate"].textContent, "هر یک واحد دلار معادل ۲۰۰٬۰۰۰ تومان و هر یک تومان برابر با ۰٫۰۰۰۰۰۵ دلار است.");
   assert.equal(elements["amount-from"].value, "۱۰۰");
   assert.equal(elements["amount-to"].value, "۲۰٬۰۰۰٬۰۰۰");
   assert.equal(document.title, "تبدیل قیمت دلار، طلا، ارز دیجیتال و سایر دارایی‌ها | مبدل قیمت | تبدکس");
