@@ -521,7 +521,7 @@
       return;
     }
     var reverseRate = 1 / state.rate;
-    elements.pairContentRate.textContent = "هر یک واحد " + fromCurrency.name + " معادل " +
+    elements.pairContentRate.textContent = "هر یک " + fromCurrency.name + " معادل " +
       formatNumber(state.rate, toCurrency.decimals) + " " + toCurrency.name + " و هر یک " + toCurrency.name +
       " برابر با " + formatNumber(reverseRate, fromCurrency.decimals) + " " + fromCurrency.name + " است.";
   }
