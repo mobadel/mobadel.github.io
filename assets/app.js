@@ -168,6 +168,9 @@
     amountFrom: document.getElementById("amount-from"), amountTo: document.getElementById("amount-to"),
     currencyFrom: document.getElementById("currency-from"), currencyTo: document.getElementById("currency-to"),
     pageTitle: document.getElementById("page-title"), rateValue: document.getElementById("rate-value"),
+    pairContentTitle: document.getElementById("pair-content-title"),
+    pairContentIntro: document.getElementById("pair-content-intro"),
+    pairContentRate: document.getElementById("pair-content-rate"),
     rateStatus: document.getElementById("rate-status"), swap: document.getElementById("swap"),
     dialog: document.getElementById("asset-dialog"),
     dialogTitle: document.getElementById("asset-dialog-title"), dialogClose: document.getElementById("dialog-close"),
@@ -505,7 +508,25 @@
       (state.live ? "آخرین به‌روزرسانی " + formatTime(state.updatedAt) : "نمایش آخرین نرخ ذخیره‌شده");
   }
 
-  function paint() { updateRate(); refreshPairStatus(); paintConversion(); paintRate(); }
+  function paintPairContent() {
+    var fromCurrency = currencies[state.from];
+    var toCurrency = currencies[state.to];
+    if (!fromCurrency || !toCurrency || !elements.pairContentTitle) return;
+    elements.pairContentTitle.textContent = "تبدیل " + fromCurrency.name + " به " + toCurrency.name +
+      " با قیمت لحظه ای و سریع";
+    elements.pairContentIntro.textContent = "با سرویس مبدل تبدکس، می‌توانید به‌سادگی " + fromCurrency.name +
+      " خود را به " + toCurrency.name + " تبدیل کنید. قیمت لحظه ای هر دارایی به شما کمک می‌کند قبل از انجام تبدیل، ارزش دارایی خود را مشاهده کنید.";
+    if (!Number.isFinite(state.rate) || state.rate <= 0) {
+      elements.pairContentRate.textContent = "در حال دریافت نرخ لحظه ای " + fromCurrency.name + " و " + toCurrency.name + "…";
+      return;
+    }
+    var reverseRate = 1 / state.rate;
+    elements.pairContentRate.textContent = "هر یک واحد " + fromCurrency.name + " معادل " +
+      formatNumber(state.rate, toCurrency.decimals) + " " + toCurrency.name + " و هر یک " + toCurrency.name +
+      " برابر با " + formatNumber(reverseRate, fromCurrency.decimals) + " " + fromCurrency.name + " است.";
+  }
+
+  function paint() { updateRate(); refreshPairStatus(); paintConversion(); paintRate(); paintPairContent(); }
 
   function editableTokens(value) {
     var normalized = toEnglishDigits(value).replace(/٫/g, ".");

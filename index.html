@@ -33,7 +33,7 @@
   <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png" sizes="180x180">
   <link rel="preload" href="/assets/fonts/Vazirmatn-Regular.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="/assets/fonts/Vazirmatn-Bold.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="/assets/styles.css?v=20260821-2">
+  <link rel="stylesheet" href="/assets/styles.css?v=20260824-1">
 
   <script type="application/ld+json">
   {
@@ -95,7 +95,7 @@
 
     <section class="converter-card" aria-label="مبدل ارز دیجیتال و تومان">
       <div class="rate-summary" aria-live="polite" aria-atomic="true">
-        <strong class="rate-value" id="rate-value">در حال دریافت…</strong>
+        <h2 class="rate-value" id="rate-value">در حال دریافت…</h2>
         <span class="rate-status" id="rate-status">
           <span class="status-dot" aria-hidden="true"></span>
           در حال دریافت نرخ‌ها
@@ -136,6 +136,13 @@
         </div>
       </div>
     </section>
+
+    <section class="pair-content" aria-labelledby="pair-content-title">
+      <h2 id="pair-content-title">تبدیل دلار به تومان با قیمت لحظه ای و سریع</h2>
+      <p id="pair-content-intro">با سرویس مبدل تبدکس، می‌توانید به‌سادگی دلار خود را به تومان تبدیل کنید. قیمت لحظه ای هر دارایی به شما کمک می‌کند قبل از انجام تبدیل، ارزش دارایی خود را مشاهده کنید.</p>
+      <p id="pair-content-rate">در حال دریافت نرخ لحظه ای دلار و تومان…</p>
+      <p>قیمت به‌صورت لحظه ای به‌روزرسانی می‌شود تا بتوانید با اطلاعات دقیق‌تر، تبدیل ارزش دارایی‌های خود را انجام دهید.</p>
+    </section>
   </main>
 
   <div class="asset-dialog" id="asset-dialog" hidden>
@@ -143,7 +150,7 @@
     <section class="asset-dialog-panel" id="asset-dialog-panel" tabindex="-1" role="dialog" aria-modal="true" aria-labelledby="asset-dialog-title">
       <div class="asset-dialog-head">
         <div>
-          <h2 id="asset-dialog-title">انتخاب دارایی</h2>
+          <strong class="asset-dialog-title" id="asset-dialog-title">انتخاب دارایی</strong>
           <p>نام یا نماد ارز را جستجو کنید</p>
         </div>
         <button class="dialog-close" id="dialog-close" type="button" aria-label="بستن انتخاب دارایی">

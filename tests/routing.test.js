@@ -76,6 +76,7 @@ class FakeElement {
 function loadAt(pathname, search = "") {
   const ids = [
     "amount-from", "amount-to", "currency-from", "currency-to", "page-title", "rate-value",
+    "pair-content-title", "pair-content-intro", "pair-content-rate",
     "rate-status", "swap", "refresh", "asset-dialog", "asset-dialog-title", "dialog-close",
     "asset-search", "asset-list", "asset-empty", "asset-filters"
   ];

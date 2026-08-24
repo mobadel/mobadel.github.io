@@ -99,6 +99,8 @@ assert.match(html, /<title>تبدیل طلای ۱۸ عیار به تومان \| 
 assert.match(html, /<meta name="description" content="تبدیل طلای ۱۸ عیار به تومان با قیمت لحظه ای\. مبدل نرخ طلای ۱۸ عیار به تومان\.">/);
 assert.match(html, /<link rel="canonical" href="https:\/\/tabdex\.ir\/gold18-to-irt\/">/);
 assert.match(html, /<h1 id="page-title">تبدیل طلای ۱۸ عیار به تومان<\/h1>/);
+assert.match(html, /<h2 id="pair-content-title">تبدیل طلای ۱۸ عیار به تومان با قیمت لحظه ای و سریع<\/h2>/);
+assert.match(html, /<p id="pair-content-intro">با سرویس مبدل تبدکس، می‌توانید به‌سادگی طلای ۱۸ عیار خود را به تومان تبدیل کنید\./);
 // مسیرها باید مطلق شده باشند وگرنه از داخل پوشه به فایل نمی‌رسند
 assert.match(html, /src="\/assets\/app\.js/);
 assert.doesNotMatch(html, /src="assets\//);

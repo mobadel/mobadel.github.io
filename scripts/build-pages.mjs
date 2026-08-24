@@ -98,6 +98,8 @@ function metaFor(from, to) {
   const heading = `تبدیل ${from.name} به ${to.name}`;
   return {
     heading,
+    fromName: from.name,
+    toName: to.name,
     title: `${heading} | مبدل قیمت | تبدکس`,
     description: `${heading} با قیمت لحظه ای. مبدل نرخ ${from.name} به ${to.name}.`,
     path: `/${from.slug}-to-${to.slug}/`
@@ -117,7 +119,10 @@ function renderPage(template, meta) {
     [/(<meta name="twitter:description" content=")[^"]*(">)/, `$1${meta.description}$2`],
     [/(<link rel="canonical" href=")[^"]*(">)/, `$1${ORIGIN}${meta.path}$2`],
     [/(<meta property="og:url" content=")[^"]*(">)/, `$1${ORIGIN}${meta.path}$2`],
-    [/(<h1 id="page-title">)[^<]*(<\/h1>)/, `$1${meta.heading}$2`]
+    [/(<h1 id="page-title">)[^<]*(<\/h1>)/, `$1${meta.heading}$2`],
+    [/(<h2 id="pair-content-title">)[^<]*(<\/h2>)/, `$1${meta.heading} با قیمت لحظه ای و سریع$2`],
+    [/(<p id="pair-content-intro">)[^<]*(<\/p>)/, `$1با سرویس مبدل تبدکس، می‌توانید به‌سادگی ${meta.fromName} خود را به ${meta.toName} تبدیل کنید. قیمت لحظه ای هر دارایی به شما کمک می‌کند قبل از انجام تبدیل، ارزش دارایی خود را مشاهده کنید.$2`],
+    [/(<p id="pair-content-rate">)[^<]*(<\/p>)/, `$1در حال دریافت نرخ لحظه ای ${meta.fromName} و ${meta.toName}…$2`]
   ];
 
   let html = template;
