@@ -72,6 +72,7 @@ const EXTRA_PAIRS = [
   ["btc", "usdt"], ["usdt", "btc"],
   ["eth", "usdt"], ["usdt", "eth"],
   ["gold18", "usd"], ["usd", "gold18"],
+  ["goldounce", "gold18"], ["gold18", "goldounce"],
   ["eur", "usd"], ["usd", "eur"],
   ["emami", "usd"], ["gold18", "eur"]
 ];
