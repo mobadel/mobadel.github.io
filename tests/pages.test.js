@@ -120,6 +120,12 @@ assert.match(sitemap, /<loc>https:\/\/tabdex\.ir\/irt-to-baharazadi\/<\/loc>/);
   assert.ok(fs.existsSync(path.join(workdir, "_site", slug, "index.html")), `${slug} باید صفحهٔ واقعی داشته باشد`);
 });
 
+// تبدیل انس طلا و طلای ۱۸ عیار باید در هر دو جهت صفحهٔ مستقل و ورودی سایت‌مپ داشته باشد.
+["ounce-to-gold18", "gold18-to-ounce"].forEach((slug) => {
+  assert.match(sitemap, new RegExp(`<loc>https://tabdex\\.ir/${slug}/</loc>`), `${slug} باید در سایت‌مپ باشد`);
+  assert.ok(fs.existsSync(path.join(workdir, "_site", slug, "index.html")), `${slug} باید صفحهٔ واقعی داشته باشد`);
+});
+
 /* نام فارسی دارایی‌ها باید بدون افزودن واحد در قالب توضیحات بیاید. */
 const ouncePage = fs.readFileSync(path.join(workdir, "_site", "ounce-to-irt", "index.html"), "utf8");
 assert.match(ouncePage, /تبدیل انس طلا به تومان با قیمت لحظه ای\. مبدل نرخ انس طلا به تومان\./);
