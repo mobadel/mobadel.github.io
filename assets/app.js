@@ -31,7 +31,7 @@
      افزودن دارایی جدید = یک ردیف اینجا و یک ردیف در ASSET_MAP
      فایل api/rates.php. */
   var GOLD_ICON = "/assets/gold-18k.svg";
-  var COIN_ICON = "/assets/coin-emami.webp";
+  var COIN_ICON = "/assets/coin-emami.webp?v=20260825-2";
 
   [
     // طلا و سکه — نماد ندارند، چون «۱۸K» یا «EMAMI» چیزی به کاربر
