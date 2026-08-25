@@ -18,7 +18,9 @@ assert.match(html, /<h1 id="page-title">تبدیل دلار به تومان<\/h1
 assert.match(html, /<h2 class="rate-value" id="rate-value">/);
 assert.match(html, /<h2 id="pair-content-title">تبدیل دلار به تومان با قیمت لحظه ای و سریع<\/h2>/);
 assert.doesNotMatch(html, /<h2 id="asset-dialog-title">/);
-assert.match(html, /<script src="\/assets\/app\.js\?v=20260824-4"><\/script>/);
+assert.match(html, /<script src="\/assets\/app\.js\?v=20260825-1"><\/script>/);
+assert.ok(fs.existsSync("assets/coin-emami.webp"));
+assert.ok(fs.statSync("assets/coin-emami.webp").size < 25000, "آیکون سکه باید برای وب بهینه باشد");
 // دکمهٔ به‌روزرسانی حذف شد؛ نباید هیچ ردی از آن بماند
 assert.doesNotMatch(html, /refresh-button|id="refresh"/, "دکمهٔ به‌روزرسانی باید حذف شده باشد");
 assert.doesNotMatch(styles, /\.refresh-button/, "استایل دکمهٔ به‌روزرسانی باید حذف شده باشد");
