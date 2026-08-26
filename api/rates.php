@@ -201,6 +201,7 @@ foreach ($payload as $section) {
             continue;
         }
         $rowUnit = (string) ($row['unit'] ?? '');
+        $usdPrice = str_contains($rowUnit, 'دلار') ? $price : null;
 
         // BrsApi اقلام ایرانی را به تومان می‌دهد، ولی اگر روزی واحد را
         // به ریال عوض کرد، بی‌سروصدا صد برابر غلط نشویم.
@@ -221,6 +222,7 @@ foreach ($payload as $section) {
         $meta = ASSET_MAP[$symbol];
         $assets[$meta['id']] = [
             'toman'  => $price,
+            'usd'    => $usdPrice,
             'group'  => $meta['group'],
             'unit'   => $meta['unit'],
             'name'   => (string) ($row['name'] ?? $meta['id']),
