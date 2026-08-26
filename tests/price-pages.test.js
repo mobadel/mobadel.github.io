@@ -12,6 +12,7 @@ const htaccess = read(".htaccess");
 const deploy = read(".github/workflows/deploy-parspack.yml");
 const sitemap = read("sitemap.xml");
 const builder = read("scripts/build-pages.mjs");
+const ratesApi = read("api/rates.php");
 
 // فایل جاوااسکریپت باید مستقل و از نظر نحوی معتبر باشد.
 new vm.Script(script, { filename: "assets/price.js" });
@@ -27,9 +28,14 @@ for (const [name, html] of [["hub", hub], ["category", category], ["asset", asse
 assert.ok(asset.indexOf('id="asset-price"') < asset.indexOf('class="asset-content"'), "قیمت باید بالاتر از محتوای SEO باشد");
 assert.match(script, /crypto:[\s\S]*gold:[\s\S]*coin:/, "طلا و سکه باید دسته‌های جدا باشند");
 assert.match(script, /\^\(\.\+\)-rls\$/, "فقط بازار مستقیم تومانی رمزارزها پذیرفته شود");
-assert.match(script, /Number\(row && row\.latest\) \/ 10/, "ریال نوبیتکس باید مستقیم به تومان تبدیل شود");
-assert.match(script, /change: Number\(row\.dayChange\)/, "تغییر ۲۴ ساعته نوبیتکس استفاده شود");
+assert.match(script, /Number\(tomanRow && tomanRow\.latest\) \/ 10/, "بازار مستقیم ریالی نوبیتکس باید برای معادل تومان استفاده شود");
+assert.match(script, /stats\[id \+ "-usdt"\]/, "قیمت اصلی رمزارز غیراستیبل باید از بازار تتری بیاید");
+assert.match(script, /!USD_STABLECOINS\[id\]/, "استیبل‌کوین دلاری نباید قیمت تتری اصلی بگیرد");
+assert.match(script, /useUsdt \? usdtRow : tomanRow/, "درصد تغییر باید از همان بازار قیمت اصلی بیاید");
 assert.match(script, /assets\[id\]\.change = Number\(row\.change\)/, "تغییر دارایی‌های پراکسی استفاده شود");
+assert.match(ratesApi, /'usd'\s*=>\s*\$usdPrice/, "API باید قیمت خام دلاری انس را حفظ کند");
+assert.match(asset, /id="asset-secondary" hidden/, "معادل تومان باید فقط در صفحه تکی و به‌صورت ثانویه باشد");
+assert.match(styles, /\.price-secondary strong[^}]*font-size:16px/, "قیمت تومانی ثانویه باید کوچک‌تر باشد");
 assert.doesNotMatch(script, /cdn\.nobitex\.ir/, "آیکون‌ها نباید از CDN نوبیتکس خوانده شوند");
 assert.match(styles, /@media\(max-width:600px\)/, "نمای موبایل لازم است");
 
