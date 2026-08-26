@@ -13,6 +13,10 @@ DirectoryIndex index.html
   RewriteCond %{REQUEST_FILENAME} -d
   RewriteRule ^ - [L]
 
+  # صفحه‌های قیمت: قالب هر دسته و هر دارایی بر اساس مسیر جاری پر می‌شود.
+  RewriteRule ^price/(crypto|gold|coin|commodity|fiat)/?$ price/category.html [L]
+  RewriteRule ^price/(crypto|gold|coin|commodity|fiat)/[a-z0-9]+/?$ price/asset.html [L]
+
   # هر مسیر تبدیل به شکل /btc-to-irt/ یا /gold18-to-irt به index.html
   # می‌رسد و جاوااسکریپت جفت را از روی آدرس می‌خواند. تعداد این جفت‌ها
   # ده‌ها هزار است، پس ساختن فایل برای همه‌شان ممکن نیست.
