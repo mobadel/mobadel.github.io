@@ -101,6 +101,30 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
   shape-rendering: geometricPrecision;
 }
 
+.main-nav {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px;
+  border: 1px solid rgba(184, 199, 192, .65);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, .65);
+}
+
+.main-nav a {
+  padding: 6px 13px;
+  border-radius: 10px;
+  color: var(--muted);
+  font-size: 14px;
+  text-decoration: none;
+}
+
+.main-nav a.is-active {
+  color: var(--green-dark);
+  background: var(--green-soft);
+  font-weight: 700;
+}
+
 /* پنل دیالوگ روی موبایل برنامه‌ای فوکوس می‌گیرد تا فوکوس داخل پنجره
    بماند؛ ولی چون کاربر خودش آنجا نزده، نباید حلقهٔ فوکوس ببیند. */
 .asset-dialog-panel:focus { outline: none; }
@@ -491,6 +515,7 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
 @media (max-width: 560px) {
   .shell { width: min(100% - 24px, 720px); }
   .site-header { padding-top: 16px; }
+  .main-nav a { padding: 5px 9px; font-size: 12px; }
   .page-main { padding-top: 28px; padding-bottom: 40px; }
   .intro { margin-bottom: 22px; }
   .intro-copy { font-size: 14px; }
