@@ -30,7 +30,7 @@ jobs:
           mkdir -p _site
           cp index.html robots.txt sitemap.xml _site/
           cp .htaccess _site/
-          cp -R assets data scripts api _site/
+          cp -R assets data scripts api price _site/
 
       # صفحه‌های ایستای جفت‌های پرجستجو و سایت‌مپ. بقیهٔ آدرس‌ها از راه
       # بازنویسی در .htaccess کار می‌کنند. sitemap.xml را بازنویسی
