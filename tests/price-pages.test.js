@@ -32,6 +32,8 @@ assert.match(converter, /<p class="eyebrow">مبدل قیمت<\/p>/, "هوم‌�
 assert.doesNotMatch(hub, /دارایی‌های پرکاربرد|featured-assets|updated-label|market-overview/, "هاب قیمت فقط باید دسته‌بندی‌ها را نشان دهد");
 assert.match(script, /className = "category-card-details"/, "نام و تعداد هر دسته باید در یک ستون جمع‌وجور باشند");
 assert.doesNotMatch(script, /FEATURED|featured-assets|updated-label/, "منطق سکشن پرکاربرد باید کامل حذف شود");
+assert.match(script, /small\.textContent = asset\.code \|\| ""/, "زیرعنوان ردیف‌های بازار باید فقط نماد دارایی باشد");
+assert.doesNotMatch(script, /small\.textContent = asset\.group === "crypto" \? asset\.englishName/, "نام انگلیسی رمزارز نباید در فهرست دسته نمایش داده شود");
 assert.doesNotMatch(asset, /asset-facts|asset-code|asset-group|asset-source/, "کارت‌های نماد، دسته و منبع باید حذف شوند");
 assert.doesNotMatch(asset, />قیمت هر واحد<|>تغییر ۲۴ ساعت</, "برچسب‌های توضیحی اضافی در هدر دارایی لازم نیستند");
 assert.match(script, /text\(document\.getElementById\("asset-unit"\), priceLabel\(asset\)\)/, "واحد قیمت باید فقط تومان، دلار یا تتر باشد");
@@ -51,6 +53,14 @@ assert.match(script, /assets\[id\]\.change = Number\(row\.change\)/, "تغییر
 assert.match(ratesApi, /'usd'\s*=>\s*\$usdPrice/, "API باید قیمت خام دلاری انس را حفظ کند");
 assert.match(asset, /id="asset-secondary" hidden/, "معادل تومان باید فقط در صفحه تکی و به‌صورت ثانویه باشد");
 assert.match(styles, /\.price-secondary strong[^}]*font-size:16px/, "قیمت تومانی ثانویه باید کوچک‌تر باشد");
+assert.match(asset, /class="asset-quote"[\s\S]*id="asset-change"[\s\S]*id="asset-price"[\s\S]*id="asset-unit"/, "درصد، قیمت و واحد باید در ردیف قیمت مشترک باشند");
+assert.match(asset, /class="price-freshness"[^>]*>[\s\S]*<i aria-hidden="true"><\/i>/, "زمان به‌روزرسانی باید نشانگر سبز داشته باشد");
+assert.match(script, /freshness\.replaceChildren\(dot, document\.createTextNode/, "رندر زمان نباید نشانگر سبز را حذف کند");
+assert.match(styles, /\.asset-price-hero::before\{content:none\}/, "پس‌زمینه گرد تزئینی کارت قیمت باید حذف شود");
+assert.match(styles, /grid-template-areas:"unit price change"/, "واحد، قیمت و درصد باید به ترتیب بصری خواسته‌شده چیده شوند");
+assert.match(styles, /\.asset-english\{[^}]*text-align:right/, "زیرعنوان انگلیسی دارایی باید راست‌چین باشد");
+assert.match(styles, /\.site-header>\.wide-shell\{width:min\(100% - 32px,720px\)\}/, "عرض هدر صفحات قیمت باید با مبدل یکسان باشد");
+assert.match(styles, /@media\(max-width:600px\)[\s\S]*\.brand-mark,\.brand-mark svg\{width:40px;height:40px\}/, "اندازه لوگوی موبایل باید با مبدل یکسان بماند");
 assert.doesNotMatch(script, /cdn\.nobitex\.ir/, "آیکون‌ها نباید از CDN نوبیتکس خوانده شوند");
 assert.match(styles, /@media\(max-width:600px\)/, "نمای موبایل لازم است");
 assert.match(styles, /\.category-card-icon\{[^}]*border-radius:50%/, "آیکون دسته‌ها باید گرد باشد");
