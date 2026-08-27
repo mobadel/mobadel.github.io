@@ -27,6 +27,7 @@
 .price-change strong{margin-top:0}
 /* Unified header and asset quote layout */
 .site-header>.wide-shell{width:min(100% - 32px,720px)}
+.price-main.wide-shell{width:min(100% - 32px,720px)}
 .brand-mark svg{shape-rendering:geometricPrecision}
 .asset-price-hero{grid-template-columns:1fr;gap:22px}
 .asset-price-hero::before{content:none}
@@ -36,9 +37,11 @@
 .price-primary{grid-area:price;min-width:0;text-align:center;direction:rtl}
 .price-primary>strong{font-size:clamp(34px,6vw,50px)}
 .price-unit{grid-area:unit;justify-self:end;color:var(--muted);font-size:14px;direction:rtl}
-.price-change{grid-area:change;justify-self:start;padding:0;background:transparent;text-align:center}
+.price-change{grid-area:change;justify-self:start;align-self:center;padding:0;background:transparent;text-align:center}
 .price-change.positive,.price-change.negative{background:transparent}
 .price-change strong{font-size:19px}
 .price-freshness{grid-column:1/-1}
 .price-freshness i{display:block;flex:0 0 8px}
-@media(max-width:600px){.site-header>.wide-shell{width:min(100% - 24px,720px)}.site-header{padding-top:16px}.brand{font-size:20px}.brand-mark,.brand-mark svg{width:40px;height:40px}.asset-price-hero{gap:18px}.asset-quote{grid-template-columns:minmax(52px,1fr) minmax(0,auto) minmax(52px,1fr);gap:8px;padding-top:16px}.price-primary{padding-top:0;border-top:0}.price-primary>strong{font-size:clamp(30px,9vw,40px)}.price-unit{font-size:13px}.price-change{padding:0}.price-change strong{font-size:16px}}
+.category-hero-icon.is-full-bleed img,.asset-main-icon.is-full-bleed .asset-main-icon-inner,.asset-main-icon.is-full-bleed img{width:100%;height:100%;border-radius:50%;object-fit:cover}
+.asset-main-icon.is-full-bleed .asset-main-icon-inner{display:block;overflow:hidden}
+@media(max-width:600px){.site-header>.wide-shell,.price-main.wide-shell{width:min(100% - 24px,720px)}.site-header{padding-top:16px}.brand{font-size:20px}.brand-mark,.brand-mark svg{width:40px;height:40px}.asset-price-hero{gap:18px}.asset-quote{grid-template-columns:minmax(52px,1fr) minmax(0,auto) minmax(52px,1fr);gap:8px;padding-top:16px}.price-primary{padding-top:0;border-top:0}.price-primary>strong{font-size:clamp(30px,9vw,40px)}.price-unit{font-size:13px}.price-change{padding:0}.price-change strong{font-size:16px}}

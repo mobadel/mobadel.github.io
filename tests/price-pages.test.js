@@ -58,12 +58,18 @@ assert.match(asset, /class="price-freshness"[^>]*>[\s\S]*<i aria-hidden="true"><
 assert.match(script, /freshness\.replaceChildren\(dot, document\.createTextNode/, "رندر زمان نباید نشانگر سبز را حذف کند");
 assert.match(styles, /\.asset-price-hero::before\{content:none\}/, "پس‌زمینه گرد تزئینی کارت قیمت باید حذف شود");
 assert.match(styles, /grid-template-areas:"unit price change"/, "واحد، قیمت و درصد باید به ترتیب بصری خواسته‌شده چیده شوند");
+assert.match(styles, /\.price-change\{[^}]*align-self:center/, "درصد تغییر باید در موبایل از نظر عمودی وسط ردیف قیمت باشد");
 assert.match(styles, /\.asset-english\{[^}]*text-align:right/, "زیرعنوان انگلیسی دارایی باید راست‌چین باشد");
 assert.match(styles, /\.site-header>\.wide-shell\{width:min\(100% - 32px,720px\)\}/, "عرض هدر صفحات قیمت باید با مبدل یکسان باشد");
+assert.match(styles, /\.price-main\.wide-shell\{width:min\(100% - 32px,720px\)\}/, "عرض محتوای دسکتاپ صفحات قیمت نباید از هدر بیشتر باشد");
+assert.match(styles, /\.site-header>\.wide-shell,\.price-main\.wide-shell\{width:min\(100% - 24px,720px\)\}/, "عرض موبایل باید حاشیه فعلی را حفظ کند");
 assert.match(styles, /@media\(max-width:600px\)[\s\S]*\.brand-mark,\.brand-mark svg\{width:40px;height:40px\}/, "اندازه لوگوی موبایل باید با مبدل یکسان بماند");
 assert.doesNotMatch(script, /cdn\.nobitex\.ir/, "آیکون‌ها نباید از CDN نوبیتکس خوانده شوند");
 assert.match(styles, /@media\(max-width:600px\)/, "نمای موبایل لازم است");
 assert.match(styles, /\.category-card-icon\{[^}]*border-radius:50%/, "آیکون دسته‌ها باید گرد باشد");
+assert.match(script, /heroIcon\.classList\.toggle\("is-full-bleed", group === "gold" \|\| group === "commodity"\)/, "آیکون بزرگ دسته طلا و فلزات باید تمام دایره را پر کند");
+assert.match(script, /icon\.classList\.toggle\("is-full-bleed", asset\.group === "gold" \|\| asset\.group === "commodity"\)/, "آیکون صفحه تکی طلا و فلزات باید تمام دایره را پر کند");
+assert.match(styles, /\.asset-main-icon\.is-full-bleed \.asset-main-icon-inner[^}]*width:100%;height:100%/, "ظرف داخلی آیکون full-bleed باید هم‌اندازه دایره باشد");
 
 assert.match(htaccess, /\^price\/\(crypto\|gold\|coin\|commodity\|fiat\)\/\?\$/, "مسیر دسته قیمت باید بازنویسی شود");
 assert.match(htaccess, /price\/asset\.html/, "مسیر دارایی قیمت باید بازنویسی شود");
