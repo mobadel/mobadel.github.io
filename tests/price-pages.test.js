@@ -31,6 +31,7 @@ assert.match(hub, /<h1>قیمت لحظه‌ای<\/h1>/, "عنوان صفحه ا�
 assert.match(converter, /<p class="eyebrow">مبدل قیمت<\/p>/, "هوم‌پیج باید برچسب مبدل قیمت داشته باشد");
 assert.doesNotMatch(hub, /دارایی‌های پرکاربرد|featured-assets|updated-label|market-overview/, "هاب قیمت فقط باید دسته‌بندی‌ها را نشان دهد");
 assert.match(script, /className = "category-card-details"/, "نام و تعداد هر دسته باید در یک ستون جمع‌وجور باشند");
+assert.match(script, /CATEGORY_ORDER = \["fiat", "gold", "coin", "commodity", "crypto"\]/, "ترتیب هاب باید ارز، طلا، سکه، فلزات و ارز دیجیتال باشد");
 assert.doesNotMatch(script, /FEATURED|featured-assets|updated-label/, "منطق سکشن پرکاربرد باید کامل حذف شود");
 assert.match(script, /small\.textContent = asset\.code \|\| ""/, "زیرعنوان ردیف‌های بازار باید فقط نماد دارایی باشد");
 assert.doesNotMatch(script, /small\.textContent = asset\.group === "crypto" \? asset\.englishName/, "نام انگلیسی رمزارز نباید در فهرست دسته نمایش داده شود");

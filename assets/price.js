@@ -9,7 +9,7 @@
     commodity: { name: "فلزات", singular: "فلز", description: "قیمت لحظه ای نقره و مس بر پایه داده‌های بورس کالا", icon: "/assets/silver.svg" },
     fiat: { name: "ارز", singular: "ارز", description: "قیمت لحظه ای دلار، یورو و دیگر ارزهای رایج به تومان", icon: "/assets/flags/us.svg" }
   };
-  var CATEGORY_ORDER = ["crypto", "gold", "coin", "commodity", "fiat"];
+  var CATEGORY_ORDER = ["fiat", "gold", "coin", "commodity", "crypto"];
   var SLUGS = { goldmelted: "melted", goldounce: "ounce", bahar: "baharazadi", halfcoin: "nim", quartercoin: "rob", gramcoin: "gerami" };
   var SLUG_TO_ID = {};
   Object.keys(SLUGS).forEach(function (id) { SLUG_TO_ID[SLUGS[id]] = id; });
