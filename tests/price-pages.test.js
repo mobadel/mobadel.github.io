@@ -28,6 +28,14 @@ for (const [name, html] of [["hub", hub], ["category", category], ["asset", asse
 
 assert.ok(asset.indexOf('id="asset-price"') < asset.indexOf('class="asset-content"'), "قیمت باید بالاتر از محتوای SEO باشد");
 assert.match(hub, /<h1>قیمت لحظه‌ای<\/h1>/, "عنوان صفحه اصلی قیمت باید کوتاه باشد");
+assert.match(converter, /<p class="eyebrow">مبدل قیمت<\/p>/, "هوم‌پیج باید برچسب مبدل قیمت داشته باشد");
+assert.doesNotMatch(hub, /دارایی‌های پرکاربرد|featured-assets|updated-label|market-overview/, "هاب قیمت فقط باید دسته‌بندی‌ها را نشان دهد");
+assert.match(script, /className = "category-card-details"/, "نام و تعداد هر دسته باید در یک ستون جمع‌وجور باشند");
+assert.doesNotMatch(script, /FEATURED|featured-assets|updated-label/, "منطق سکشن پرکاربرد باید کامل حذف شود");
+assert.doesNotMatch(asset, /asset-facts|asset-code|asset-group|asset-source/, "کارت‌های نماد، دسته و منبع باید حذف شوند");
+assert.doesNotMatch(asset, />قیمت هر واحد<|>تغییر ۲۴ ساعت</, "برچسب‌های توضیحی اضافی در هدر دارایی لازم نیستند");
+assert.match(script, /text\(document\.getElementById\("asset-unit"\), priceLabel\(asset\)\)/, "واحد قیمت باید فقط تومان، دلار یا تتر باشد");
+assert.match(styles, /\/\* Compact price hub category rows \*\/[\s\S]*\.category-grid\{[^}]*grid-template-columns:1fr/, "دسته‌های هاب باید همیشه تک‌ستونه باشند");
 assert.doesNotMatch(hub, /دید کلی بازار|انتخاب بازار|نرخ‌های لحظه ای/, "متن‌های تزئینی اضافه نباید در هاب قیمت باشند");
 assert.doesNotMatch(category + asset, /class="(?:eyebrow|section-kicker)"/, "برچسب سبز بالای عنوان در صفحات قیمت لازم نیست");
 assert.match(converter, /class="main-nav"[\s\S]*href="\/price\/"/, "سوییچ مبدل و قیمت باید در صفحه مبدل هم باشد");
