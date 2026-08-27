@@ -14,7 +14,6 @@
   var SLUG_TO_ID = {};
   Object.keys(SLUGS).forEach(function (id) { SLUG_TO_ID[SLUGS[id]] = id; });
   var UNIT_LABELS = { gram: "گرم", piece: "عدد", mesghal: "مثقال", ounce: "انس", kilogram: "کیلو" };
-  var FEATURED = ["btc", "usdt", "gold18", "emami", "usd", "silver"];
   var RANKED = ["btc", "usdt", "eth", "usdc", "xrp", "bnb", "sol", "doge", "trx", "ada", "gold18", "gold24", "goldmelted", "goldounce", "emami", "bahar", "halfcoin", "quartercoin", "gramcoin", "silver", "copper", "usd", "eur", "gbp", "aed", "try", "chf", "cad", "aud", "irt"];
   var RANK = {};
   var USD_STABLECOINS = { usdt: true, usdc: true, dai: true, busd: true, usde: true, tusd: true, fdusd: true, usdd: true, pyusd: true, gusd: true, susd: true, frax: true };
@@ -146,22 +145,18 @@
   function loadAll() { return Promise.allSettled([loadNobitex(), loadProxy()]); }
   function availableAssets(group) { return Object.keys(assets).map(function (id) { return assets[id]; }).filter(function (asset) { return asset.group === group && Number.isFinite(asset.price); }).sort(compareAssets); }
 
-  function createAssetCard(asset) {
-    var link = document.createElement("a"); link.className = "asset-card"; link.href = assetUrl(asset); link.appendChild(createIcon(asset, "asset-icon"));
-    var body = document.createElement("span"); body.className = "asset-card-body";
-    var name = document.createElement("span"); name.className = "asset-card-name"; var strong = document.createElement("strong"); strong.textContent = asset.name; var code = document.createElement("span"); code.textContent = asset.code || ""; name.append(strong, code);
-    var price = document.createElement("span"); price.className = "asset-card-price"; price.textContent = formattedPrice(asset);
-    var change = document.createElement("span"); change.className = "asset-card-change " + changeClass(asset.change); change.textContent = formatChange(asset.change) + " در ۲۴ ساعت";
-    body.append(name, price, change); link.appendChild(body); return link;
-  }
   function renderCategoryCards() {
     var grid = document.getElementById("category-grid"); if (!grid) return; grid.replaceChildren();
-    CATEGORY_ORDER.forEach(function (id) { var category = CATEGORIES[id]; var link = document.createElement("a"); link.className = "category-card"; link.href = categoryUrl(id); link.setAttribute("data-category", id); var icon = document.createElement("span"); icon.className = "category-card-icon"; var image = document.createElement("img"); image.src = category.icon; image.alt = ""; icon.appendChild(image); var strong = document.createElement("strong"); strong.textContent = category.name; var small = document.createElement("small"); var count = availableAssets(id).length; small.textContent = count ? formatNumber(count) + " دارایی" : "در حال دریافت…"; var arrow = document.createElement("span"); arrow.className = "category-card-arrow"; arrow.textContent = "←"; link.append(icon, strong, small, arrow); grid.appendChild(link); });
+    CATEGORY_ORDER.forEach(function (id) {
+      var category = CATEGORIES[id]; var link = document.createElement("a"); link.className = "category-card"; link.href = categoryUrl(id); link.setAttribute("data-category", id);
+      var icon = document.createElement("span"); icon.className = "category-card-icon"; var image = document.createElement("img"); image.src = category.icon; image.alt = ""; icon.appendChild(image);
+      var details = document.createElement("span"); details.className = "category-card-details"; var strong = document.createElement("strong"); strong.textContent = category.name; var small = document.createElement("small"); var count = availableAssets(id).length; small.textContent = count ? formatNumber(count) + " دارایی" : "در حال دریافت…"; details.append(strong, small);
+      var arrow = document.createElement("span"); arrow.className = "category-card-arrow"; arrow.setAttribute("aria-hidden", "true"); arrow.textContent = "←";
+      link.append(icon, details, arrow); grid.appendChild(link);
+    });
   }
   function renderHub() {
-    renderCategoryCards(); var grid = document.getElementById("featured-assets"); if (!grid) return; var featured = FEATURED.map(function (id) { return assets[id]; }).filter(function (asset) { return asset && Number.isFinite(asset.price); }); grid.replaceChildren();
-    if (!featured.length) { var empty = document.createElement("div"); empty.className = "empty-state"; empty.textContent = "دریافت قیمت‌ها با خطا روبه‌رو شد. کمی بعد دوباره تلاش کنید."; grid.appendChild(empty); }
-    featured.forEach(function (asset) { grid.appendChild(createAssetCard(asset)); }); text(document.getElementById("updated-label"), "آخرین به‌روزرسانی " + formatTime(latestUpdate));
+    renderCategoryCards();
     var path = "/price/"; setSchema([{ "@type": "WebPage", "@id": ORIGIN + path + "#page", name: "قیمت لحظه ای دارایی‌ها", url: ORIGIN + path, inLanguage: "fa-IR" }, breadcrumb([{ name: "تبدکس", path: "/" }, { name: "قیمت‌ها", path: path }]), { "@type": "ItemList", name: "دسته‌بندی بازارهای تبدکس", itemListElement: CATEGORY_ORDER.map(function (id, index) { return { "@type": "ListItem", position: index + 1, name: CATEGORIES[id].name, url: ORIGIN + categoryUrl(id) }; }) }]);
   }
 
@@ -185,8 +180,8 @@
     var categoryLink = document.getElementById("asset-category-link"); if (categoryLink) { categoryLink.href = categoryUrl(group); categoryLink.textContent = category.name; }
     text(document.getElementById("asset-crumb"), asset.name); text(document.getElementById("asset-title"), "قیمت " + asset.name); var english = document.getElementById("asset-english"); if (english) { english.hidden = asset.group !== "crypto"; text(english, asset.group === "crypto" ? asset.englishName + (asset.code ? " · " + asset.code : "") : ""); }
     var icon = document.getElementById("asset-main-icon"); if (icon) { icon.replaceChildren(); icon.appendChild(createIcon(asset, "asset-main-icon-inner")); }
-    text(document.getElementById("asset-price"), formatPrice(asset.price)); text(document.getElementById("asset-unit"), priceLabel(asset) + " برای هر " + unitText(asset)); var secondary = document.getElementById("asset-secondary"); if (secondary) { secondary.hidden = !Number.isFinite(asset.tomanPrice); text(document.getElementById("asset-secondary-price"), Number.isFinite(asset.tomanPrice) ? formatPrice(asset.tomanPrice) + " تومان" : "—"); } var changeBox = document.getElementById("asset-change"); if (changeBox) { changeBox.className = "price-change " + changeClass(asset.change); var strong = changeBox.querySelector("strong"); text(strong, formatChange(asset.change)); }
-    text(document.getElementById("asset-freshness"), "آخرین به‌روزرسانی " + formatTime(asset.updatedAt || latestUpdate)); text(document.getElementById("asset-code"), asset.code || "—"); text(document.getElementById("asset-group"), category.name); text(document.getElementById("asset-source"), asset.source || "بازار ایران");
+    text(document.getElementById("asset-price"), formatPrice(asset.price)); text(document.getElementById("asset-unit"), priceLabel(asset)); var secondary = document.getElementById("asset-secondary"); if (secondary) { secondary.hidden = !Number.isFinite(asset.tomanPrice); text(document.getElementById("asset-secondary-price"), Number.isFinite(asset.tomanPrice) ? formatPrice(asset.tomanPrice) + " تومان" : "—"); } var changeBox = document.getElementById("asset-change"); if (changeBox) { changeBox.className = "price-change " + changeClass(asset.change); var strong = changeBox.querySelector("strong"); text(strong, formatChange(asset.change)); }
+    text(document.getElementById("asset-freshness"), "آخرین به‌روزرسانی " + formatTime(asset.updatedAt || latestUpdate));
     text(document.getElementById("asset-content-title"), "قیمت " + asset.name + " امروز"); var movement = asset.change > 0 ? "افزایش" : asset.change < 0 ? "کاهش" : "بدون تغییر"; var tomanSentence = Number.isFinite(asset.tomanPrice) ? " معادل تومانی آن " + formatPrice(asset.tomanPrice) + " تومان است." : ""; text(document.getElementById("asset-content-lead"), "قیمت هر " + unitText(asset) + " " + asset.name + " اکنون " + formattedPrice(asset) + " است." + tomanSentence + " این قیمت در ۲۴ ساعت گذشته " + formatAbsoluteChange(asset.change) + " " + movement + " داشته است.");
     text(document.getElementById("asset-about-title"), "درباره " + asset.name); text(document.getElementById("asset-about-text"), asset.name + (asset.code ? " با نماد " + asset.code : "") + " در دسته " + category.name + " قرار دارد. این صفحه آخرین قیمت قابل دریافت از " + (asset.source || "بازار") + " را نمایش می‌دهد و برای پیگیری ارزش روز این دارایی به‌روزرسانی می‌شود.");
     text(document.getElementById("asset-usage-text"), "با مقایسه قیمت لحظه ای و درصد تغییر ۲۴ ساعته می‌توانید جهت حرکت کوتاه‌مدت قیمت " + asset.name + " را بهتر ببینید. این داده صرفاً برای محاسبه و اطلاع‌رسانی است و پیشنهاد خرید یا فروش محسوب نمی‌شود.");

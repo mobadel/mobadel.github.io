@@ -14,3 +14,14 @@
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition-duration:.01ms!important}}
 .price-primary>strong{font-size:clamp(28px,5vw,42px)}.price-secondary{margin-top:12px;padding-top:10px;border-top:1px solid var(--border)}.price-secondary[hidden]{display:none}.price-secondary span{font-size:11px}.price-secondary strong{display:block;margin-top:1px;color:var(--muted);font-size:16px;line-height:1.45}
 .category-grid{gap:10px}.category-card{padding:14px;border-radius:16px}.category-card-icon{width:38px;height:38px;margin-bottom:10px;border-radius:50%;font-size:18px}.category-card strong{font-size:14px}.category-card small{margin-top:2px;font-size:11px}.category-card-arrow{inset-inline-end:12px;inset-block-start:14px}.category-hero-icon,.category-hero-icon img{border-radius:50%}.asset-english[hidden]{display:none}
+
+/* Compact price hub category rows */
+.category-grid{width:min(100%,760px);grid-template-columns:1fr;gap:10px}
+.category-card{display:grid;grid-template-columns:46px minmax(0,1fr) auto;align-items:center;gap:13px;padding:11px 14px;border-radius:16px}
+.category-card-icon{width:42px;height:42px;margin:0;border-radius:50%}
+.category-card-details{min-width:0}
+.category-card-details strong,.category-card-details small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.category-card-details strong{font-size:15px}
+.category-card-details small{margin-top:1px;color:var(--muted);font-size:12px}
+.category-card-arrow{position:static;color:var(--subtle);font-size:17px}
+.price-change strong{margin-top:0}
