@@ -58,6 +58,7 @@ assert.match(asset, /class="price-freshness"[^>]*>[\s\S]*<i aria-hidden="true"><
 assert.match(script, /freshness\.replaceChildren\(dot, document\.createTextNode/, "رندر زمان نباید نشانگر سبز را حذف کند");
 assert.match(styles, /\.asset-price-hero::before\{content:none\}/, "پس‌زمینه گرد تزئینی کارت قیمت باید حذف شود");
 assert.match(styles, /grid-template-areas:"unit price change"/, "واحد، قیمت و درصد باید به ترتیب بصری خواسته‌شده چیده شوند");
+assert.match(styles, /\.price-change\{[^}]*align-self:center/, "درصد تغییر باید در موبایل از نظر عمودی وسط ردیف قیمت باشد");
 assert.match(styles, /\.asset-english\{[^}]*text-align:right/, "زیرعنوان انگلیسی دارایی باید راست‌چین باشد");
 assert.match(styles, /\.site-header>\.wide-shell\{width:min\(100% - 32px,720px\)\}/, "عرض هدر صفحات قیمت باید با مبدل یکسان باشد");
 assert.match(styles, /@media\(max-width:600px\)[\s\S]*\.brand-mark,\.brand-mark svg\{width:40px;height:40px\}/, "اندازه لوگوی موبایل باید با مبدل یکسان بماند");

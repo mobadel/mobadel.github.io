@@ -36,7 +36,7 @@
 .price-primary{grid-area:price;min-width:0;text-align:center;direction:rtl}
 .price-primary>strong{font-size:clamp(34px,6vw,50px)}
 .price-unit{grid-area:unit;justify-self:end;color:var(--muted);font-size:14px;direction:rtl}
-.price-change{grid-area:change;justify-self:start;padding:0;background:transparent;text-align:center}
+.price-change{grid-area:change;justify-self:start;align-self:center;padding:0;background:transparent;text-align:center}
 .price-change.positive,.price-change.negative{background:transparent}
 .price-change strong{font-size:19px}
 .price-freshness{grid-column:1/-1}
