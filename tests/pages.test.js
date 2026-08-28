@@ -111,7 +111,16 @@ assert.ok(fs.existsSync(path.join(workdir, "_site", "usd-to-irt")), "دلار ب
 assert.ok(fs.existsSync(path.join(workdir, "_site", "irt-to-usdt")), "جهت معکوس باید صفحه داشته باشد");
 
 const sitemap = fs.readFileSync(path.join(workdir, "_site", "sitemap.xml"), "utf8");
+assert.equal(fs.readFileSync(path.join(workdir, "sitemap.xml"), "utf8"), sitemap, "سایت‌مپ ریشه و خروجی deploy باید یکسان باشند");
 assert.match(sitemap, /<loc>https:\/\/tabdex\.ir\/<\/loc>/);
+assert.match(sitemap, /<loc>https:\/\/tabdex\.ir\/price\/<\/loc>/);
+for (const group of ["currency", "gold", "coin", "commodity", "crypto"]) {
+  assert.match(sitemap, new RegExp(`<loc>https://tabdex\\.ir/price/${group}/</loc>`), `دسته قیمت ${group} باید در سایت‌مپ باشد`);
+}
+for (const slug of ["usd", "gel"]) assert.match(sitemap, new RegExp(`<loc>https://tabdex\\.ir/price/currency/${slug}/</loc>`));
+for (const slug of ["gold18", "ounce"]) assert.match(sitemap, new RegExp(`<loc>https://tabdex\\.ir/price/gold/${slug}/</loc>`));
+for (const slug of ["emami", "gerami"]) assert.match(sitemap, new RegExp(`<loc>https://tabdex\\.ir/price/coin/${slug}/</loc>`));
+assert.equal((sitemap.match(/<loc>https:\/\/tabdex\.ir\/price\/crypto\/[^<]+<\/loc>/g) || []).length, 50, "دقیقاً ۵۰ صفحه قیمت رمزارز باید در سایت‌مپ باشد");
 assert.match(sitemap, /<loc>https:\/\/tabdex\.ir\/melted-to-irt\/<\/loc>/);
 assert.match(sitemap, /<loc>https:\/\/tabdex\.ir\/irt-to-baharazadi\/<\/loc>/);
 // نقره و مس هم در هر دو جهت با تومان صفحه دارند
@@ -119,6 +128,14 @@ assert.match(sitemap, /<loc>https:\/\/tabdex\.ir\/irt-to-baharazadi\/<\/loc>/);
   assert.match(sitemap, new RegExp(`<loc>https://tabdex\\.ir/${slug}/</loc>`), `${slug} باید در سایت‌مپ باشد`);
   assert.ok(fs.existsSync(path.join(workdir, "_site", slug, "index.html")), `${slug} باید صفحهٔ واقعی داشته باشد`);
 });
+
+// تمام ارزهای فیاتِ مبدل باید در هر دو جهت با تومان صفحه و ورودی سایت‌مپ داشته باشند.
+for (const id of ["usd", "eur", "gbp", "chf", "aed", "try", "jpy", "cny", "aud", "cad", "rub", "sek", "inr", "pkr", "afn", "myr", "thb", "sar", "qar", "kwd", "bhd", "omr", "iqd", "syp", "azn", "amd", "gel"]) {
+  for (const slug of [`${id}-to-irt`, `irt-to-${id}`]) {
+    assert.match(sitemap, new RegExp(`<loc>https://tabdex\\.ir/${slug}/</loc>`), `${slug} باید در سایت‌مپ باشد`);
+    assert.ok(fs.existsSync(path.join(workdir, "_site", slug, "index.html")), `${slug} باید صفحهٔ واقعی داشته باشد`);
+  }
+}
 
 // تبدیل انس طلا و طلای ۱۸ عیار باید در هر دو جهت صفحهٔ مستقل و ورودی سایت‌مپ داشته باشد.
 ["ounce-to-gold18", "gold18-to-ounce"].forEach((slug) => {

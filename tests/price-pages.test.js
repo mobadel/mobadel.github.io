@@ -88,8 +88,22 @@ assert.match(htaccess, /\^price\/\(\?:fiat\|currency\)\/irt\/\?\$ - \[R=410,L\]/
 assert.match(htaccess, /price\/asset\.html/, "مسیر دارایی قیمت باید بازنویسی شود");
 assert.match(deploy, /assets data scripts api price _site\//, "پوشه price باید منتشر شود");
 
-// تا پایان تست محصول، هیچ صفحه قیمت وارد سایت‌مپ یا سازنده آن نشود.
-assert.doesNotMatch(sitemap, /\/price\//, "صفحات قیمت فعلاً نباید در سایت‌مپ باشند");
-assert.doesNotMatch(builder, /\/price\//, "سازنده سایت‌مپ فعلاً نباید صفحه قیمت بسازد");
+// صفحات قیمت باید index/follow باشند و مولد سایت‌مپ همهٔ دسته‌ها، تمام
+// دارایی‌های غیرکریپتو و دقیقاً ۵۰ رمزارز منتخب را ثبت کند.
+assert.match(builder, /addSitemapUrl\("\/price\/", "0\.9"\)/, "هاب قیمت باید در سایت‌مپ باشد");
+for (const group of ["currency", "gold", "coin", "commodity", "crypto"]) {
+  if (group === "crypto") assert.match(builder, /"crypto"\]\) addSitemapUrl/, "دسته crypto باید در مولد سایت‌مپ باشد");
+  else assert.match(builder, new RegExp("\\b" + group + ": \\["), `دسته ${group} باید در مولد سایت‌مپ باشد`);
+}
+const cryptoBlock = builder.match(/const TOP_CRYPTO = \[([\s\S]*?)\];/);
+assert.ok(cryptoBlock, "فهرست رمزارزهای منتخب باید وجود داشته باشد");
+const cryptoIds = [...cryptoBlock[1].matchAll(/"([^"]+)"/g)].map((match) => match[1]);
+assert.equal(cryptoIds.length, 50, "دقیقاً ۵۰ رمزارز باید در سایت‌مپ قیمت باشند");
+assert.equal(new Set(cryptoIds).size, 50, "رمزارز تکراری در فهرست ۵۰تایی مجاز نیست");
+
+// لینک داخلی HTML یا لینک ساخته‌شده با جاوااسکریپت نباید nofollow باشد.
+for (const [name, source] of [["converter", converter], ["hub", hub], ["category", category], ["asset", asset], ["app", read("assets/app.js")], ["price script", script]]) {
+  assert.doesNotMatch(source, /nofollow/i, `${name}: لینک داخلی nofollow نباید وجود داشته باشد`);
+}
 
 console.log("price page tests passed");

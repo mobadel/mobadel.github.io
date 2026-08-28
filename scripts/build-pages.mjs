@@ -1,7 +1,7 @@
 /*
  * ساخت صفحه‌های ایستا برای جفت‌های پرجستجو + سایت‌مپ.
- * هنگام دیپلوی اجرا می‌شود و فقط داخل _site می‌نویسد؛ چیزی در ریپو
- * ساخته نمی‌شود.
+ * هنگام دیپلوی صفحه‌ها را داخل _site می‌سازد و sitemap.xml ریشه را هم
+ * با همان خروجی همگام نگه می‌دارد تا نسخهٔ داخل مخزن کهنه نماند.
  *
  * چرا فقط بخشی از جفت‌ها؟ با ۲۸۴ دارایی، تعداد جفت‌های جهت‌دار حدود
  * ۸۰ هزار است. همهٔ آن آدرس‌ها از راه بازنویسی .htaccess کار می‌کنند و
@@ -55,7 +55,26 @@ const ASSETS = {
   try: { slug: "try", name: "لیر ترکیه" },
   chf: { slug: "chf", name: "فرانک سوئیس" },
   cad: { slug: "cad", name: "دلار کانادا" },
-  aud: { slug: "aud", name: "دلار استرالیا" }
+  aud: { slug: "aud", name: "دلار استرالیا" },
+  jpy: { slug: "jpy", name: "یکصد ین ژاپن" },
+  cny: { slug: "cny", name: "یوآن چین" },
+  rub: { slug: "rub", name: "روبل روسیه" },
+  sek: { slug: "sek", name: "کرون سوئد" },
+  inr: { slug: "inr", name: "روپیه هند" },
+  pkr: { slug: "pkr", name: "روپیه پاکستان" },
+  afn: { slug: "afn", name: "افغانی" },
+  myr: { slug: "myr", name: "رینگیت مالزی" },
+  thb: { slug: "thb", name: "بات تایلند" },
+  sar: { slug: "sar", name: "ریال عربستان" },
+  qar: { slug: "qar", name: "ریال قطر" },
+  kwd: { slug: "kwd", name: "دینار کویت" },
+  bhd: { slug: "bhd", name: "دینار بحرین" },
+  omr: { slug: "omr", name: "ریال عمان" },
+  iqd: { slug: "iqd", name: "دینار عراق" },
+  syp: { slug: "syp", name: "لیر سوریه" },
+  azn: { slug: "azn", name: "منات آذربایجان" },
+  amd: { slug: "amd", name: "درام ارمنستان" },
+  gel: { slug: "gel", name: "لاری گرجستان" }
 };
 
 // هر کدام از این‌ها در هر دو جهت با تومان صفحه می‌گیرد.
@@ -64,7 +83,26 @@ const WITH_TOMAN = [
   "gold18", "gold24", "goldmelted", "goldounce",
   "emami", "bahar", "halfcoin", "quartercoin", "gramcoin",
   "silver", "copper",
-  "usd", "eur", "gbp", "aed", "try", "chf", "cad", "aud"
+  "usd", "eur", "gbp", "aed", "try", "chf", "cad", "aud", "jpy", "cny",
+  "rub", "sek", "inr", "pkr", "afn", "myr", "thb", "sar", "qar", "kwd",
+  "bhd", "omr", "iqd", "syp", "azn", "amd", "gel"
+];
+
+// همهٔ صفحات قیمت غیرکریپتو ایندکس می‌شوند. برای رمزارزها عمداً فقط
+// ۵۰ دارایی مهم و پرشناخت در سایت‌مپ می‌آیند تا نقشهٔ سایت روی صفحات
+// باارزش‌تر متمرکز بماند. شناسه‌ها با data/currencies.json هم‌خوان‌اند.
+const PRICE_GROUPS = {
+  currency: ["usd", "eur", "gbp", "chf", "aed", "try", "jpy", "cny", "aud", "cad", "rub", "sek", "inr", "pkr", "afn", "myr", "thb", "sar", "qar", "kwd", "bhd", "omr", "iqd", "syp", "azn", "amd", "gel"],
+  gold: ["gold18", "gold24", "melted", "ounce"],
+  coin: ["emami", "baharazadi", "nim", "rob", "gerami"],
+  commodity: ["silver", "copper"]
+};
+const TOP_CRYPTO = [
+  "btc", "usdt", "eth", "usdc", "xrp", "bnb", "sol", "doge", "trx", "ada",
+  "link", "avax", "dot", "ltc", "bch", "1k_shib", "dai", "near", "uni", "atom",
+  "etc", "xlm", "fil", "apt", "arb", "op", "inj", "imx", "hbar", "algo",
+  "grt", "aave", "render", "qnt", "egld", "sand", "mana", "xtz", "chz", "ena",
+  "jup", "sui", "1m_pepe", "wld", "pyth", "fet", "tao", "hype", "pol", "cake"
 ];
 
 // چند جفت پرتقاضا که یک سرشان تومان نیست.
@@ -145,6 +183,17 @@ const pairs = buildPairs();
 const today = new Date().toISOString().slice(0, 10);
 const urls = [`  <url>\n    <loc>${ORIGIN}/</loc>\n    <lastmod>${today}</lastmod>\n    <priority>1.0</priority>\n  </url>`];
 
+function addSitemapUrl(path, priority = "0.7") {
+  urls.push(`  <url>\n    <loc>${ORIGIN}${path}</loc>\n    <lastmod>${today}</lastmod>\n    <priority>${priority}</priority>\n  </url>`);
+}
+
+addSitemapUrl("/price/", "0.9");
+for (const group of [...Object.keys(PRICE_GROUPS), "crypto"]) addSitemapUrl(`/price/${group}/`, "0.8");
+for (const [group, slugs] of Object.entries(PRICE_GROUPS)) {
+  for (const slug of slugs) addSitemapUrl(`/price/${group}/${slug}/`);
+}
+for (const slug of TOP_CRYPTO) addSitemapUrl(`/price/crypto/${slug}/`);
+
 for (const [fromId, toId] of pairs) {
   const from = ASSETS[fromId];
   const to = ASSETS[toId];
@@ -156,10 +205,10 @@ for (const [fromId, toId] of pairs) {
   urls.push(`  <url>\n    <loc>${ORIGIN}${meta.path}</loc>\n    <lastmod>${today}</lastmod>\n    <priority>0.8</priority>\n  </url>`);
 }
 
-await writeFile(
-  resolve(SITE, "sitemap.xml"),
-  `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.join("\n")}\n</urlset>\n`,
-  "utf8"
-);
+const sitemapXml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.join("\n")}\n</urlset>\n`;
+await Promise.all([
+  writeFile(resolve(ROOT, "sitemap.xml"), sitemapXml, "utf8"),
+  writeFile(resolve(SITE, "sitemap.xml"), sitemapXml, "utf8")
+]);
 
 console.log(`${pairs.length} صفحهٔ ایستا ساخته شد و ${urls.length} آدرس در سایت‌مپ ثبت شد.`);
