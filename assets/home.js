@@ -7,8 +7,8 @@
   var definitions = [
     { id: "usd", name: "دلار", code: "USD", url: "/price/currency/usd/", icon: "/assets/flags/us.svg", source: "proxy" },
     { id: "usdt", name: "تتر", code: "USDT", url: "/price/crypto/usdt/", icon: "/assets/usdt-logo.svg", source: "toman" },
-    { id: "gold18", name: "طلای ۱۸ عیار", code: "", url: "/price/gold/gold18/", icon: "/assets/gold-18k.svg", source: "proxy" },
-    { id: "emami", name: "سکه امامی", code: "", url: "/price/coin/emami/", icon: "/assets/coin-emami.webp?v=20260825-2", source: "proxy" },
+    { id: "gold18", name: "طلای ۱۸ عیار", code: "هر گرم", url: "/price/gold/gold18/", icon: "/assets/gold-18k.svg", source: "proxy" },
+    { id: "emami", name: "سکه امامی", code: "هر عدد", url: "/price/coin/emami/", icon: "/assets/coin-emami.webp?v=20260825-2", source: "proxy" },
     { id: "btc", name: "بیت کوین", code: "BTC", url: "/price/crypto/btc/", icon: "/assets/crypto-icons/btc.svg", source: "usdt" },
     { id: "eur", name: "یورو", code: "EUR", url: "/price/currency/eur/", icon: "/assets/flags/eu.svg", source: "proxy" }
   ];

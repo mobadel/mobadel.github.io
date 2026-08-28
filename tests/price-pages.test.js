@@ -8,6 +8,7 @@ const category = read("price/category.html");
 const asset = read("price/asset.html");
 const script = read("assets/price.js");
 const styles = read("assets/price.css");
+const homeStyles = read("assets/styles.css");
 const htaccess = read(".htaccess");
 const deploy = read(".github/workflows/deploy-parspack.yml");
 const sitemap = read("sitemap.xml");
@@ -54,6 +55,9 @@ assert.match(home, /تغییرات ۲۴ ساعته/, "عنوان ستون تغی
 assert.match(category, /تغییرات ۲۴ ساعته/, "عنوان ستون تغییرات دسته‌بندی باید کامل باشد");
 assert.doesNotMatch(home, /class="pair-content"/, "محتوای SEO قدیمی مبدل باید از هوم حذف شود");
 assert.match(homeScript, /"usd"[\s\S]*"usdt"[\s\S]*"gold18"[\s\S]*"emami"[\s\S]*"btc"[\s\S]*"eur"/, "ترتیب شش قیمت مهم هوم باید ثابت بماند");
+assert.match(homeScript, /id: "gold18", name: "طلای ۱۸ عیار", code: "هر گرم"/, "واحد طلای هوم باید هر گرم باشد");
+assert.match(homeScript, /id: "emami", name: "سکه امامی", code: "هر عدد"/, "واحد سکه هوم باید هر عدد باشد");
+assert.match(homeStyles, /\.home-market-label small \{[^}]*direction: rtl;[^}]*text-align: right;/, "زیرعنوان ردیف هوم باید راست‌چین باشد");
 assert.match(read("assets/app.js"), /location\.href = target;[\s\S]*return;/, "تغییر جفت در هوم باید navigation واقعی انجام دهد");
 for (const source of [read("index.html"), converter, hub, category, asset]) assert.match(source, /class="site-footer"/, "همه قالب‌ها باید فوتر داشته باشند");
 assert.match(script, /crypto:[\s\S]*gold:[\s\S]*coin:/, "طلا و سکه باید دسته‌های جدا باشند");
