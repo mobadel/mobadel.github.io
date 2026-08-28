@@ -1,6 +1,29 @@
 (function () {
   "use strict";
 
+  var rotatingAsset = document.getElementById("rotating-asset");
+  var rotatingName = document.getElementById("rotating-asset-name");
+  var rotatingIcon = document.getElementById("rotating-asset-icon");
+  var rotatingItems = [
+    { name: "دلار", icon: "/assets/flags/us.svg" },
+    { name: "طلا", icon: "/assets/gold-18k.svg" },
+    { name: "تتر", icon: "/assets/usdt-logo.svg" },
+    { name: "سکه", icon: "/assets/coin-emami.webp?v=20260825-2" },
+    { name: "بیت‌کوین", icon: "/assets/crypto-icons/btc.svg" }
+  ];
+  var rotatingIndex = 0;
+  if (rotatingAsset && rotatingName && rotatingIcon && !(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches)) {
+    window.setInterval(function () {
+      rotatingAsset.classList.add("is-changing");
+      window.setTimeout(function () {
+        rotatingIndex = (rotatingIndex + 1) % rotatingItems.length;
+        rotatingName.textContent = rotatingItems[rotatingIndex].name;
+        rotatingIcon.src = rotatingItems[rotatingIndex].icon;
+        rotatingAsset.classList.remove("is-changing");
+      }, 220);
+    }, 2600);
+  }
+
   var rows = document.getElementById("home-market-rows");
   if (!rows) return;
 

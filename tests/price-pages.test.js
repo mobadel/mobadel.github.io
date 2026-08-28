@@ -48,8 +48,8 @@ assert.doesNotMatch(category + asset, /class="(?:eyebrow|section-kicker)"/, "ب�
 for (const [name, source] of [["home", home], ["convert", converter], ["price", hub], ["category", category], ["asset", asset]]) {
   assert.doesNotMatch(source, /class="main-nav"/, `${name}: سوییچ هدر باید حذف شود`);
 }
-assert.doesNotMatch(home, /rotating-title|home-hero/, "عنوان متغیر هوم باید کامل حذف شود");
-assert.match(home, /<h1 id="important-market-title">قیمت‌ها<\/h1>/, "عنوان جدول هوم باید قیمت‌ها باشد");
+assert.match(home, /class="home-hero"[\s\S]*قیمت لحظه‌ای[\s\S]*id="rotating-asset-name">دلار/, "عنوان متغیر هوم باید با دلار شروع شود");
+assert.match(home, /<h2 id="important-market-title">قیمت‌ها<\/h2>/, "عنوان جدول هوم باید قیمت‌ها باشد");
 assert.match(home, /class="home-market-all" href="\/price\/">مشاهده همه/, "انتهای جدول باید لینک مشاهده همه داشته باشد");
 assert.match(home, /تغییرات ۲۴ ساعته/, "عنوان ستون تغییرات هوم باید کامل باشد");
 assert.match(category, /تغییرات ۲۴ ساعته/, "عنوان ستون تغییرات دسته‌بندی باید کامل باشد");
@@ -57,7 +57,9 @@ assert.doesNotMatch(home, /class="pair-content"/, "محتوای SEO قدیمی �
 assert.match(homeScript, /"usd"[\s\S]*"usdt"[\s\S]*"gold18"[\s\S]*"emami"[\s\S]*"btc"[\s\S]*"eur"/, "ترتیب شش قیمت مهم هوم باید ثابت بماند");
 assert.match(homeScript, /id: "gold18", name: "طلای ۱۸ عیار", code: "هر گرم"/, "واحد طلای هوم باید هر گرم باشد");
 assert.match(homeScript, /id: "emami", name: "سکه امامی", code: "هر عدد"/, "واحد سکه هوم باید هر عدد باشد");
+assert.match(homeScript, /name: "دلار"[\s\S]*name: "طلا"[\s\S]*name: "تتر"[\s\S]*name: "سکه"[\s\S]*name: "بیت‌کوین"/, "ترتیب دارایی‌های عنوان متغیر باید ثابت بماند");
 assert.match(homeStyles, /\.home-market-label small \{[^}]*direction: rtl;[^}]*text-align: right;/, "زیرعنوان ردیف هوم باید راست‌چین باشد");
+assert.match(homeStyles, /\.home-hero h1 \{[^}]*white-space: nowrap;/, "عنوان متغیر باید در همه اندازه‌ها یک‌خطی بماند");
 assert.match(read("assets/app.js"), /location\.href = target;[\s\S]*return;/, "تغییر جفت در هوم باید navigation واقعی انجام دهد");
 for (const source of [read("index.html"), converter, hub, category, asset]) assert.match(source, /class="site-footer"/, "همه قالب‌ها باید فوتر داشته باشند");
 assert.match(script, /crypto:[\s\S]*gold:[\s\S]*coin:/, "طلا و سکه باید دسته‌های جدا باشند");
