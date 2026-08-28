@@ -1,20 +1,6 @@
 (function () {
   "use strict";
 
-  var title = document.getElementById("rotating-title");
-  var phrases = ["قیمت لحظه‌ای دلار", "قیمت لحظه‌ای طلا", "قیمت لحظه‌ای بیت کوین", "مبدل قیمت"];
-  var phraseIndex = 0;
-  if (title && !(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches)) {
-    window.setInterval(function () {
-      title.classList.add("is-changing");
-      window.setTimeout(function () {
-        phraseIndex = (phraseIndex + 1) % phrases.length;
-        title.textContent = phrases[phraseIndex];
-        title.classList.remove("is-changing");
-      }, 220);
-    }, 2600);
-  }
-
   var rows = document.getElementById("home-market-rows");
   if (!rows) return;
 

@@ -44,11 +44,17 @@ assert.match(script, /text\(document\.getElementById\("asset-unit"\), priceLabel
 assert.match(styles, /\/\* Compact price hub category rows \*\/[\s\S]*\.category-grid\{[^}]*grid-template-columns:1fr/, "دسته‌های هاب باید همیشه تک‌ستونه باشند");
 assert.doesNotMatch(hub, /دید کلی بازار|انتخاب بازار|نرخ‌های لحظه ای/, "متن‌های تزئینی اضافه نباید در هاب قیمت باشند");
 assert.doesNotMatch(category + asset, /class="(?:eyebrow|section-kicker)"/, "برچسب سبز بالای عنوان در صفحات قیمت لازم نیست");
-assert.match(converter, /class="main-nav"[\s\S]*href="\/price\/"/, "سوییچ مبدل و قیمت باید در صفحه convert باشد");
-assert.doesNotMatch(read("index.html"), /class="main-nav"/, "سوییچ بالای هوم‌پیج باید حذف شود");
-assert.match(home, /id="rotating-title">قیمت لحظه‌ای دلار/, "عنوان چرخشی هوم لازم است");
+for (const [name, source] of [["home", home], ["convert", converter], ["price", hub], ["category", category], ["asset", asset]]) {
+  assert.doesNotMatch(source, /class="main-nav"/, `${name}: سوییچ هدر باید حذف شود`);
+}
+assert.doesNotMatch(home, /rotating-title|home-hero/, "عنوان متغیر هوم باید کامل حذف شود");
+assert.match(home, /<h1 id="important-market-title">قیمت‌ها<\/h1>/, "عنوان جدول هوم باید قیمت‌ها باشد");
+assert.match(home, /class="home-market-all" href="\/price\/">مشاهده همه/, "انتهای جدول باید لینک مشاهده همه داشته باشد");
+assert.match(home, /تغییرات ۲۴ ساعته/, "عنوان ستون تغییرات هوم باید کامل باشد");
+assert.match(category, /تغییرات ۲۴ ساعته/, "عنوان ستون تغییرات دسته‌بندی باید کامل باشد");
 assert.doesNotMatch(home, /class="pair-content"/, "محتوای SEO قدیمی مبدل باید از هوم حذف شود");
 assert.match(homeScript, /"usd"[\s\S]*"usdt"[\s\S]*"gold18"[\s\S]*"emami"[\s\S]*"btc"[\s\S]*"eur"/, "ترتیب شش قیمت مهم هوم باید ثابت بماند");
+assert.match(read("assets/app.js"), /location\.href = target;[\s\S]*return;/, "تغییر جفت در هوم باید navigation واقعی انجام دهد");
 for (const source of [read("index.html"), converter, hub, category, asset]) assert.match(source, /class="site-footer"/, "همه قالب‌ها باید فوتر داشته باشند");
 assert.match(script, /crypto:[\s\S]*gold:[\s\S]*coin:/, "طلا و سکه باید دسته‌های جدا باشند");
 assert.match(script, /fiat:\s*\{ name: "ارز", singular: "ارز"/, "نام دسته فیات باید ارز باشد");

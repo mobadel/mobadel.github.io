@@ -638,6 +638,12 @@
   function syncRoute() {
     var target = pathForPair(state.from, state.to);
     if (location.pathname === target) return;
+    // هوم‌پیج قالب متفاوتی دارد. با تغییر جفت باید یک navigation واقعی
+    // انجام شود تا جدول قیمت و محتوای هاب در صفحهٔ مبدل باقی نماند.
+    if ((String(location.pathname || "/").replace(/\/+$/, "") || "/") === "/") {
+      location.href = target;
+      return;
+    }
     try {
       history.pushState({ from: state.from, to: state.to }, "", target);
     } catch (error) {

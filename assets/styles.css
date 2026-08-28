@@ -581,13 +581,8 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
 }
 
 /* هاب صفحهٔ اصلی */
-.home-hero { padding: 32px 0 38px; text-align: center; }
-.home-hero h1 { min-height: 1.35em; margin: 0; font-size: clamp(34px, 7vw, 54px); line-height: 1.35; letter-spacing: -.035em; }
-.home-brand { color: var(--green); }
-.rotating-title { display: inline-block; color: var(--text); transition: opacity .22s ease, transform .22s ease; }
-.rotating-title.is-changing { opacity: 0; transform: translateY(8px); }
 .important-market { margin-bottom: 54px; }
-.important-market h2 { margin: 0 0 16px; font-size: clamp(21px, 4vw, 28px); }
+.important-market h1 { margin: 0 0 16px; font-size: clamp(28px, 5vw, 38px); }
 .home-market-table { overflow: hidden; border: 1px solid var(--border); border-radius: 22px; background: rgba(255,255,255,.94); box-shadow: var(--shadow); }
 .home-market-head,.home-market-row { display: grid; grid-template-columns: minmax(0,1.25fr) minmax(110px,.8fr) minmax(86px,.55fr); align-items: center; gap: 12px; }
 .home-market-head { padding: 11px 18px; color: var(--muted); background: var(--surface-muted); font-size: 12px; }
@@ -606,6 +601,8 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
 .home-market-change.negative { color: var(--danger); }
 .home-market-change.neutral { color: var(--muted); }
 .home-market-loading { padding: 30px; color: var(--muted); text-align: center; }
+.home-market-all { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 15px 18px; border-top: 1px solid var(--border); color: var(--green-dark); background: var(--surface-muted); font-size: 14px; font-weight: 700; text-decoration: none; }
+.home-market-all:hover { background: var(--green-soft); }
 
 /* فوتر مشترک */
 .site-footer { width: min(100% - 32px, 720px); margin: 0 auto; padding: 24px 0 max(34px, env(safe-area-inset-bottom)); border-top: 1px solid var(--border); }
@@ -614,7 +611,6 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
 .footer-links a:hover { color: var(--green-dark); }
 
 @media (max-width: 560px) {
-  .home-hero { padding: 22px 0 30px; }
   .important-market { margin-bottom: 42px; }
   .home-market-head,.home-market-row { grid-template-columns: minmax(0,1.15fr) minmax(94px,.8fr) 70px; gap: 7px; }
   .home-market-head { padding-inline: 12px; font-size: 10px; }
