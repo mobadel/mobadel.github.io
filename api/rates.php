@@ -169,6 +169,7 @@ if (!is_array($payload)) {
    نرخ دلار را پیدا می‌کنیم تا بتوانیم تبدیلش کنیم. بدون این، انس طلا
    با عدد ۴۵۸۲ به‌عنوان تومان وارد گراف می‌شد. */
 $usdToman = 0.0;
+$usdChange = 0.0;
 foreach ($payload as $section) {
     if (!is_array($section)) {
         continue;
@@ -176,6 +177,7 @@ foreach ($payload as $section) {
     foreach ($section as $row) {
         if (is_array($row) && ($row['symbol'] ?? '') === 'USD') {
             $usdToman = (float) ($row['price'] ?? 0);
+            $usdChange = (float) ($row['change_percent'] ?? 0);
             break 2;
         }
     }
@@ -201,6 +203,7 @@ foreach ($payload as $section) {
             continue;
         }
         $rowUnit = (string) ($row['unit'] ?? '');
+        $rowChange = (float) ($row['change_percent'] ?? 0);
         $usdPrice = str_contains($rowUnit, 'دلار') ? $price : null;
 
         // BrsApi اقلام ایرانی را به تومان می‌دهد، ولی اگر روزی واحد را
@@ -219,6 +222,11 @@ foreach ($payload as $section) {
             $price *= $usdToman;
         }
 
+        $tomanChange = $rowChange;
+        if ($symbol === 'XAUUSD') {
+            $tomanChange = ((1 + $rowChange / 100) * (1 + $usdChange / 100) - 1) * 100;
+        }
+
         $meta = ASSET_MAP[$symbol];
         $assets[$meta['id']] = [
             'toman'  => $price,
@@ -226,7 +234,8 @@ foreach ($payload as $section) {
             'group'  => $meta['group'],
             'unit'   => $meta['unit'],
             'name'   => (string) ($row['name'] ?? $meta['id']),
-            'change' => (float) ($row['change_percent'] ?? 0),
+            'change' => $rowChange,
+            'toman_change' => $tomanChange,
         ];
         $latest = max($latest, (int) ($row['time_unix'] ?? 0));
     }

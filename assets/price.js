@@ -10,21 +10,21 @@
     fiat: { name: "ارز", singular: "ارز", description: "قیمت لحظه ای دلار، یورو و دیگر ارزهای رایج به تومان", icon: "/assets/flags/us.svg" }
   };
   var CATEGORY_ORDER = ["fiat", "gold", "coin", "commodity", "crypto"];
+  var GROUP_SLUGS = { fiat: "currency" };
   var SLUGS = { goldmelted: "melted", goldounce: "ounce", bahar: "baharazadi", halfcoin: "nim", quartercoin: "rob", gramcoin: "gerami" };
   var SLUG_TO_ID = {};
   Object.keys(SLUGS).forEach(function (id) { SLUG_TO_ID[SLUGS[id]] = id; });
   var UNIT_LABELS = { gram: "گرم", piece: "عدد", mesghal: "مثقال", ounce: "انس", kilogram: "کیلو" };
-  var RANKED = ["btc", "usdt", "eth", "usdc", "xrp", "bnb", "sol", "doge", "trx", "ada", "gold18", "gold24", "goldmelted", "goldounce", "emami", "bahar", "halfcoin", "quartercoin", "gramcoin", "silver", "copper", "usd", "eur", "gbp", "aed", "try", "chf", "cad", "aud", "irt"];
+  var RANKED = ["btc", "usdt", "eth", "usdc", "xrp", "bnb", "sol", "doge", "trx", "ada", "gold18", "gold24", "goldmelted", "goldounce", "emami", "bahar", "halfcoin", "quartercoin", "gramcoin", "silver", "copper", "usd", "eur", "gbp", "aed", "try", "chf", "cad", "aud"];
   var RANK = {};
   var USD_STABLECOINS = { usdt: true, usdc: true, dai: true, busd: true, usde: true, tusd: true, fdusd: true, usdd: true, pyusd: true, gusd: true, susd: true, frax: true };
   RANKED.forEach(function (id, index) { RANK[id] = index; });
 
   var FIXED = [
-    { id: "irt", name: "تومان", englishName: "Toman", code: "IRT", group: "fiat", unit: null, icon: "/assets/flags/ir.svg", price: 1, change: 0, source: "واحد پایه تبدکس" },
     { id: "gold18", name: "طلای ۱۸ عیار", englishName: "18K Gold", group: "gold", unit: "gram", icon: "/assets/gold-18k.svg" },
     { id: "gold24", name: "طلای ۲۴ عیار", englishName: "24K Gold", group: "gold", unit: "gram", icon: "/assets/gold-18k.svg" },
     { id: "goldmelted", name: "طلای آب‌شده", englishName: "Melted Gold", group: "gold", unit: "mesghal", icon: "/assets/gold-18k.svg" },
-    { id: "goldounce", name: "انس طلا", englishName: "Gold Ounce", group: "gold", unit: "ounce", icon: "/assets/gold-18k.svg" },
+    { id: "goldounce", name: "انس جهانی طلا", englishName: "Gold Ounce", group: "gold", unit: "ounce", icon: "/assets/gold-18k.svg" },
     { id: "emami", name: "سکه امامی", englishName: "Emami Coin", group: "coin", unit: "piece", icon: "/assets/coin-emami.webp?v=20260825-2" },
     { id: "bahar", name: "سکه بهار آزادی", englishName: "Bahar Azadi Coin", group: "coin", unit: "piece", icon: "/assets/coin-emami.webp?v=20260825-2" },
     { id: "halfcoin", name: "نیم سکه", englishName: "Half Coin", group: "coin", unit: "piece", icon: "/assets/coin-emami.webp?v=20260825-2" },
@@ -67,8 +67,10 @@
 
   function slugOf(id) { return SLUGS[id] || id; }
   function idFromSlug(slug) { return SLUG_TO_ID[slug] || slug; }
-  function assetUrl(asset) { return "/price/" + asset.group + "/" + slugOf(asset.id) + "/"; }
-  function categoryUrl(group) { return "/price/" + group + "/"; }
+  function groupSlug(group) { return GROUP_SLUGS[group] || group; }
+  function groupFromSlug(slug) { return slug === "currency" ? "fiat" : slug; }
+  function assetUrl(asset) { return "/price/" + groupSlug(asset.group) + "/" + slugOf(asset.id) + "/"; }
+  function categoryUrl(group) { return "/price/" + groupSlug(group) + "/"; }
   function normalizeId(id) { id = String(id || "").toLowerCase(); return id === "rls" ? "irt" : id; }
   function rank(asset) { return RANK[asset.id] == null ? RANKED.length : RANK[asset.id]; }
   function compareAssets(a, b) { return rank(a) - rank(b) || a.name.localeCompare(b.name, "fa"); }
@@ -128,7 +130,7 @@
         var usdtRow = stats[id + "-usdt"]; var usdtPrice = Number(usdtRow && usdtRow.latest); var useUsdt = !USD_STABLECOINS[id] && Number.isFinite(usdtPrice) && usdtPrice > 0;
         var nameRow = names[id] || {}; assets[id] = {
           id: id, name: nameRow.fa || id.toUpperCase(), englishName: nameRow.en || id.toUpperCase(), code: id.toUpperCase(), group: "crypto", unit: null,
-          icon: iconPath(id), price: useUsdt ? usdtPrice : tomanPrice, priceCurrency: useUsdt ? "USDT" : "IRT", tomanPrice: useUsdt ? tomanPrice : null,
+          icon: iconPath(id), price: useUsdt ? usdtPrice : tomanPrice, priceCurrency: useUsdt ? "USDT" : "IRT", tomanPrice: useUsdt ? tomanPrice : null, tomanChange: useUsdt ? Number(tomanRow.dayChange) : null,
           change: Number((useUsdt ? usdtRow : tomanRow).dayChange), source: useUsdt ? "بازار تتری نوبیتکس" : "بازار تومانی نوبیتکس", updatedAt: new Date()
         };
       });
@@ -138,7 +140,7 @@
   function loadProxy() {
     return loadJson("/api/rates.php?t=" + Date.now(), 9000).then(function (payload) {
       var rows = payload && payload.assets || {}; var at = payload.updated ? new Date(payload.updated) : new Date(); if (!Number.isFinite(at.getTime())) at = new Date();
-      Object.keys(rows).forEach(function (id) { if (!assets[id]) return; var row = rows[id]; var usd = Number(row.usd); var dollarPrimary = id === "goldounce" && Number.isFinite(usd) && usd > 0; assets[id].price = dollarPrimary ? usd : Number(row.toman); assets[id].priceCurrency = dollarPrimary ? "USD" : "IRT"; assets[id].tomanPrice = dollarPrimary ? Number(row.toman) : null; assets[id].change = Number(row.change); assets[id].source = dollarPrimary ? "بازار جهانی طلا" : id === "silver" || id === "copper" ? "بورس کالا" : "بازار ایران"; assets[id].updatedAt = at; });
+      Object.keys(rows).forEach(function (id) { if (!assets[id]) return; var row = rows[id]; var usd = Number(row.usd); var dollarPrimary = id === "goldounce" && Number.isFinite(usd) && usd > 0; assets[id].price = dollarPrimary ? usd : Number(row.toman); assets[id].priceCurrency = dollarPrimary ? "USD" : "IRT"; assets[id].tomanPrice = dollarPrimary ? Number(row.toman) : null; assets[id].tomanChange = dollarPrimary ? Number(row.toman_change) : null; assets[id].change = Number(row.change); assets[id].source = dollarPrimary ? "بازار جهانی طلا" : id === "silver" || id === "copper" ? "بورس کالا" : "بازار ایران"; assets[id].updatedAt = at; });
       if (!latestUpdate || at > latestUpdate) latestUpdate = at;
     });
   }
@@ -160,7 +162,7 @@
     var path = "/price/"; setSchema([{ "@type": "WebPage", "@id": ORIGIN + path + "#page", name: "قیمت لحظه ای دارایی‌ها", url: ORIGIN + path, inLanguage: "fa-IR" }, breadcrumb([{ name: "تبدکس", path: "/" }, { name: "قیمت‌ها", path: path }]), { "@type": "ItemList", name: "دسته‌بندی بازارهای تبدکس", itemListElement: CATEGORY_ORDER.map(function (id, index) { return { "@type": "ListItem", position: index + 1, name: CATEGORIES[id].name, url: ORIGIN + categoryUrl(id) }; }) }]);
   }
 
-  function categoryFromPath() { var parts = location.pathname.split("/").filter(Boolean); return parts[1] || ""; }
+  function categoryFromPath() { var parts = location.pathname.split("/").filter(Boolean); return groupFromSlug(parts[1] || ""); }
   function assetSlugFromPath() { var parts = location.pathname.split("/").filter(Boolean); return parts[2] || ""; }
   function renderCategory() {
     var group = categoryFromPath(); var category = CATEGORIES[group]; if (!category) return renderNotFound("دسته‌بندی پیدا نشد");
@@ -173,20 +175,20 @@
     setSchema([{ "@type": "CollectionPage", "@id": ORIGIN + path + "#page", name: "قیمت لحظه ای " + category.name, description: description, url: ORIGIN + path, inLanguage: "fa-IR" }, breadcrumb([{ name: "تبدکس", path: "/" }, { name: "قیمت‌ها", path: "/price/" }, { name: category.name, path: path }]), { "@type": "ItemList", name: "فهرست قیمت " + category.name, numberOfItems: list.length, itemListElement: list.map(function (asset, index) { return { "@type": "ListItem", position: index + 1, name: asset.name, url: ORIGIN + assetUrl(asset) }; }) }]);
   }
 
-  function descriptionFor(asset) { var units = priceLabel(asset) + (Number.isFinite(asset.tomanPrice) ? " و معادل تومان" : ""); return "قیمت لحظه ای " + asset.name + " امروز به " + units + "، درصد تغییرات ۲۴ ساعته و اطلاعات بازار " + asset.name + " در تبدکس."; }
+  function descriptionFor(asset) { var units = priceLabel(asset) + (Number.isFinite(asset.tomanPrice) ? " و نرخ تومان" : ""); return "قیمت لحظه ای " + asset.name + " امروز به " + units + "، درصد تغییرات ۲۴ ساعته و اطلاعات بازار " + asset.name + " در تبدکس."; }
   function renderAsset() {
     var group = categoryFromPath(); var id = idFromSlug(assetSlugFromPath()); var category = CATEGORIES[group]; var asset = assets[id]; if (!category || !asset || asset.group !== group || !Number.isFinite(asset.price)) return renderNotFound("قیمت این دارایی در دسترس نیست");
     var path = assetUrl(asset); var title = "قیمت لحظه ای " + asset.name + " امروز | تبدکس"; var description = descriptionFor(asset); setDocumentMeta(title, description, path);
     var categoryLink = document.getElementById("asset-category-link"); if (categoryLink) { categoryLink.href = categoryUrl(group); categoryLink.textContent = category.name; }
     text(document.getElementById("asset-crumb"), asset.name); text(document.getElementById("asset-title"), "قیمت " + asset.name); var english = document.getElementById("asset-english"); if (english) { english.hidden = asset.group !== "crypto"; text(english, asset.group === "crypto" ? asset.englishName + (asset.code ? " · " + asset.code : "") : ""); }
     var icon = document.getElementById("asset-main-icon"); if (icon) { icon.classList.toggle("is-full-bleed", asset.group === "gold" || asset.group === "commodity"); icon.replaceChildren(); icon.appendChild(createIcon(asset, "asset-main-icon-inner")); }
-    text(document.getElementById("asset-price"), formatPrice(asset.price)); text(document.getElementById("asset-unit"), priceLabel(asset)); var secondary = document.getElementById("asset-secondary"); if (secondary) { secondary.hidden = !Number.isFinite(asset.tomanPrice); text(document.getElementById("asset-secondary-price"), Number.isFinite(asset.tomanPrice) ? formatPrice(asset.tomanPrice) + " تومان" : "—"); } var changeBox = document.getElementById("asset-change"); if (changeBox) { changeBox.className = "price-change " + changeClass(asset.change); var strong = changeBox.querySelector("strong"); text(strong, formatChange(asset.change)); }
+    text(document.getElementById("asset-price"), formatPrice(asset.price)); text(document.getElementById("asset-unit"), priceLabel(asset)); var secondary = document.getElementById("asset-secondary"); if (secondary) { var hasToman = Number.isFinite(asset.tomanPrice); secondary.hidden = !hasToman; text(document.getElementById("asset-secondary-price"), hasToman ? formatPrice(asset.tomanPrice) : "—"); var secondaryChange = document.getElementById("asset-secondary-change"); if (secondaryChange) text(secondaryChange.querySelector("strong"), hasToman ? formatChange(asset.tomanChange) : "—"); } var changeBox = document.getElementById("asset-change"); if (changeBox) { changeBox.className = "price-change " + changeClass(asset.change); var strong = changeBox.querySelector("strong"); text(strong, formatChange(asset.change)); }
     var freshness = document.getElementById("asset-freshness"); if (freshness) { var dot = document.createElement("i"); dot.setAttribute("aria-hidden", "true"); freshness.replaceChildren(dot, document.createTextNode(" آخرین به‌روزرسانی " + formatTime(asset.updatedAt || latestUpdate))); }
-    text(document.getElementById("asset-content-title"), "قیمت " + asset.name + " امروز"); var movement = asset.change > 0 ? "افزایش" : asset.change < 0 ? "کاهش" : "بدون تغییر"; var tomanSentence = Number.isFinite(asset.tomanPrice) ? " معادل تومانی آن " + formatPrice(asset.tomanPrice) + " تومان است." : ""; text(document.getElementById("asset-content-lead"), "قیمت هر " + unitText(asset) + " " + asset.name + " اکنون " + formattedPrice(asset) + " است." + tomanSentence + " این قیمت در ۲۴ ساعت گذشته " + formatAbsoluteChange(asset.change) + " " + movement + " داشته است.");
+    text(document.getElementById("asset-content-title"), "قیمت " + asset.name + " امروز"); var movement = asset.change > 0 ? "افزایش" : asset.change < 0 ? "کاهش" : "بدون تغییر"; var tomanSentence = Number.isFinite(asset.tomanPrice) ? " نرخ آن در بازار تومانی " + formatPrice(asset.tomanPrice) + " تومان است." : ""; text(document.getElementById("asset-content-lead"), "قیمت هر " + unitText(asset) + " " + asset.name + " اکنون " + formattedPrice(asset) + " است." + tomanSentence + " این قیمت در ۲۴ ساعت گذشته " + formatAbsoluteChange(asset.change) + " " + movement + " داشته است.");
     text(document.getElementById("asset-about-title"), "درباره " + asset.name); text(document.getElementById("asset-about-text"), asset.name + (asset.code ? " با نماد " + asset.code : "") + " در دسته " + category.name + " قرار دارد. این صفحه آخرین قیمت قابل دریافت از " + (asset.source || "بازار") + " را نمایش می‌دهد و برای پیگیری ارزش روز این دارایی به‌روزرسانی می‌شود.");
     text(document.getElementById("asset-usage-text"), "با مقایسه قیمت لحظه ای و درصد تغییر ۲۴ ساعته می‌توانید جهت حرکت کوتاه‌مدت قیمت " + asset.name + " را بهتر ببینید. این داده صرفاً برای محاسبه و اطلاع‌رسانی است و پیشنهاد خرید یا فروش محسوب نمی‌شود.");
     var converter = document.getElementById("asset-converter-link"); if (converter) { converter.href = "/" + slugOf(asset.id) + "-to-irt/"; converter.firstChild.nodeValue = "تبدیل " + asset.name + " به تومان در مبدل "; }
-    var measured = [{ "@type": "PropertyValue", name: "قیمت به " + priceLabel(asset), value: asset.price, unitText: priceLabel(asset) }, { "@type": "PropertyValue", name: "تغییر ۲۴ ساعته", value: Number.isFinite(asset.change) ? asset.change : null, unitText: "درصد" }]; if (Number.isFinite(asset.tomanPrice)) measured.push({ "@type": "PropertyValue", name: "معادل تومانی", value: asset.tomanPrice, unitText: "تومان" }); var dataset = { "@type": "Dataset", name: "قیمت لحظه ای " + asset.name, description: description, url: ORIGIN + path, dateModified: (asset.updatedAt || latestUpdate || new Date()).toISOString(), variableMeasured: measured };
+    var measured = [{ "@type": "PropertyValue", name: "قیمت به " + priceLabel(asset), value: asset.price, unitText: priceLabel(asset) }, { "@type": "PropertyValue", name: "تغییر ۲۴ ساعته", value: Number.isFinite(asset.change) ? asset.change : null, unitText: "درصد" }]; if (Number.isFinite(asset.tomanPrice)) measured.push({ "@type": "PropertyValue", name: "قیمت تومانی", value: asset.tomanPrice, unitText: "تومان" }); var dataset = { "@type": "Dataset", name: "قیمت لحظه ای " + asset.name, description: description, url: ORIGIN + path, dateModified: (asset.updatedAt || latestUpdate || new Date()).toISOString(), variableMeasured: measured };
     setSchema([{ "@type": "WebPage", "@id": ORIGIN + path + "#page", name: title.replace(" | تبدکس", ""), description: description, url: ORIGIN + path, inLanguage: "fa-IR", about: { "@type": "Thing", name: asset.name, alternateName: asset.code || asset.englishName }, mainEntity: { "@id": ORIGIN + path + "#dataset" } }, breadcrumb([{ name: "تبدکس", path: "/" }, { name: "قیمت‌ها", path: "/price/" }, { name: category.name, path: categoryUrl(group) }, { name: asset.name, path: path }]), Object.assign({ "@id": ORIGIN + path + "#dataset" }, dataset)]);
   }
 

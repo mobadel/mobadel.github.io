@@ -6,6 +6,11 @@ DirectoryIndex index.html
 <IfModule mod_rewrite.c>
   RewriteEngine On
 
+  # مسیر قدیمی ارزها به currency منتقل می‌شود؛ صفحه قیمت تومان عمداً حذف شده است.
+  RewriteRule ^price/(?:fiat|currency)/irt/?$ - [R=410,L]
+  RewriteRule ^price/fiat/?$ /price/currency/ [R=301,L,NE]
+  RewriteRule ^price/fiat/([a-z0-9]+)/?$ /price/currency/$1/ [R=301,L,NE]
+
   # اگر فایل یا پوشهٔ واقعی وجود دارد، دست نزن. صفحه‌های ایستایی که
   # هنگام دیپلوی ساخته می‌شوند از همین راه سرو می‌شوند و بازنویسی
   # سراغشان نمی‌رود.
@@ -14,8 +19,8 @@ DirectoryIndex index.html
   RewriteRule ^ - [L]
 
   # صفحه‌های قیمت: قالب هر دسته و هر دارایی بر اساس مسیر جاری پر می‌شود.
-  RewriteRule ^price/(crypto|gold|coin|commodity|fiat)/?$ price/category.html [L]
-  RewriteRule ^price/(crypto|gold|coin|commodity|fiat)/[a-z0-9]+/?$ price/asset.html [L]
+  RewriteRule ^price/(crypto|gold|coin|commodity|currency)/?$ price/category.html [L]
+  RewriteRule ^price/(crypto|gold|coin|commodity|currency)/[a-z0-9]+/?$ price/asset.html [L]
 
   # هر مسیر تبدیل به شکل /btc-to-irt/ یا /gold18-to-irt به index.html
   # می‌رسد و جاوااسکریپت جفت را از روی آدرس می‌خواند. تعداد این جفت‌ها
