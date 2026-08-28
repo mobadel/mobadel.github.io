@@ -49,6 +49,7 @@ for (const [name, source] of [["home", home], ["convert", converter], ["price", 
   assert.doesNotMatch(source, /class="main-nav"/, `${name}: سوییچ هدر باید حذف شود`);
 }
 assert.match(home, /class="home-hero"[\s\S]*قیمت لحظه‌ای[\s\S]*id="rotating-asset-name">دلار/, "عنوان متغیر هوم باید با دلار شروع شود");
+assert.match(home, /id="rotating-asset-name">دلار<\/span><img id="rotating-asset-icon"/, "آیکون باید در سمت چپ نام متغیر قرار بگیرد");
 assert.match(home, /<h2 id="important-market-title">قیمت‌ها<\/h2>/, "عنوان جدول هوم باید قیمت‌ها باشد");
 assert.match(home, /class="home-market-all" href="\/price\/">مشاهده همه/, "انتهای جدول باید لینک مشاهده همه داشته باشد");
 assert.match(home, /تغییرات ۲۴ ساعته/, "عنوان ستون تغییرات هوم باید کامل باشد");
