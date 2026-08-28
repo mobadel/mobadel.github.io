@@ -6,11 +6,11 @@ process.on("unhandledRejection", (error) => { console.error(error); process.exit
 const fs = require("node:fs");
 const vm = require("node:vm");
 
-const html = fs.readFileSync("index.html", "utf8");
+const html = fs.readFileSync("convert/index.html", "utf8");
 const styles = fs.readFileSync("assets/styles.css", "utf8");
 assert.match(html, /<title>تبدیل قیمت دلار، طلا، ارز دیجیتال و سایر دارایی‌ها \| مبدل قیمت \| تبدکس<\/title>/);
 assert.match(html, /<meta name="description" content="تبدیل قیمت دلار، طلا، سکه، تتر، بیت کوین، ارزهای دیجیتال، نقره و سایر دارایی‌ها با نرخ لحظه ای بازار ایران و جهان در تبدکس\.">/);
-assert.match(html, /<link rel="canonical" href="https:\/\/tabdex\.ir\/">/);
+assert.match(html, /<link rel="canonical" href="https:\/\/tabdex\.ir\/convert\/">/);
 assert.match(html, /<link rel="icon" href="\/assets\/favicon-48x48\.png" type="image\/png" sizes="48x48">/);
 assert.match(html, /<link rel="apple-touch-icon" href="\/assets\/apple-touch-icon\.png" sizes="180x180">/);
 assert.doesNotMatch(html, /mobadel\.github\.io/);
@@ -18,7 +18,7 @@ assert.match(html, /<h1 id="page-title">تبدیل دلار به تومان<\/h1
 assert.match(html, /<h2 class="rate-value" id="rate-value">/);
 assert.match(html, /<h2 id="pair-content-title">تبدیل دلار به تومان با قیمت لحظه ای و سریع<\/h2>/);
 assert.doesNotMatch(html, /<h2 id="asset-dialog-title">/);
-assert.match(html, /<script src="\/assets\/app\.js\?v=20260825-2"><\/script>/);
+assert.match(html, /<script src="\/assets\/app\.js\?v=20260828-1"><\/script>/);
 assert.match(fs.readFileSync("assets/app.js", "utf8"), /coin-emami\.webp\?v=20260825-2/);
 assert.ok(fs.existsSync("assets/coin-emami.webp"));
 assert.ok(fs.statSync("assets/coin-emami.webp").size < 25000, "آیکون سکه باید برای وب بهینه باشد");
@@ -133,7 +133,7 @@ global.window = {
   addEventListener(name, callback) { (windowListeners[name] ||= []).push(callback); },
   dispatch(name) { (windowListeners[name] || []).forEach((callback) => callback({})); }
 };
-global.location = { hash: "", pathname: "/", search: "" };
+global.location = { hash: "", pathname: "/convert/", search: "" };
 // تاریخچهٔ جعلی: آدرس را روی location می‌نشاند تا بشود بررسی کرد
 // چه چیزی به نوار آدرس رفته.
 const historyStack = [];
@@ -364,10 +364,10 @@ setTimeout(async () => {
   elements["asset-list"].children.find((item) => item.dataset.currency === "btc").dispatch("click");
   openDialog("to");
   elements["asset-list"].children.find((item) => item.dataset.currency === "irt").dispatch("click");
-  assert.equal(location.pathname, "/btc-to-irt/", "تغییر جفت باید آدرس را عوض کند");
+  assert.equal(location.pathname, "/convert/btc-to-irt/", "تغییر جفت باید آدرس را عوض کند");
   assert.equal(document.title, "تبدیل بیت کوین به تومان | مبدل قیمت | تبدکس");
   assert.equal(headTags['meta[name="description"]'].attributes.content, "تبدیل بیت کوین به تومان با قیمت لحظه ای. مبدل نرخ بیت کوین به تومان.");
-  assert.equal(headTags['link[rel="canonical"]'].attributes.href, "https://tabdex.ir/btc-to-irt/");
+  assert.equal(headTags['link[rel="canonical"]'].attributes.href, "https://tabdex.ir/convert/btc-to-irt/");
 
   // ولی تغییر مقدار نباید آدرس را دست بزند.
   const beforeAmount = location.pathname;
@@ -380,7 +380,7 @@ setTimeout(async () => {
 
   // جابه‌جایی طرفین آدرس معکوس می‌سازد.
   elements["swap"].dispatch("click");
-  assert.equal(location.pathname, "/irt-to-btc/", "جابه‌جایی باید آدرس معکوس بسازد");
+  assert.equal(location.pathname, "/convert/irt-to-btc/", "جابه‌جایی باید آدرس معکوس بسازد");
 
   // تتر به تومان، با وجود نمایش‌دادن همین جفت در نسخه‌های قدیمی خانه،
   // باید مسیر و canonical مستقل خودش را داشته باشد.
@@ -390,10 +390,10 @@ setTimeout(async () => {
   elements["asset-list"].children.find((item) => item.dataset.currency === "usdt").dispatch("click");
   openDialog("to");
   elements["asset-list"].children.find((item) => item.dataset.currency === "irt").dispatch("click");
-  assert.equal(location.pathname, "/usdt-to-irt/", "تتر به تومان باید آدرس اسلاگ‌دار بدهد");
+  assert.equal(location.pathname, "/convert/usdt-to-irt/", "تتر به تومان باید آدرس اسلاگ‌دار بدهد");
   assert.equal(
     headTags['link[rel="canonical"]'].attributes.href,
-    "https://tabdex.ir/usdt-to-irt/",
+    "https://tabdex.ir/convert/usdt-to-irt/",
     "canonical تتر به تومان باید مستقل باشد"
   );
 
@@ -402,8 +402,8 @@ setTimeout(async () => {
   elements["asset-search"].value = "usd";
   elements["asset-search"].dispatch("input");
   elements["asset-list"].children.find((item) => item.dataset.currency === "usd").dispatch("click");
-  assert.equal(location.pathname, "/usd-to-irt/", "دلار به تومان باید آدرس مستقل خودش را نشان دهد");
-  assert.equal(headTags['link[rel="canonical"]'].attributes.href, "https://tabdex.ir/usd-to-irt/");
+  assert.equal(location.pathname, "/convert/usd-to-irt/", "دلار به تومان باید آدرس مستقل خودش را نشان دهد");
+  assert.equal(headTags['link[rel="canonical"]'].attributes.href, "https://tabdex.ir/convert/usd-to-irt/");
 
   /* ── فلزات: منبع به‌جای نماد لاتین ────────────────────────── */
   openDialog("from");

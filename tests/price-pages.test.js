@@ -13,10 +13,13 @@ const deploy = read(".github/workflows/deploy-parspack.yml");
 const sitemap = read("sitemap.xml");
 const builder = read("scripts/build-pages.mjs");
 const ratesApi = read("api/rates.php");
-const converter = read("index.html");
+const converter = read("convert/index.html");
+const home = read("index.html");
+const homeScript = read("assets/home.js");
 
 // فایل جاوااسکریپت باید مستقل و از نظر نحوی معتبر باشد.
 new vm.Script(script, { filename: "assets/price.js" });
+new vm.Script(homeScript, { filename: "assets/home.js" });
 
 for (const [name, html] of [["hub", hub], ["category", category], ["asset", asset]]) {
   assert.match(html, /class="breadcrumbs"/, `${name}: بردکرامب لازم است`);
@@ -28,7 +31,7 @@ for (const [name, html] of [["hub", hub], ["category", category], ["asset", asse
 
 assert.ok(asset.indexOf('id="asset-price"') < asset.indexOf('class="asset-content"'), "قیمت باید بالاتر از محتوای SEO باشد");
 assert.match(hub, /<h1>قیمت لحظه‌ای<\/h1>/, "عنوان صفحه اصلی قیمت باید کوتاه باشد");
-assert.match(converter, /<p class="eyebrow">مبدل قیمت<\/p>/, "هوم‌پیج باید برچسب مبدل قیمت داشته باشد");
+assert.match(converter, /<p class="eyebrow">مبدل قیمت<\/p>/, "صفحه convert باید برچسب مبدل قیمت داشته باشد");
 assert.doesNotMatch(hub, /دارایی‌های پرکاربرد|featured-assets|updated-label|market-overview/, "هاب قیمت فقط باید دسته‌بندی‌ها را نشان دهد");
 assert.match(script, /className = "category-card-details"/, "نام و تعداد هر دسته باید در یک ستون جمع‌وجور باشند");
 assert.match(script, /CATEGORY_ORDER = \["fiat", "gold", "coin", "commodity", "crypto"\]/, "ترتیب هاب باید ارز، طلا، سکه، فلزات و ارز دیجیتال باشد");
@@ -41,7 +44,12 @@ assert.match(script, /text\(document\.getElementById\("asset-unit"\), priceLabel
 assert.match(styles, /\/\* Compact price hub category rows \*\/[\s\S]*\.category-grid\{[^}]*grid-template-columns:1fr/, "دسته‌های هاب باید همیشه تک‌ستونه باشند");
 assert.doesNotMatch(hub, /دید کلی بازار|انتخاب بازار|نرخ‌های لحظه ای/, "متن‌های تزئینی اضافه نباید در هاب قیمت باشند");
 assert.doesNotMatch(category + asset, /class="(?:eyebrow|section-kicker)"/, "برچسب سبز بالای عنوان در صفحات قیمت لازم نیست");
-assert.match(converter, /class="main-nav"[\s\S]*href="\/price\/"/, "سوییچ مبدل و قیمت باید در صفحه مبدل هم باشد");
+assert.match(converter, /class="main-nav"[\s\S]*href="\/price\/"/, "سوییچ مبدل و قیمت باید در صفحه convert باشد");
+assert.doesNotMatch(read("index.html"), /class="main-nav"/, "سوییچ بالای هوم‌پیج باید حذف شود");
+assert.match(home, /id="rotating-title">قیمت لحظه‌ای دلار/, "عنوان چرخشی هوم لازم است");
+assert.doesNotMatch(home, /class="pair-content"/, "محتوای SEO قدیمی مبدل باید از هوم حذف شود");
+assert.match(homeScript, /"usd"[\s\S]*"usdt"[\s\S]*"gold18"[\s\S]*"emami"[\s\S]*"btc"[\s\S]*"eur"/, "ترتیب شش قیمت مهم هوم باید ثابت بماند");
+for (const source of [read("index.html"), converter, hub, category, asset]) assert.match(source, /class="site-footer"/, "همه قالب‌ها باید فوتر داشته باشند");
 assert.match(script, /crypto:[\s\S]*gold:[\s\S]*coin:/, "طلا و سکه باید دسته‌های جدا باشند");
 assert.match(script, /fiat:\s*\{ name: "ارز", singular: "ارز"/, "نام دسته فیات باید ارز باشد");
 assert.match(script, /asset\.group === "crypto" \? asset\.englishName/, "نام انگلیسی فقط برای رمزارز نمایش داده شود");
@@ -86,7 +94,9 @@ assert.match(htaccess, /\^price\/\(crypto\|gold\|coin\|commodity\|currency\)\/\?
 assert.match(htaccess, /\^price\/fiat\/\?\$ \/price\/currency\/ \[R=301,L,NE\]/, "مسیر قدیمی fiat باید دائمی به currency منتقل شود");
 assert.match(htaccess, /\^price\/\(\?:fiat\|currency\)\/irt\/\?\$ - \[R=410,L\]/, "صفحه قیمت تومان باید حذف و Gone شود");
 assert.match(htaccess, /price\/asset\.html/, "مسیر دارایی قیمت باید بازنویسی شود");
-assert.match(deploy, /assets data scripts api price _site\//, "پوشه price باید منتشر شود");
+assert.match(htaccess, /\^\(\[a-z0-9\]\+\)-to-\(\[a-z0-9\]\+\)\/\?\$ \/convert\/\$1-to-\$2\/ \[R=301,L,NE\]/, "مسیر قدیمی مبدل باید ۳۰۱ شود");
+assert.match(htaccess, /\^convert\/\[a-z0-9\]\+-to-\[a-z0-9\]\+\/\?\$ convert\/index\.html/, "مسیرهای جدید مبدل باید بازنویسی شوند");
+assert.match(deploy, /assets data scripts api price convert _site\//, "پوشه‌های price و convert باید منتشر شوند");
 
 // صفحات قیمت باید index/follow باشند و مولد سایت‌مپ همهٔ دسته‌ها، تمام
 // دارایی‌های غیرکریپتو و دقیقاً ۵۰ رمزارز منتخب را ثبت کند.

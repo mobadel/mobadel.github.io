@@ -121,64 +121,65 @@ function loadAt(pathname, search = "") {
 
 (async () => {
   // ── جفت از روی آدرس خوانده می‌شود ─────────────────────────────
-  let page = loadAt("/gold18-to-eur/");
+  let page = loadAt("/convert/gold18-to-eur/");
   assert.equal(page.heading(), "تبدیل طلای ۱۸ عیار به یورو", "جفت باید از آدرس خوانده شود");
 
   // ── پارامتر amount ────────────────────────────────────────────
-  page = loadAt("/gold18-to-irt/", "?amount=300");
+  page = loadAt("/convert/gold18-to-irt/", "?amount=300");
   assert.equal(page.elements["amount-from"].value, "۳۰۰", "مقدار باید از پارامتر آدرس بیاید");
 
   // ── اسلاگ‌های ویژه ────────────────────────────────────────────
   const slugCases = [
-    ["/melted-to-irt/", "تبدیل طلای آب‌شده به تومان"],
-    ["/ounce-to-irt/", "تبدیل انس طلا به تومان"],
-    ["/baharazadi-to-irt/", "تبدیل سکه بهار آزادی به تومان"],
-    ["/nim-to-irt/", "تبدیل نیم سکه به تومان"],
-    ["/rob-to-irt/", "تبدیل ربع سکه به تومان"],
-    ["/gerami-to-irt/", "تبدیل سکه یک گرمی به تومان"],
-    ["/gold24-to-usd/", "تبدیل طلای ۲۴ عیار به دلار"]
+    ["/convert/melted-to-irt/", "تبدیل طلای آب‌شده به تومان"],
+    ["/convert/ounce-to-irt/", "تبدیل انس طلا به تومان"],
+    ["/convert/baharazadi-to-irt/", "تبدیل سکه بهار آزادی به تومان"],
+    ["/convert/nim-to-irt/", "تبدیل نیم سکه به تومان"],
+    ["/convert/rob-to-irt/", "تبدیل ربع سکه به تومان"],
+    ["/convert/gerami-to-irt/", "تبدیل سکه یک گرمی به تومان"],
+    ["/convert/gold24-to-usd/", "تبدیل طلای ۲۴ عیار به دلار"]
   ];
   slugCases.forEach(([path, expected]) => {
     assert.equal(loadAt(path).heading(), expected, `اسلاگ ${path} باید درست نگاشت شود`);
   });
 
   // ── بدون اسلش پایانی هم باید کار کند ──────────────────────────
-  assert.equal(loadAt("/emami-to-irt").heading(), "تبدیل سکه امامی به تومان");
+  assert.equal(loadAt("/convert/emami-to-irt").heading(), "تبدیل سکه امامی به تومان");
 
   // ── آدرس نامعتبر نباید صفحه را بشکند؛ به پیش‌فرض برمی‌گردد ─────
   assert.equal(loadAt("/totally-unknown-thing/").heading(), "تبدیل دلار به تومان", "اسلاگ ناشناخته باید بی‌خطر باشد");
-  assert.equal(loadAt("/btc-to-btc/").heading(), "تبدیل دلار به تومان", "جفت یکسان باید نادیده گرفته شود");
+  assert.equal(loadAt("/convert/btc-to-btc/").heading(), "تبدیل دلار به تومان", "جفت یکسان باید نادیده گرفته شود");
 
   // ── ریشه همان پیش‌فرض می‌ماند ─────────────────────────────────
   const rootPage = loadAt("/");
   assert.equal(rootPage.heading(), "تبدیل دلار به تومان");
-  assert.equal(document.title, "تبدیل قیمت دلار، طلا، ارز دیجیتال و سایر دارایی‌ها | مبدل قیمت | تبدکس");
-  assert.equal(rootPage.headTags['meta[name="description"]'].attributes.content, "تبدیل قیمت دلار، طلا، سکه، تتر، بیت کوین، ارزهای دیجیتال، نقره و سایر دارایی‌ها با نرخ لحظه ای بازار ایران و جهان در تبدکس.");
+  assert.equal(document.title, "تبدکس | قیمت لحظه‌ای دلار، طلا، سکه و ارز دیجیتال");
+  assert.equal(rootPage.headTags['meta[name="description"]'].attributes.content, "قیمت لحظه‌ای دلار، تتر، طلا، سکه، بیت کوین و یورو و دسترسی سریع به مبدل قیمت در تبدکس.");
+  assert.equal(loadAt("/convert/").headTags['link[rel="canonical"]'].attributes.href, "https://tabdex.ir/convert/");
 
   /* آدرس اسلاگ‌دار جفت پیش‌فرض هم باید مستقیماً کار کند، چون کاربر با
      عوض کردن جفت روی همین آدرس می‌نشیند و ممکن است لینکش را بفرستد.
      فایل ایستا ندارد و از راه بازنویسی سرو می‌شود. */
-  assert.equal(loadAt("/usdt-to-irt/").heading(), "تبدیل تتر به تومان");
-  const dollarPage = loadAt("/usd-to-irt/");
+  assert.equal(loadAt("/convert/usdt-to-irt/").heading(), "تبدیل تتر به تومان");
+  const dollarPage = loadAt("/convert/usd-to-irt/");
   assert.equal(dollarPage.heading(), "تبدیل دلار به تومان");
   assert.equal(document.title, "تبدیل دلار به تومان | مبدل قیمت | تبدکس");
-  assert.equal(dollarPage.headTags['link[rel="canonical"]'].attributes.href, "https://tabdex.ir/usd-to-irt/");
-  assert.equal(loadAt("/irt-to-usdt/").heading(), "تبدیل تومان به تتر");
+  assert.equal(dollarPage.headTags['link[rel="canonical"]'].attributes.href, "https://tabdex.ir/convert/usd-to-irt/");
+  assert.equal(loadAt("/convert/irt-to-usdt/").heading(), "تبدیل تومان به تتر");
 
   /* ── رمزارزها هنگام بوت هنوز وجود ندارند ──────────────────────
      نوبیتکس دارایی‌هایش را async می‌آورد، پس آدرس رمزارزی در لحظهٔ
      بوت قابل اعمال نیست و باید بعد از رسیدن داده اعمال شود. بدون این،
      ورود مستقیم به /btc-to-irt/ روی جفت پیش‌فرض می‌ماند. */
-  const cryptoPage = loadAt("/btc-to-irt/");
+  const cryptoPage = loadAt("/convert/btc-to-irt/");
   await new Promise((resolve) => setTimeout(resolve, 120));
   assert.equal(cryptoPage.heading(), "تبدیل بیت کوین به تومان", "آدرس رمزارزی باید بعد از رسیدن داده اعمال شود");
 
-  const cryptoPair = loadAt("/eth-to-btc/");
+  const cryptoPair = loadAt("/convert/eth-to-btc/");
   await new Promise((resolve) => setTimeout(resolve, 120));
   assert.equal(cryptoPair.heading(), "تبدیل اتریوم به بیت کوین");
 
   // ترکیب رمزارز و دارایی پراکسی هم باید کار کند.
-  const mixed = loadAt("/btc-to-gold18/", "?amount=2");
+  const mixed = loadAt("/convert/btc-to-gold18/", "?amount=2");
   await new Promise((resolve) => setTimeout(resolve, 120));
   assert.equal(mixed.heading(), "تبدیل بیت کوین به طلای ۱۸ عیار");
   assert.equal(mixed.elements["amount-from"].value, "۲");

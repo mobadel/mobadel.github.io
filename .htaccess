@@ -11,6 +11,9 @@ DirectoryIndex index.html
   RewriteRule ^price/fiat/?$ /price/currency/ [R=301,L,NE]
   RewriteRule ^price/fiat/([a-z0-9]+)/?$ /price/currency/$1/ [R=301,L,NE]
 
+  # مسیرهای قدیمی تبدیل با حفظ query string به ساختار جدید منتقل می‌شوند.
+  RewriteRule ^([a-z0-9]+)-to-([a-z0-9]+)/?$ /convert/$1-to-$2/ [R=301,L,NE]
+
   # اگر فایل یا پوشهٔ واقعی وجود دارد، دست نزن. صفحه‌های ایستایی که
   # هنگام دیپلوی ساخته می‌شوند از همین راه سرو می‌شوند و بازنویسی
   # سراغشان نمی‌رود.
@@ -22,11 +25,11 @@ DirectoryIndex index.html
   RewriteRule ^price/(crypto|gold|coin|commodity|currency)/?$ price/category.html [L]
   RewriteRule ^price/(crypto|gold|coin|commodity|currency)/[a-z0-9]+/?$ price/asset.html [L]
 
-  # هر مسیر تبدیل به شکل /btc-to-irt/ یا /gold18-to-irt به index.html
+  # هر مسیر تبدیل به شکل /convert/btc-to-irt/ به قالب مبدل
   # می‌رسد و جاوااسکریپت جفت را از روی آدرس می‌خواند. تعداد این جفت‌ها
   # ده‌ها هزار است، پس ساختن فایل برای همه‌شان ممکن نیست.
   # رشتهٔ پرس‌وجو (?amount=300) خودکار حفظ می‌شود.
-  RewriteRule ^[a-z0-9]+-to-[a-z0-9]+/?$ index.html [L]
+  RewriteRule ^convert/[a-z0-9]+-to-[a-z0-9]+/?$ convert/index.html [L]
 </IfModule>
 
 # فشرده‌سازی متن

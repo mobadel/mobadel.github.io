@@ -86,18 +86,20 @@ for (const symbol of ["btc", "eth", "doge", "sent", "tao", "zk"]) {
 /* ── ۳) اسکریپت واقعاً اجرا شود و خروجی درست بدهد ─────────────── */
 const workdir = fs.mkdtempSync(path.join(os.tmpdir(), "tabdex-pages-"));
 fs.cpSync("index.html", path.join(workdir, "index.html"));
+fs.mkdirSync(path.join(workdir, "convert"), { recursive: true });
+fs.cpSync("convert/index.html", path.join(workdir, "convert", "index.html"));
 fs.mkdirSync(path.join(workdir, "scripts"), { recursive: true });
 fs.cpSync("scripts/build-pages.mjs", path.join(workdir, "scripts/build-pages.mjs"));
 
 execFileSync(process.execPath, ["scripts/build-pages.mjs"], { cwd: workdir, stdio: "pipe" });
 
-const generated = path.join(workdir, "_site", "gold18-to-irt", "index.html");
+const generated = path.join(workdir, "_site", "convert", "gold18-to-irt", "index.html");
 assert.ok(fs.existsSync(generated), "صفحهٔ gold18-to-irt ساخته نشد");
 
 const html = fs.readFileSync(generated, "utf8");
 assert.match(html, /<title>تبدیل طلای ۱۸ عیار به تومان \| مبدل قیمت \| تبدکس<\/title>/);
 assert.match(html, /<meta name="description" content="تبدیل طلای ۱۸ عیار به تومان با قیمت لحظه ای\. مبدل نرخ طلای ۱۸ عیار به تومان\.">/);
-assert.match(html, /<link rel="canonical" href="https:\/\/tabdex\.ir\/gold18-to-irt\/">/);
+assert.match(html, /<link rel="canonical" href="https:\/\/tabdex\.ir\/convert\/gold18-to-irt\/">/);
 assert.match(html, /<h1 id="page-title">تبدیل طلای ۱۸ عیار به تومان<\/h1>/);
 assert.match(html, /<h2 id="pair-content-title">تبدیل طلای ۱۸ عیار به تومان با قیمت لحظه ای و سریع<\/h2>/);
 assert.match(html, /<p id="pair-content-intro">با سرویس مبدل تبدکس، می‌توانید به‌سادگی طلای ۱۸ عیار خود را به تومان تبدیل کنید\./);
@@ -106,14 +108,15 @@ assert.match(html, /src="\/assets\/app\.js/);
 assert.doesNotMatch(html, /src="assets\//);
 
 // همهٔ جفت‌ها، حتی جفت نمایش‌داده‌شده روی خانه، صفحهٔ مستقل دارند.
-assert.ok(fs.existsSync(path.join(workdir, "_site", "usdt-to-irt")), "تتر به تومان باید صفحهٔ واقعی داشته باشد");
-assert.ok(fs.existsSync(path.join(workdir, "_site", "usd-to-irt")), "دلار به تومان باید صفحهٔ واقعی داشته باشد");
-assert.ok(fs.existsSync(path.join(workdir, "_site", "irt-to-usdt")), "جهت معکوس باید صفحه داشته باشد");
+assert.ok(fs.existsSync(path.join(workdir, "_site", "convert", "usdt-to-irt")), "تتر به تومان باید صفحهٔ واقعی داشته باشد");
+assert.ok(fs.existsSync(path.join(workdir, "_site", "convert", "usd-to-irt")), "دلار به تومان باید صفحهٔ واقعی داشته باشد");
+assert.ok(fs.existsSync(path.join(workdir, "_site", "convert", "irt-to-usdt")), "جهت معکوس باید صفحه داشته باشد");
 
 const sitemap = fs.readFileSync(path.join(workdir, "_site", "sitemap.xml"), "utf8");
 assert.equal(fs.readFileSync(path.join(workdir, "sitemap.xml"), "utf8"), sitemap, "سایت‌مپ ریشه و خروجی deploy باید یکسان باشند");
 assert.match(sitemap, /<loc>https:\/\/tabdex\.ir\/<\/loc>/);
 assert.match(sitemap, /<loc>https:\/\/tabdex\.ir\/price\/<\/loc>/);
+assert.match(sitemap, /<loc>https:\/\/tabdex\.ir\/convert\/<\/loc>/);
 for (const group of ["currency", "gold", "coin", "commodity", "crypto"]) {
   assert.match(sitemap, new RegExp(`<loc>https://tabdex\\.ir/price/${group}/</loc>`), `دسته قیمت ${group} باید در سایت‌مپ باشد`);
 }
@@ -121,33 +124,33 @@ for (const slug of ["usd", "gel"]) assert.match(sitemap, new RegExp(`<loc>https:
 for (const slug of ["gold18", "ounce"]) assert.match(sitemap, new RegExp(`<loc>https://tabdex\\.ir/price/gold/${slug}/</loc>`));
 for (const slug of ["emami", "gerami"]) assert.match(sitemap, new RegExp(`<loc>https://tabdex\\.ir/price/coin/${slug}/</loc>`));
 assert.equal((sitemap.match(/<loc>https:\/\/tabdex\.ir\/price\/crypto\/[^<]+<\/loc>/g) || []).length, 50, "دقیقاً ۵۰ صفحه قیمت رمزارز باید در سایت‌مپ باشد");
-assert.match(sitemap, /<loc>https:\/\/tabdex\.ir\/melted-to-irt\/<\/loc>/);
-assert.match(sitemap, /<loc>https:\/\/tabdex\.ir\/irt-to-baharazadi\/<\/loc>/);
+assert.match(sitemap, /<loc>https:\/\/tabdex\.ir\/convert\/melted-to-irt\/<\/loc>/);
+assert.match(sitemap, /<loc>https:\/\/tabdex\.ir\/convert\/irt-to-baharazadi\/<\/loc>/);
 // نقره و مس هم در هر دو جهت با تومان صفحه دارند
 ["silver-to-irt", "irt-to-silver", "copper-to-irt", "irt-to-copper"].forEach((slug) => {
-  assert.match(sitemap, new RegExp(`<loc>https://tabdex\\.ir/${slug}/</loc>`), `${slug} باید در سایت‌مپ باشد`);
-  assert.ok(fs.existsSync(path.join(workdir, "_site", slug, "index.html")), `${slug} باید صفحهٔ واقعی داشته باشد`);
+  assert.match(sitemap, new RegExp(`<loc>https://tabdex\\.ir/convert/${slug}/</loc>`), `${slug} باید در سایت‌مپ باشد`);
+  assert.ok(fs.existsSync(path.join(workdir, "_site", "convert", slug, "index.html")), `${slug} باید صفحهٔ واقعی داشته باشد`);
 });
 
 // تمام ارزهای فیاتِ مبدل باید در هر دو جهت با تومان صفحه و ورودی سایت‌مپ داشته باشند.
 for (const id of ["usd", "eur", "gbp", "chf", "aed", "try", "jpy", "cny", "aud", "cad", "rub", "sek", "inr", "pkr", "afn", "myr", "thb", "sar", "qar", "kwd", "bhd", "omr", "iqd", "syp", "azn", "amd", "gel"]) {
   for (const slug of [`${id}-to-irt`, `irt-to-${id}`]) {
-    assert.match(sitemap, new RegExp(`<loc>https://tabdex\\.ir/${slug}/</loc>`), `${slug} باید در سایت‌مپ باشد`);
-    assert.ok(fs.existsSync(path.join(workdir, "_site", slug, "index.html")), `${slug} باید صفحهٔ واقعی داشته باشد`);
+    assert.match(sitemap, new RegExp(`<loc>https://tabdex\\.ir/convert/${slug}/</loc>`), `${slug} باید در سایت‌مپ باشد`);
+    assert.ok(fs.existsSync(path.join(workdir, "_site", "convert", slug, "index.html")), `${slug} باید صفحهٔ واقعی داشته باشد`);
   }
 }
 
 // تبدیل انس طلا و طلای ۱۸ عیار باید در هر دو جهت صفحهٔ مستقل و ورودی سایت‌مپ داشته باشد.
 ["ounce-to-gold18", "gold18-to-ounce"].forEach((slug) => {
-  assert.match(sitemap, new RegExp(`<loc>https://tabdex\\.ir/${slug}/</loc>`), `${slug} باید در سایت‌مپ باشد`);
-  assert.ok(fs.existsSync(path.join(workdir, "_site", slug, "index.html")), `${slug} باید صفحهٔ واقعی داشته باشد`);
+  assert.match(sitemap, new RegExp(`<loc>https://tabdex\\.ir/convert/${slug}/</loc>`), `${slug} باید در سایت‌مپ باشد`);
+  assert.ok(fs.existsSync(path.join(workdir, "_site", "convert", slug, "index.html")), `${slug} باید صفحهٔ واقعی داشته باشد`);
 });
 
 /* نام فارسی دارایی‌ها باید بدون افزودن واحد در قالب توضیحات بیاید. */
-const ouncePage = fs.readFileSync(path.join(workdir, "_site", "ounce-to-irt", "index.html"), "utf8");
+const ouncePage = fs.readFileSync(path.join(workdir, "_site", "convert", "ounce-to-irt", "index.html"), "utf8");
 assert.match(ouncePage, /تبدیل انس طلا به تومان با قیمت لحظه ای\. مبدل نرخ انس طلا به تومان\./);
 
-const silverPage = fs.readFileSync(path.join(workdir, "_site", "silver-to-irt", "index.html"), "utf8");
+const silverPage = fs.readFileSync(path.join(workdir, "_site", "convert", "silver-to-irt", "index.html"), "utf8");
 assert.match(silverPage, /<h1 id="page-title">تبدیل نقره ۹۹۹ به تومان<\/h1>/);
 assert.match(silverPage, /تبدیل نقره ۹۹۹ به تومان با قیمت لحظه ای\. مبدل نرخ نقره ۹۹۹ به تومان\./);
 

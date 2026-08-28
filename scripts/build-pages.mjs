@@ -141,7 +141,7 @@ function metaFor(from, to) {
     toName: to.name,
     title: `${heading} | مبدل قیمت | تبدکس`,
     description: `${heading} با قیمت لحظه ای. مبدل نرخ ${from.name} به ${to.name}.`,
-    path: `/${from.slug}-to-${to.slug}/`
+    path: `/convert/${from.slug}-to-${to.slug}/`
   };
 }
 
@@ -178,7 +178,7 @@ function renderPage(template, meta) {
     .replace(/(src|href)="data\//g, '$1="/data/');
 }
 
-const template = await readFile(resolve(ROOT, "index.html"), "utf8");
+const template = await readFile(resolve(ROOT, "convert", "index.html"), "utf8");
 const pairs = buildPairs();
 const today = new Date().toISOString().slice(0, 10);
 const urls = [`  <url>\n    <loc>${ORIGIN}/</loc>\n    <lastmod>${today}</lastmod>\n    <priority>1.0</priority>\n  </url>`];
@@ -188,6 +188,7 @@ function addSitemapUrl(path, priority = "0.7") {
 }
 
 addSitemapUrl("/price/", "0.9");
+addSitemapUrl("/convert/", "0.9");
 for (const group of [...Object.keys(PRICE_GROUPS), "crypto"]) addSitemapUrl(`/price/${group}/`, "0.8");
 for (const [group, slugs] of Object.entries(PRICE_GROUPS)) {
   for (const slug of slugs) addSitemapUrl(`/price/${group}/${slug}/`);
@@ -199,7 +200,7 @@ for (const [fromId, toId] of pairs) {
   const to = ASSETS[toId];
   if (!from || !to) throw new Error(`دارایی ناشناخته در فهرست جفت‌ها: ${fromId} یا ${toId}`);
   const meta = metaFor(from, to);
-  const directory = resolve(SITE, `${from.slug}-to-${to.slug}`);
+  const directory = resolve(SITE, "convert", `${from.slug}-to-${to.slug}`);
   await mkdir(directory, { recursive: true });
   await writeFile(resolve(directory, "index.html"), renderPage(template, meta), "utf8");
   urls.push(`  <url>\n    <loc>${ORIGIN}${meta.path}</loc>\n    <lastmod>${today}</lastmod>\n    <priority>0.8</priority>\n  </url>`);

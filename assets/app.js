@@ -5,8 +5,10 @@
   "۰۱۲۳۴۵۶۷۸۹".split("").forEach(function (digit, index) { DIGIT_MAP[digit] = String(index); });
   "٠١٢٣٤٥٦٧٨٩".split("").forEach(function (digit, index) { DIGIT_MAP[digit] = String(index); });
 
-  var HOME_TITLE = "تبدیل قیمت دلار، طلا، ارز دیجیتال و سایر دارایی‌ها | مبدل قیمت | تبدکس";
-  var HOME_DESCRIPTION = "تبدیل قیمت دلار، طلا، سکه، تتر، بیت کوین، ارزهای دیجیتال، نقره و سایر دارایی‌ها با نرخ لحظه ای بازار ایران و جهان در تبدکس.";
+  var HUB_TITLE = "تبدکس | قیمت لحظه‌ای دلار، طلا، سکه و ارز دیجیتال";
+  var HUB_DESCRIPTION = "قیمت لحظه‌ای دلار، تتر، طلا، سکه، بیت کوین و یورو و دسترسی سریع به مبدل قیمت در تبدکس.";
+  var CONVERT_TITLE = "تبدیل قیمت دلار، طلا، ارز دیجیتال و سایر دارایی‌ها | مبدل قیمت | تبدکس";
+  var CONVERT_DESCRIPTION = "تبدیل قیمت دلار، طلا، سکه، تتر، بیت کوین، ارزهای دیجیتال، نقره و سایر دارایی‌ها با نرخ لحظه ای بازار ایران و جهان در تبدکس.";
 
   var PERSIAN_NAMES = {
     irt: "تومان", usdt: "تتر", btc: "بیت کوین", eth: "اتریوم", ltc: "لایت‌کوین",
@@ -469,11 +471,13 @@
     if (typeof document === "undefined") return;
 
     var pairPath = canonicalForPair(state.from, state.to);
-    var isHome = pairPath === "/";
-    document.title = isHome ? HOME_TITLE : heading + " | مبدل قیمت | تبدکس";
+    var pathname = String(location.pathname || "/").replace(/\/+$/, "") || "/";
+    var isHub = pathname === "/";
+    var isConvertHome = pathname === "/convert";
+    document.title = isHub ? HUB_TITLE : isConvertHome ? CONVERT_TITLE : heading + " | مبدل قیمت | تبدکس";
 
-    var description = isHome ? HOME_DESCRIPTION : heading + " با قیمت لحظه ای. مبدل نرخ " +
-      fromCurrency.name + " به " + toCurrency.name + ".";
+    var description = isHub ? HUB_DESCRIPTION : isConvertHome ? CONVERT_DESCRIPTION :
+      heading + " با قیمت لحظه ای. مبدل نرخ " + fromCurrency.name + " به " + toCurrency.name + ".";
     setMeta("name", "description", description);
     setMeta("property", "og:title", document.title);
     setMeta("property", "og:description", description);
@@ -589,7 +593,7 @@
   }
 
   /* ── مسیریابی ────────────────────────────────────────────────
-     آدرس‌ها به شکل /btc-to-irt/ هستند و روی سرور همه به index.html
+     آدرس‌ها به شکل /convert/btc-to-irt/ هستند و روی سرور همه به convert/index.html
      بازنویسی می‌شوند (rules در .htaccess). پارامتر amount هم پشتیبانی
      می‌شود: /btc-to-irt/?amount=300
 
@@ -616,14 +620,16 @@
      می‌گیرد: اگر کسی از bitcoin-to-gold18 به تتر و تومان برگردد، باید
      روی usdt-to-irt بنشیند نه اینکه به ریشه پرتاب شود. */
   function pathForPair(from, to) {
-    return "/" + slugOf(from) + "-to-" + slugOf(to) + "/";
+    return "/convert/" + slugOf(from) + "-to-" + slugOf(to) + "/";
   }
 
   /* ریشه متای عمومی صفحهٔ اصلی را دارد. ورود مستقیم به هر جفت یا
      رسیدن به آن حین کار، از جمله جفت پیش‌فرض، canonical مستقل همان
      جفت را می‌گیرد و به ریشه تبدیل نمی‌شود. */
   function canonicalForPair(from, to) {
-    if (String(location.pathname || "/") === "/") return "/";
+    var pathname = String(location.pathname || "/").replace(/\/+$/, "") || "/";
+    if (pathname === "/") return "/";
+    if (pathname === "/convert") return "/convert/";
     return pathForPair(from, to);
   }
 
