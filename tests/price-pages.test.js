@@ -50,10 +50,15 @@ assert.match(script, /Number\(tomanRow && tomanRow\.latest\) \/ 10/, "بازار
 assert.match(script, /stats\[id \+ "-usdt"\]/, "قیمت اصلی رمزارز غیراستیبل باید از بازار تتری بیاید");
 assert.match(script, /!USD_STABLECOINS\[id\]/, "استیبل‌کوین دلاری نباید قیمت تتری اصلی بگیرد");
 assert.match(script, /useUsdt \? usdtRow : tomanRow/, "درصد تغییر باید از همان بازار قیمت اصلی بیاید");
+assert.match(script, /tomanChange: useUsdt \? Number\(tomanRow\.dayChange\) : null/, "درصد ردیف تومانی رمزارز باید از بازار مستقیم تومانی بیاید");
 assert.match(script, /assets\[id\]\.change = Number\(row\.change\)/, "تغییر دارایی‌های پراکسی استفاده شود");
 assert.match(ratesApi, /'usd'\s*=>\s*\$usdPrice/, "API باید قیمت خام دلاری انس را حفظ کند");
-assert.match(asset, /id="asset-secondary" hidden/, "معادل تومان باید فقط در صفحه تکی و به‌صورت ثانویه باشد");
-assert.match(styles, /\.price-secondary strong[^}]*font-size:16px/, "قیمت تومانی ثانویه باید کوچک‌تر باشد");
+assert.match(ratesApi, /'toman_change'\s*=>\s*\$tomanChange/, "API باید درصد تغییر تومانی را جداگانه برگرداند");
+assert.match(ratesApi, /\(1 \+ \$rowChange \/ 100\) \* \(1 \+ \$usdChange \/ 100\) - 1/, "درصد تومانی انس باید از تغییر انس دلاری و دلار محاسبه شود");
+assert.match(asset, /id="asset-secondary" hidden[\s\S]*id="asset-secondary-change"[\s\S]*id="asset-secondary-price"/, "ردیف تومانی باید قیمت و درصد مستقل داشته باشد");
+assert.doesNotMatch(asset, /معادل تومانی/, "برچسب معادل تومانی نباید در کارت قیمت دیده شود");
+assert.match(styles, /\.price-secondary \.price-change strong,\.price-secondary-value,\.price-secondary \.price-unit\{[^}]*font-size:16px/, "اجزای ردیف تومانی باید کوچک‌تر و هم‌اندازه باشند");
+assert.match(styles, /\.price-secondary\{[^}]*border-top:0/, "بین دو ردیف قیمت نباید خط جداکننده باشد");
 assert.match(asset, /class="asset-quote"[\s\S]*id="asset-change"[\s\S]*id="asset-price"[\s\S]*id="asset-unit"/, "درصد، قیمت و واحد باید در ردیف قیمت مشترک باشند");
 assert.match(asset, /class="price-freshness"[^>]*>[\s\S]*<i aria-hidden="true"><\/i>/, "زمان به‌روزرسانی باید نشانگر سبز داشته باشد");
 assert.match(script, /freshness\.replaceChildren\(dot, document\.createTextNode/, "رندر زمان نباید نشانگر سبز را حذف کند");
@@ -72,7 +77,14 @@ assert.match(script, /heroIcon\.classList\.toggle\("is-full-bleed", group === "g
 assert.match(script, /icon\.classList\.toggle\("is-full-bleed", asset\.group === "gold" \|\| asset\.group === "commodity"\)/, "آیکون صفحه تکی طلا و فلزات باید تمام دایره را پر کند");
 assert.match(styles, /\.asset-main-icon\.is-full-bleed \.asset-main-icon-inner[^}]*width:100%;height:100%/, "ظرف داخلی آیکون full-bleed باید هم‌اندازه دایره باشد");
 
-assert.match(htaccess, /\^price\/\(crypto\|gold\|coin\|commodity\|fiat\)\/\?\$/, "مسیر دسته قیمت باید بازنویسی شود");
+assert.match(script, /GROUP_SLUGS = \{ fiat: "currency" \}/, "مسیر عمومی ارز باید currency باشد");
+assert.match(script, /groupFromSlug\(slug\).*slug === "currency" \? "fiat"/, "مسیر currency باید به گروه داخلی ارز نگاشت شود");
+assert.doesNotMatch(script, /\{ id: "irt", name: "تومان"[^\n]*group: "fiat"/, "تومان نباید در صفحات قیمت ارز حضور داشته باشد");
+assert.match(script, /name: "انس جهانی طلا"/, "عنوان انس باید انس جهانی طلا باشد");
+assert.match(script, /row\.toman_change/, "صفحه انس باید درصد تومانی محاسبه‌شده را مصرف کند");
+assert.match(htaccess, /\^price\/\(crypto\|gold\|coin\|commodity\|currency\)\/\?\$/, "مسیر دسته قیمت باید با currency بازنویسی شود");
+assert.match(htaccess, /\^price\/fiat\/\?\$ \/price\/currency\/ \[R=301,L,NE\]/, "مسیر قدیمی fiat باید دائمی به currency منتقل شود");
+assert.match(htaccess, /\^price\/\(\?:fiat\|currency\)\/irt\/\?\$ - \[R=410,L\]/, "صفحه قیمت تومان باید حذف و Gone شود");
 assert.match(htaccess, /price\/asset\.html/, "مسیر دارایی قیمت باید بازنویسی شود");
 assert.match(deploy, /assets data scripts api price _site\//, "پوشه price باید منتشر شود");
 
