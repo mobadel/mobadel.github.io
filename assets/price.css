@@ -53,3 +53,5 @@
 .footer-links a{color:var(--muted);font-size:13px;text-decoration:none}
 .footer-links a:hover{color:var(--green-dark)}
 @media(max-width:600px){.site-footer{width:min(100% - 24px,720px)}}
+.site-date{color:var(--muted);font-size:14px;font-weight:500;white-space:nowrap}
+@media(max-width:600px){.site-date{font-size:13px}}

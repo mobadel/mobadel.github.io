@@ -17,10 +17,19 @@ const ratesApi = read("api/rates.php");
 const converter = read("convert/index.html");
 const home = read("index.html");
 const homeScript = read("assets/home.js");
+const dateScript = read("assets/date.js");
 
 // فایل جاوااسکریپت باید مستقل و از نظر نحوی معتبر باشد.
 new vm.Script(script, { filename: "assets/price.js" });
 new vm.Script(homeScript, { filename: "assets/home.js" });
+new vm.Script(dateScript, { filename: "assets/date.js" });
+
+for (const [name, html] of [["home", home], ["convert", converter], ["price", hub], ["category", category], ["asset", asset]]) {
+  assert.match(html, /\/assets\/date\.js\?v=20260829-1/, `${name}: تاریخ شمسی باید در هدر همه صفحات فعال باشد`);
+}
+assert.match(dateScript, /timeZone: TIME_ZONE/, "تاریخ باید بر اساس منطقه زمانی تهران محاسبه شود");
+assert.match(dateScript, /weekday: "long", day: "numeric", month: "long", year: "numeric"/, "خروجی تاریخ باید شامل روز هفته، روز، ماه و سال باشد");
+assert.match(dateScript, /millisecondsToTehranMidnight\(\) \+ 50/, "تاریخ باید بلافاصله پس از نیمه‌شب تهران دوباره محاسبه شود");
 
 assert.match(home, /<span>قیمت<\/span>/, "تیتر متغیر هوم‌پیج باید عبارت کوتاه قیمت را داشته باشد");
 assert.doesNotMatch(home, /important-market-title/, "عنوان قیمت‌ها نباید بالای جدول هوم‌پیج نمایش داده شود");

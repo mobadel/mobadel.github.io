@@ -75,6 +75,20 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
   justify-content: space-between;
 }
 
+.site-date {
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.site-date {
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
 .brand {
   display: inline-flex;
   align-items: center;
@@ -515,6 +529,8 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
 @media (max-width: 560px) {
   .shell { width: min(100% - 24px, 720px); }
   .site-header { padding-top: 16px; }
+  .site-date { font-size: 13px; }
+  .site-date { font-size: 13px; }
   .main-nav a { padding: 5px 9px; font-size: 12px; }
   .page-main { padding-top: 28px; padding-bottom: 40px; }
   .intro { margin-bottom: 22px; }
