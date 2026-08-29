@@ -53,5 +53,6 @@
 .footer-links a{color:var(--muted);font-size:13px;text-decoration:none}
 .footer-links a:hover{color:var(--green-dark)}
 @media(max-width:600px){.site-footer{width:min(100% - 24px,720px)}}
-.site-date{color:var(--muted);font-size:14px;font-weight:500;white-space:nowrap}
-@media(max-width:600px){.site-date{font-size:13px}}
+.site-date{display:inline-flex;align-items:center;gap:7px;padding:5px 10px;border:1px solid rgba(184,199,192,.62);border-radius:999px;color:#61736c;background:rgba(255,255,255,.58);font-size:12px;font-weight:500;line-height:1.5;white-space:nowrap}
+.site-date::before{width:3px;height:14px;flex:0 0 auto;border-radius:3px;background:var(--green);content:""}
+@media(max-width:600px){.site-date{gap:5px;padding:4px 7px;font-size:10px;line-height:1.4}.site-date::before{width:2px;height:11px}}

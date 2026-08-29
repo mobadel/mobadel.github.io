@@ -76,17 +76,27 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
 }
 
 .site-date {
-  color: var(--muted);
-  font-size: 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 10px;
+  border: 1px solid rgba(184, 199, 192, .62);
+  border-radius: 999px;
+  color: #61736c;
+  background: rgba(255, 255, 255, .58);
+  font-size: 12px;
   font-weight: 500;
+  line-height: 1.5;
   white-space: nowrap;
 }
 
-.site-date {
-  color: var(--muted);
-  font-size: 14px;
-  font-weight: 500;
-  white-space: nowrap;
+.site-date::before {
+  width: 3px;
+  height: 14px;
+  flex: 0 0 auto;
+  border-radius: 3px;
+  background: var(--green);
+  content: "";
 }
 
 .brand {
@@ -529,8 +539,6 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
 @media (max-width: 560px) {
   .shell { width: min(100% - 24px, 720px); }
   .site-header { padding-top: 16px; }
-  .site-date { font-size: 13px; }
-  .site-date { font-size: 13px; }
   .main-nav a { padding: 5px 9px; font-size: 12px; }
   .page-main { padding-top: 28px; padding-bottom: 40px; }
   .intro { margin-bottom: 22px; }
@@ -553,6 +561,20 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
     max-height: min(82dvh, 720px);
     padding: 20px 16px max(18px, env(safe-area-inset-bottom));
     border-radius: 24px 24px 0 0;
+  }
+}
+
+@media (max-width: 600px) {
+  .site-date {
+    gap: 5px;
+    padding: 4px 7px;
+    font-size: 10px;
+    line-height: 1.4;
+  }
+
+  .site-date::before {
+    width: 2px;
+    height: 11px;
   }
 }
 
