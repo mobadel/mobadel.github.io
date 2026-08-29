@@ -22,6 +22,13 @@ const homeScript = read("assets/home.js");
 new vm.Script(script, { filename: "assets/price.js" });
 new vm.Script(homeScript, { filename: "assets/home.js" });
 
+assert.match(home, /<span>قیمت<\/span>/, "تیتر متغیر هوم‌پیج باید عبارت کوتاه قیمت را داشته باشد");
+assert.doesNotMatch(home, /important-market-title/, "عنوان قیمت‌ها نباید بالای جدول هوم‌پیج نمایش داده شود");
+assert.match(homeStyles, /@media \(max-width: 560px\)[\s\S]*?\.home-market-head \{ display: none; \}/, "سربرگ سه‌ستونه جدول هوم‌پیج باید در موبایل مخفی شود");
+assert.match(homeStyles, /\.home-market-identity \{ grid-row: 1 \/ 3;/, "دارایی باید در موبایل دو ردیف جدول را پوشش دهد");
+assert.match(homeStyles, /\.home-market-price \{ grid-column: 2; grid-row: 1;/, "قیمت باید در ردیف اول ستون دوم موبایل باشد");
+assert.match(homeStyles, /\.home-market-change \{ grid-column: 2; grid-row: 2;/, "تغییرات باید زیر قیمت در موبایل قرار بگیرد");
+
 for (const [name, html] of [["hub", hub], ["category", category], ["asset", asset]]) {
   assert.match(html, /class="breadcrumbs"/, `${name}: بردکرامب لازم است`);
   assert.match(html, /id="price-schema"[^>]*application\/ld\+json/, `${name}: جایگاه JSON-LD لازم است`);
@@ -48,9 +55,8 @@ assert.doesNotMatch(category + asset, /class="(?:eyebrow|section-kicker)"/, "ب�
 for (const [name, source] of [["home", home], ["convert", converter], ["price", hub], ["category", category], ["asset", asset]]) {
   assert.doesNotMatch(source, /class="main-nav"/, `${name}: سوییچ هدر باید حذف شود`);
 }
-assert.match(home, /class="home-hero"[\s\S]*قیمت لحظه‌ای[\s\S]*id="rotating-asset-name">دلار/, "عنوان متغیر هوم باید با دلار شروع شود");
+assert.match(home, /class="home-hero"[\s\S]*<span>قیمت<\/span>[\s\S]*id="rotating-asset-name">دلار/, "عنوان متغیر هوم باید با دلار شروع شود");
 assert.match(home, /id="rotating-asset-name">دلار<\/span><img id="rotating-asset-icon"/, "آیکون باید در سمت چپ نام متغیر قرار بگیرد");
-assert.match(home, /<h2 id="important-market-title">قیمت‌ها<\/h2>/, "عنوان جدول هوم باید قیمت‌ها باشد");
 assert.match(home, /class="home-market-all" href="\/price\/">مشاهده همه/, "انتهای جدول باید لینک مشاهده همه داشته باشد");
 assert.match(home, /تغییرات ۲۴ ساعته/, "عنوان ستون تغییرات هوم باید کامل باشد");
 assert.match(category, /تغییرات ۲۴ ساعته/, "عنوان ستون تغییرات دسته‌بندی باید کامل باشد");
