@@ -24,7 +24,9 @@ new vm.Script(homeScript, { filename: "assets/home.js" });
 
 assert.match(home, /<span>قیمت<\/span>/, "تیتر متغیر هوم‌پیج باید عبارت کوتاه قیمت را داشته باشد");
 assert.doesNotMatch(home, /important-market-title/, "عنوان قیمت‌ها نباید بالای جدول هوم‌پیج نمایش داده شود");
-assert.match(homeStyles, /@media \(max-width: 560px\)[\s\S]*?\.home-market-head \{ display: none; \}/, "سربرگ سه‌ستونه جدول هوم‌پیج باید در موبایل مخفی شود");
+assert.match(homeStyles, /@media \(max-width: 600px\)[\s\S]*?\.home-market-head \{ display: none; \}/, "سربرگ سه‌ستونه جدول هوم‌پیج باید در همان نقطه شکست دسته‌بندی مخفی شود");
+assert.match(homeStyles, /\.home-market-icon \{[^}]*width: 40px; height: 40px;[^}]*background: var\(--surface-muted\); \}/, "آیکون جدول هوم باید دقیقاً هم‌اندازه و هم‌پس‌زمینه جدول دسته‌بندی باشد");
+assert.doesNotMatch(homeStyles, /\.home-market-price \{ grid-column: 2; grid-row: 1; text-align: left; font-size:/, "قیمت موبایل باید اندازه ۱۶ پیکسلی ارث‌برده جدول دسته‌بندی را حفظ کند");
 assert.match(homeStyles, /\.home-market-identity \{ grid-row: 1 \/ 3;/, "دارایی باید در موبایل دو ردیف جدول را پوشش دهد");
 assert.match(homeStyles, /\.home-market-price \{ grid-column: 2; grid-row: 1;/, "قیمت باید در ردیف اول ستون دوم موبایل باشد");
 assert.match(homeStyles, /\.home-market-change \{ grid-column: 2; grid-row: 2;/, "تغییرات باید زیر قیمت در موبایل قرار بگیرد");
