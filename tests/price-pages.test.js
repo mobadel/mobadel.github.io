@@ -100,6 +100,11 @@ assert.match(ratesApi, /\(1 \+ \$rowChange \/ 100\) \* \(1 \+ \$usdChange \/ 100
 assert.match(asset, /id="asset-secondary" hidden[\s\S]*id="asset-secondary-change"[\s\S]*id="asset-secondary-price"/, "ردیف تومانی باید قیمت و درصد مستقل داشته باشد");
 assert.doesNotMatch(asset, /معادل تومانی/, "برچسب معادل تومانی نباید در کارت قیمت دیده شود");
 assert.match(styles, /\.price-secondary \.price-change strong,\.price-secondary-value,\.price-secondary \.price-unit\{[^}]*font-size:16px/, "اجزای ردیف تومانی باید کوچک‌تر و هم‌اندازه باشند");
+assert.match(styles, /\.price-unit\{[^}]*font-size:19px/, "واحد اصلی دسکتاپ باید هم‌اندازه درصد تغییرات باشد");
+assert.match(styles, /@media\(max-width:600px\)[^\n]*\.price-unit\{font-size:16px\}[^\n]*\.price-change strong\{font-size:16px\}/, "واحد اصلی موبایل باید هم‌اندازه درصد تغییرات باشد");
+assert.match(script, /secondaryChange\.className = "price-change secondary-change " \+ \(hasToman \? changeClass\(asset\.tomanChange\) : "neutral"\)/, "درصد تومانی باید کلاس رنگ را از جهت تغییر تومانی بگیرد");
+assert.match(styles, /\.price-secondary \.price-change\.positive strong\{color:var\(--green-dark\)!important\}/, "درصد تومانی مثبت باید سبز باشد");
+assert.match(styles, /\.price-secondary \.price-change\.negative strong\{color:var\(--danger\)!important\}/, "درصد تومانی منفی باید قرمز باشد");
 assert.match(styles, /\.price-secondary\{[^}]*border-top:0/, "بین دو ردیف قیمت نباید خط جداکننده باشد");
 assert.match(asset, /class="asset-quote"[\s\S]*id="asset-change"[\s\S]*id="asset-price"[\s\S]*id="asset-unit"/, "درصد، قیمت و واحد باید در ردیف قیمت مشترک باشند");
 assert.match(asset, /class="price-freshness"[^>]*>[\s\S]*<i aria-hidden="true"><\/i>/, "زمان به‌روزرسانی باید نشانگر سبز داشته باشد");
