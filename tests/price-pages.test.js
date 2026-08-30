@@ -37,6 +37,7 @@ assert.match(btcChartScript, /symbol: "BTCUSDT"/, "نمودار باید با و
 assert.match(btcChartScript, /stage\.addEventListener\("pointermove"/, "هاور نمودار باید اطلاعات نقطه را نمایش دهد");
 assert.match(btcChartScript, /stage\.addEventListener\("pointerdown"/, "لمس نمودار در موبایل باید اطلاعات نقطه را نمایش دهد");
 assert.match(btcChartScript, /priceFormatter\.format\(point\.price\) \+ " تتر"/, "Tooltip باید قیمت را به تتر نمایش دهد");
+assert.match(btcChartScript, /svg\.removeAttribute\("hidden"\)/, "پس از دریافت داده باید ویژگی hidden واقعاً از SVG حذف شود");
 
 for (const [name, html] of [["home", home], ["convert", converter], ["price", hub], ["category", category], ["asset", asset]]) {
   assert.match(html, /\/assets\/date\.js\?v=20260829-1/, `${name}: تاریخ شمسی باید در هدر همه صفحات فعال باشد`);

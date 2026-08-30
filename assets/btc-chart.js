@@ -149,13 +149,13 @@
     svg.dataset.padding = String(padding);
     svg.dataset.points = JSON.stringify(plotted.map(function (point) { return [point.x, point.y]; }));
     status.hidden = true;
-    svg.hidden = false;
+    svg.removeAttribute("hidden");
   }
 
   function hideTooltip() {
     tooltip.hidden = true;
-    crosshair.hidden = true;
-    marker.hidden = true;
+    crosshair.setAttribute("hidden", "");
+    marker.setAttribute("hidden", "");
   }
 
   function showPoint(clientX) {
@@ -175,8 +175,8 @@
     crosshair.setAttribute("x2", plotted[0]);
     marker.setAttribute("cx", plotted[0]);
     marker.setAttribute("cy", plotted[1]);
-    crosshair.hidden = false;
-    marker.hidden = false;
+    crosshair.removeAttribute("hidden");
+    marker.removeAttribute("hidden");
     tooltipDate.textContent = (activeRange === "24h" || activeRange === "7d" ? dateTimeFormatter : dateFormatter).format(new Date(point.time * 1000));
     tooltipPrice.textContent = priceFormatter.format(point.price) + " تتر";
     tooltip.hidden = false;
@@ -193,7 +193,7 @@
       button.setAttribute("aria-pressed", active ? "true" : "false");
     });
     hideTooltip();
-    svg.hidden = true;
+    svg.setAttribute("hidden", "");
     status.hidden = false;
     status.textContent = "در حال دریافت داده‌های نمودار…";
     if (requestController) requestController.abort();
