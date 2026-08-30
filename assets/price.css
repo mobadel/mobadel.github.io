@@ -60,3 +60,26 @@
 @media(max-width:600px){.site-date{gap:5px;padding:4px 7px;font-size:10px;line-height:1.4}.site-date::before{width:2px;height:11px}}
 .converter-link{display:flex;width:fit-content;gap:9px;margin:26px 0 0;margin-inline-start:auto}
 .icon-chevron{display:inline-block;width:8px;height:8px;flex:0 0 auto;border:solid currentColor;border-width:0 1.5px 1.5px 0;transform:rotate(135deg)}
+.asset-chart{margin-top:28px;padding:clamp(20px,4vw,30px);border:1px solid rgba(184,199,192,.72);border-radius:26px;background:rgba(255,255,255,.9);box-shadow:var(--shadow)}
+.asset-chart[hidden]{display:none}
+.asset-chart-heading{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-bottom:20px}
+.asset-chart-heading h2{margin:0;font-size:clamp(22px,4vw,30px);line-height:1.35}
+.chart-ranges{display:flex;align-items:center;gap:4px;padding:4px;border:1px solid var(--border);border-radius:14px;background:var(--surface-muted)}
+.chart-ranges button{padding:6px 11px;border:0;border-radius:10px;color:var(--muted);background:transparent;font-size:12px;cursor:pointer}
+.chart-ranges button:hover{color:var(--green-dark)}
+.chart-ranges button.is-active{color:#fff;background:var(--green);font-weight:700;box-shadow:0 4px 12px rgba(22,129,95,.18)}
+.btc-chart-stage{position:relative;min-height:300px;overflow:hidden;border:1px solid rgba(184,199,192,.55);border-radius:18px;background:linear-gradient(180deg,rgba(241,249,246,.72),rgba(255,255,255,.88));direction:ltr;touch-action:pan-y}
+.btc-chart-svg{display:block;width:100%;height:300px;overflow:visible}
+.btc-chart-grid line{stroke:rgba(140,164,155,.22);stroke-width:1;vector-effect:non-scaling-stroke}
+.btc-chart-area{fill:url(#btc-chart-fill)}
+.btc-chart-line{fill:none;stroke:var(--green);stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;vector-effect:non-scaling-stroke}
+.btc-chart-crosshair{stroke:rgba(26,58,47,.35);stroke-width:1;stroke-dasharray:4 4;vector-effect:non-scaling-stroke}
+.btc-chart-marker{fill:#fff;stroke:var(--green);stroke-width:3;vector-effect:non-scaling-stroke}
+.btc-chart-status{position:absolute;inset:0;display:grid;margin:0;place-items:center;color:var(--muted);font-size:14px;direction:rtl}
+.btc-chart-status[hidden],.btc-chart-tooltip[hidden],.btc-chart-svg[hidden]{display:none}
+.btc-chart-tooltip{position:absolute;top:12px;z-index:2;min-width:140px;padding:8px 11px;border:1px solid rgba(184,199,192,.72);border-radius:12px;background:rgba(255,255,255,.96);box-shadow:0 8px 24px rgba(26,58,47,.12);pointer-events:none;text-align:right;direction:rtl}
+.btc-chart-tooltip span,.btc-chart-tooltip strong{display:block;white-space:nowrap}
+.btc-chart-tooltip span{color:var(--muted);font-size:11px}
+.btc-chart-tooltip strong{margin-top:2px;color:var(--text);font-size:14px}
+.btc-chart-source{margin:10px 2px 0!important;color:var(--subtle)!important;font-size:11px;line-height:1.5!important;text-align:left!important}
+@media(max-width:600px){.asset-chart{padding:17px 12px;border-radius:22px}.asset-chart-heading{display:block;margin-bottom:14px}.asset-chart-heading h2{font-size:21px}.chart-ranges{margin-top:13px;overflow-x:auto}.chart-ranges button{flex:1 0 auto;padding:6px 9px;font-size:11px}.btc-chart-stage{min-height:250px;border-radius:15px}.btc-chart-svg{height:250px}.btc-chart-tooltip{top:9px;min-width:126px;padding:7px 9px}.btc-chart-tooltip strong{font-size:13px}}

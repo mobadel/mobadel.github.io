@@ -18,11 +18,25 @@ const converter = read("convert/index.html");
 const home = read("index.html");
 const homeScript = read("assets/home.js");
 const dateScript = read("assets/date.js");
+const btcChartScript = read("assets/btc-chart.js");
 
 // فایل جاوااسکریپت باید مستقل و از نظر نحوی معتبر باشد.
 new vm.Script(script, { filename: "assets/price.js" });
 new vm.Script(homeScript, { filename: "assets/home.js" });
 new vm.Script(dateScript, { filename: "assets/date.js" });
+new vm.Script(btcChartScript, { filename: "assets/btc-chart.js" });
+
+assert.match(asset, /id="btc-price-chart"[^>]*hidden[\s\S]*<h2 id="btc-chart-title">نمودار قیمت بیت کوین<\/h2>/, "نمودار آزمایشی باید در قالب دارایی و به صورت پیش‌فرض مخفی باشد");
+assert.match(asset, /data-chart-range="24h"[\s\S]*data-chart-range="7d"[\s\S]*data-chart-range="1m"[\s\S]*data-chart-range="1y"[\s\S]*data-chart-range="all"/, "پنج بازه زمانی نمودار لازم است");
+assert.match(btcChartScript, /"24h": \{ resolution: "60", seconds: 86400 \}/, "بازه ۲۴ ساعت باید کندل ساعتی بگیرد");
+assert.match(btcChartScript, /"7d": \{ resolution: "240", seconds: 7 \* 86400 \}/, "بازه هفتگی باید کندل چهار ساعته بگیرد");
+assert.match(btcChartScript, /"1m": \{ resolution: "D", seconds: 30 \* 86400 \}/, "بازه ماهانه باید کندل روزانه بگیرد");
+assert.match(btcChartScript, /"1y": \{ resolution: "D", seconds: 365 \* 86400 \}/, "بازه سالانه باید کندل روزانه بگیرد");
+assert.match(btcChartScript, /all: \{ resolution: "D", from: 1483228800, paged: true \}/, "بازه همه باید داده روزانه صفحه‌بندی‌شده بگیرد");
+assert.match(btcChartScript, /symbol: "BTCUSDT"/, "نمودار باید با واحد اصلی صفحه از بازار بیت کوین تتر بیاید");
+assert.match(btcChartScript, /stage\.addEventListener\("pointermove"/, "هاور نمودار باید اطلاعات نقطه را نمایش دهد");
+assert.match(btcChartScript, /stage\.addEventListener\("pointerdown"/, "لمس نمودار در موبایل باید اطلاعات نقطه را نمایش دهد");
+assert.match(btcChartScript, /priceFormatter\.format\(point\.price\) \+ " تتر"/, "Tooltip باید قیمت را به تتر نمایش دهد");
 
 for (const [name, html] of [["home", home], ["convert", converter], ["price", hub], ["category", category], ["asset", asset]]) {
   assert.match(html, /\/assets\/date\.js\?v=20260829-1/, `${name}: تاریخ شمسی باید در هدر همه صفحات فعال باشد`);
