@@ -176,11 +176,20 @@
   }
 
   function descriptionFor(asset) { var units = priceLabel(asset) + (Number.isFinite(asset.tomanPrice) ? " و نرخ تومان" : ""); return "قیمت لحظه ای " + asset.name + " امروز به " + units + "، درصد تغییرات ۲۴ ساعته و اطلاعات بازار " + asset.name + " در تبدکس."; }
+  function assetSubtitle(asset) {
+    if (asset.id === "silver") return "هر گرم در بورس کالا";
+    if (asset.id === "copper") return "هر کیلوگرم در بورس کالا";
+    if (asset.id === "gold18" || asset.id === "gold24") return "هر گرم";
+    if (asset.id === "goldmelted") return "هر مثقال";
+    if (asset.group === "fiat") return asset.code || "";
+    if (asset.group === "crypto") return asset.englishName + (asset.code ? " · " + asset.code : "");
+    return "";
+  }
   function renderAsset() {
     var group = categoryFromPath(); var id = idFromSlug(assetSlugFromPath()); var category = CATEGORIES[group]; var asset = assets[id]; if (!category || !asset || asset.group !== group || !Number.isFinite(asset.price)) return renderNotFound("قیمت این دارایی در دسترس نیست");
     var path = assetUrl(asset); var title = "قیمت لحظه ای " + asset.name + " امروز | تبدکس"; var description = descriptionFor(asset); setDocumentMeta(title, description, path);
     var categoryLink = document.getElementById("asset-category-link"); if (categoryLink) { categoryLink.href = categoryUrl(group); categoryLink.textContent = category.name; }
-    text(document.getElementById("asset-crumb"), asset.name); text(document.getElementById("asset-title"), "قیمت " + asset.name); var english = document.getElementById("asset-english"); if (english) { english.hidden = asset.group !== "crypto"; text(english, asset.group === "crypto" ? asset.englishName + (asset.code ? " · " + asset.code : "") : ""); }
+    text(document.getElementById("asset-crumb"), asset.name); text(document.getElementById("asset-title"), "قیمت " + asset.name); var english = document.getElementById("asset-english"); if (english) { var subtitle = assetSubtitle(asset); english.hidden = !subtitle; text(english, subtitle); }
     var icon = document.getElementById("asset-main-icon"); if (icon) { icon.classList.toggle("is-full-bleed", asset.group === "gold" || asset.group === "commodity"); icon.replaceChildren(); icon.appendChild(createIcon(asset, "asset-main-icon-inner")); }
     text(document.getElementById("asset-price"), formatPrice(asset.price)); text(document.getElementById("asset-unit"), priceLabel(asset)); var secondary = document.getElementById("asset-secondary"); if (secondary) { var hasToman = Number.isFinite(asset.tomanPrice); secondary.hidden = !hasToman; text(document.getElementById("asset-secondary-price"), hasToman ? formatPrice(asset.tomanPrice) : "—"); var secondaryChange = document.getElementById("asset-secondary-change"); if (secondaryChange) { secondaryChange.className = "price-change secondary-change " + (hasToman ? changeClass(asset.tomanChange) : "neutral"); text(secondaryChange.querySelector("strong"), hasToman ? formatChange(asset.tomanChange) : "—"); } } var changeBox = document.getElementById("asset-change"); if (changeBox) { changeBox.className = "price-change " + changeClass(asset.change); var strong = changeBox.querySelector("strong"); text(strong, formatChange(asset.change)); }
     var freshness = document.getElementById("asset-freshness"); if (freshness) { var dot = document.createElement("i"); dot.setAttribute("aria-hidden", "true"); freshness.replaceChildren(dot, document.createTextNode(" آخرین به‌روزرسانی " + formatTime(asset.updatedAt || latestUpdate))); }

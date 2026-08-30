@@ -86,7 +86,7 @@ assert.match(read("assets/app.js"), /location\.href = target;[\s\S]*return;/, "�
 for (const source of [read("index.html"), converter, hub, category, asset]) assert.match(source, /class="site-footer"/, "همه قالب‌ها باید فوتر داشته باشند");
 assert.match(script, /crypto:[\s\S]*gold:[\s\S]*coin:/, "طلا و سکه باید دسته‌های جدا باشند");
 assert.match(script, /fiat:\s*\{ name: "ارز", singular: "ارز"/, "نام دسته فیات باید ارز باشد");
-assert.match(script, /asset\.group === "crypto" \? asset\.englishName/, "نام انگلیسی فقط برای رمزارز نمایش داده شود");
+assert.match(script, /asset\.group === "crypto"\) return asset\.englishName/, "نام انگلیسی رمزارز باید در زیرعنوان حفظ شود");
 assert.match(script, /\^\(\.\+\)-rls\$/, "فقط بازار مستقیم تومانی رمزارزها پذیرفته شود");
 assert.match(script, /Number\(tomanRow && tomanRow\.latest\) \/ 10/, "بازار مستقیم ریالی نوبیتکس باید برای معادل تومان استفاده شود");
 assert.match(script, /stats\[id \+ "-usdt"\]/, "قیمت اصلی رمزارز غیراستیبل باید از بازار تتری بیاید");
@@ -105,6 +105,11 @@ assert.match(styles, /@media\(max-width:600px\)[^\n]*\.price-unit\{font-size:16p
 assert.match(script, /secondaryChange\.className = "price-change secondary-change " \+ \(hasToman \? changeClass\(asset\.tomanChange\) : "neutral"\)/, "درصد تومانی باید کلاس رنگ را از جهت تغییر تومانی بگیرد");
 assert.match(styles, /\.price-secondary \.price-change\.positive strong\{color:var\(--green-dark\)!important\}/, "درصد تومانی مثبت باید سبز باشد");
 assert.match(styles, /\.price-secondary \.price-change\.negative strong\{color:var\(--danger\)!important\}/, "درصد تومانی منفی باید قرمز باشد");
+assert.match(script, /asset\.id === "silver"\) return "هر گرم در بورس کالا"/, "زیرعنوان نقره باید واحد گرم و بورس کالا باشد");
+assert.match(script, /asset\.id === "copper"\) return "هر کیلوگرم در بورس کالا"/, "زیرعنوان مس باید واحد کیلوگرم و بورس کالا باشد");
+assert.match(script, /asset\.id === "gold18" \|\| asset\.id === "gold24"\) return "هر گرم"/, "زیرعنوان طلای ۱۸ و ۲۴ عیار باید هر گرم باشد");
+assert.match(script, /asset\.id === "goldmelted"\) return "هر مثقال"/, "زیرعنوان طلای آب‌شده باید هر مثقال باشد");
+assert.match(script, /asset\.group === "fiat"\) return asset\.code \|\| ""/, "زیرعنوان ارزهای فیات باید نماد ارز باشد");
 assert.match(styles, /\.price-secondary\{[^}]*border-top:0/, "بین دو ردیف قیمت نباید خط جداکننده باشد");
 assert.match(asset, /class="asset-quote"[\s\S]*id="asset-change"[\s\S]*id="asset-price"[\s\S]*id="asset-unit"/, "درصد، قیمت و واحد باید در ردیف قیمت مشترک باشند");
 assert.match(asset, /class="price-freshness"[^>]*>[\s\S]*<i aria-hidden="true"><\/i>/, "زمان به‌روزرسانی باید نشانگر سبز داشته باشد");
