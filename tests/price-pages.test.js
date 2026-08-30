@@ -36,6 +36,11 @@ assert.match(btcChartScript, /all: \{ resolution: "D", from: 1483228800, paged: 
 assert.match(btcChartScript, /fetchLivePoint[\s\S]*stats\["btc-usdt"\][\s\S]*market\.latest/, "نقطه آخر نمودار باید از قیمت لحظه‌ای بازار ساخته شود");
 assert.match(btcChartScript, /setInterval[\s\S]*fetchLivePoint[\s\S]*60000/, "قیمت لحظه‌ای انتهای نمودار باید هر دقیقه تازه شود");
 assert.match(btcChartScript, /width < 520 \? 4/, "محور زمان موبایل باید چهار برچسب داشته باشد");
+assert.match(btcChartScript, /activeRange === "7d" \|\| activeRange === "1m" \? axisDayFormatter : axisMonthFormatter/, "محور هفتگی و ماهانه باید روز و ماه و محورهای بلند باید ماه و سال نشان دهند");
+assert.match(btcChartScript, /axisMonthFormatter\.format\(labelDate\) \+ " " \+ axisYearFormatter\.format\(labelDate\)/, "ترتیب محورهای بلند باید ماه و سپس سال باشد");
+assert.match(btcChartScript, /activeRange === "24h" \|\| activeRange === "7d" \|\| activeRange === "1m" \? dateTimeFormatter/, "هاور بازه ماهانه نیز باید ساعت را نمایش دهد");
+assert.match(btcChartScript, /label\.setAttribute\("text-anchor", "middle"\)/, "مرکز همه برچسب‌های محور باید با فاصله یکسان چیده شود");
+assert.doesNotMatch(asset, /btc-chart-grid/, "نمودار نباید خطوط افقی پس‌زمینه داشته باشد");
 assert.match(asset, /بر اساس داده‌های بازار «بیت کوین\/تتر»/, "متن منبع نمودار باید مطابق کپی نهایی باشد");
 assert.match(btcChartScript, /symbol: "BTCUSDT"/, "نمودار باید با واحد اصلی صفحه از بازار بیت کوین تتر بیاید");
 assert.match(btcChartScript, /stage\.addEventListener\("pointermove"/, "هاور نمودار باید اطلاعات نقطه را نمایش دهد");

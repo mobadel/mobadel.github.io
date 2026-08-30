@@ -20,7 +20,6 @@
   var section = document.getElementById("btc-price-chart");
   var stage = document.getElementById("btc-chart-stage");
   var svg = document.getElementById("btc-chart-svg");
-  var grid = document.getElementById("btc-chart-grid");
   var xAxis = document.getElementById("btc-chart-x-axis");
   var area = document.getElementById("btc-chart-area");
   var line = document.getElementById("btc-chart-line");
@@ -48,8 +47,14 @@
   var axisDateTimeFormatter = new Intl.DateTimeFormat("fa-IR", {
     timeZone: "Asia/Tehran", month: "numeric", day: "numeric", hour: "2-digit"
   });
-  var axisDateFormatter = new Intl.DateTimeFormat("fa-IR", {
-    timeZone: "Asia/Tehran", year: "2-digit", month: "numeric", day: "numeric"
+  var axisDayFormatter = new Intl.DateTimeFormat("fa-IR", {
+    timeZone: "Asia/Tehran", month: "long", day: "numeric"
+  });
+  var axisMonthFormatter = new Intl.DateTimeFormat("fa-IR", {
+    timeZone: "Asia/Tehran", month: "long"
+  });
+  var axisYearFormatter = new Intl.DateTimeFormat("fa-IR", {
+    timeZone: "Asia/Tehran", year: "numeric"
   });
 
   function fetchJson(url, signal) {
@@ -150,32 +155,23 @@
     });
   }
 
-  function renderGrid(width, height, padding) {
-    grid.replaceChildren();
-    for (var index = 0; index < 5; index += 1) {
-      var y = padding.top + index * (height - padding.top - padding.bottom) / 4;
-      var rule = document.createElementNS("http://www.w3.org/2000/svg", "line");
-      rule.setAttribute("x1", padding.left);
-      rule.setAttribute("x2", width - padding.right);
-      rule.setAttribute("y1", y);
-      rule.setAttribute("y2", y);
-      grid.appendChild(rule);
-    }
-  }
-
   function renderXAxis(points, width, height, padding) {
     xAxis.replaceChildren();
     var labelCount = width < 520 ? 4 : Math.max(5, Math.min(8, Math.floor(width / 105)));
+    var axisInset = width < 520 ? 27 : 38;
     for (var index = 0; index < labelCount; index += 1) {
       var pointIndex = Math.round(index * (points.length - 1) / Math.max(1, labelCount - 1));
       var point = points[pointIndex];
-      var x = padding.left + index * (width - padding.left - padding.right) / Math.max(1, labelCount - 1);
+      var x = axisInset + index * (width - axisInset * 2) / Math.max(1, labelCount - 1);
       var label = document.createElementNS("http://www.w3.org/2000/svg", "text");
-      var formatter = activeRange === "24h" ? axisTimeFormatter : (activeRange === "7d" || activeRange === "1m" ? axisDateTimeFormatter : axisDateFormatter);
+      var formatter = activeRange === "24h" ? axisTimeFormatter : (activeRange === "7d" || activeRange === "1m" ? axisDayFormatter : axisMonthFormatter);
       label.setAttribute("x", x);
       label.setAttribute("y", height - 8);
-      label.setAttribute("text-anchor", index === 0 ? "start" : (index === labelCount - 1 ? "end" : "middle"));
-      label.textContent = formatter.format(new Date(point.time * 1000));
+      label.setAttribute("text-anchor", "middle");
+      var labelDate = new Date(point.time * 1000);
+      label.textContent = activeRange === "1y" || activeRange === "all"
+        ? axisMonthFormatter.format(labelDate) + " " + axisYearFormatter.format(labelDate)
+        : formatter.format(labelDate);
       xAxis.appendChild(label);
     }
   }
@@ -184,7 +180,8 @@
     activePoints = points.slice().sort(function (a, b) { return a.time - b.time; });
     var width = Math.max(280, stage.clientWidth);
     var height = Math.max(220, svg.clientHeight || 300);
-    var padding = { top: 12, right: 7, bottom: 34, left: 7 };
+    var sidePadding = stage.clientWidth < 520 ? 3 : 7;
+    var padding = { top: 12, right: sidePadding, bottom: 34, left: sidePadding };
     var prices = activePoints.map(function (point) { return point.price; });
     var min = Math.min.apply(Math, prices);
     var max = Math.max.apply(Math, prices);
@@ -199,7 +196,6 @@
     svg.setAttribute("viewBox", "0 0 " + width + " " + height);
     crosshair.setAttribute("y1", padding.top);
     crosshair.setAttribute("y2", height - padding.bottom);
-    renderGrid(width, height, padding);
     renderXAxis(activePoints, width, height, padding);
     line.setAttribute("d", linePath);
     area.setAttribute("d", areaPath);
@@ -237,7 +233,7 @@
     marker.setAttribute("cy", plotted[1]);
     crosshair.removeAttribute("hidden");
     marker.removeAttribute("hidden");
-    tooltipDate.textContent = (activeRange === "24h" || activeRange === "7d" ? dateTimeFormatter : dateFormatter).format(new Date(point.time * 1000));
+    tooltipDate.textContent = (activeRange === "24h" || activeRange === "7d" || activeRange === "1m" ? dateTimeFormatter : dateFormatter).format(new Date(point.time * 1000));
     tooltipPrice.textContent = priceFormatter.format(point.price) + " تتر";
     tooltip.hidden = false;
     var tooltipWidth = tooltip.offsetWidth || 145;
