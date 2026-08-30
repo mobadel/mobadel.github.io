@@ -1,10 +1,22 @@
 (function () {
   "use strict";
 
-  if (!/^\/price\/crypto\/btc\/?$/.test(location.pathname)) return;
+  var routeMatch = location.pathname.match(/^\/price\/crypto\/(btc|usdt)\/?$/);
+  if (!routeMatch) return;
 
   var API = "https://apiv2.nobitex.ir/market/udf/history";
-  var STATS_API = "https://apiv2.nobitex.ir/market/stats?srcCurrency=btc&dstCurrency=usdt";
+  var MARKETS = {
+    btc: {
+      symbol: "BTCUSDT", statsKey: "btc-usdt", src: "btc", dst: "usdt", liveScale: 1,
+      title: "نمودار قیمت بیت کوین", unit: "تتر", source: "بر اساس داده‌های بازار «بیت کوین/تتر»"
+    },
+    usdt: {
+      symbol: "USDTIRT", statsKey: "usdt-irt", src: "usdt", dst: "irt", liveScale: 0.1,
+      title: "نمودار قیمت تتر", unit: "تومان", source: "بر اساس داده‌های بازار «تتر/تومان»"
+    }
+  };
+  var marketConfig = MARKETS[routeMatch[1]];
+  var STATS_API = "https://apiv2.nobitex.ir/market/stats?srcCurrency=" + marketConfig.src + "&dstCurrency=" + marketConfig.dst;
   var RANGE_CONFIG = {
     "24h": { resolution: "15", seconds: 86400 },
     "7d": { resolution: "60", seconds: 7 * 86400 },
@@ -29,9 +41,14 @@
   var tooltipDate = document.getElementById("btc-chart-tooltip-date");
   var tooltipPrice = document.getElementById("btc-chart-tooltip-price");
   var status = document.getElementById("btc-chart-status");
+  var chartTitle = document.getElementById("btc-chart-title");
+  var chartSource = section && section.querySelector(".btc-chart-source");
   var buttons = Array.prototype.slice.call(document.querySelectorAll("[data-chart-range]"));
 
   if (!section || !stage || !svg) return;
+  chartTitle.textContent = marketConfig.title;
+  chartSource.textContent = marketConfig.source;
+  svg.setAttribute("aria-label", "نمودار تاریخی " + marketConfig.title.replace("نمودار ", "") + " به " + marketConfig.unit);
   section.hidden = false;
 
   var priceFormatter = new Intl.NumberFormat("fa-IR", { maximumFractionDigits: 2 });
@@ -66,7 +83,7 @@
 
   function fetchPage(config, from, to, page, signal) {
     var params = new URLSearchParams({
-      symbol: "BTCUSDT",
+      symbol: marketConfig.symbol,
       resolution: config.resolution,
       from: String(from),
       to: String(to),
@@ -96,8 +113,8 @@
 
   function fetchLivePoint(signal) {
     return fetchJson(STATS_API, signal).then(function (payload) {
-      var market = payload && payload.stats && payload.stats["btc-usdt"];
-      var price = market && Number(market.latest);
+      var market = payload && payload.stats && payload.stats[marketConfig.statsKey];
+      var price = market && Number(market.latest) * marketConfig.liveScale;
       if (!Number.isFinite(price)) throw new Error("no_live_price");
       return { time: Math.floor(Date.now() / 1000), price: price, live: true };
     });
@@ -234,7 +251,7 @@
     crosshair.removeAttribute("hidden");
     marker.removeAttribute("hidden");
     tooltipDate.textContent = (activeRange === "24h" || activeRange === "7d" || activeRange === "1m" ? dateTimeFormatter : dateFormatter).format(new Date(point.time * 1000));
-    tooltipPrice.textContent = priceFormatter.format(point.price) + " تتر";
+    tooltipPrice.textContent = priceFormatter.format(point.price) + " " + marketConfig.unit;
     tooltip.hidden = false;
     var tooltipWidth = tooltip.offsetWidth || 145;
     var left = relative - tooltipWidth / 2;

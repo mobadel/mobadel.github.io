@@ -33,7 +33,7 @@ assert.match(btcChartScript, /"7d": \{ resolution: "60", seconds: 7 \* 86400 \}/
 assert.match(btcChartScript, /"1m": \{ resolution: "240", seconds: 30 \* 86400 \}/, "بازه ماهانه باید کندل چهار ساعته بگیرد");
 assert.match(btcChartScript, /"1y": \{ resolution: "D", seconds: 365 \* 86400 \}/, "بازه سالانه باید کندل روزانه بگیرد");
 assert.match(btcChartScript, /all: \{ resolution: "D", from: 1483228800, paged: true, weekly: true \}/, "بازه همه باید از داده روزانه نقاط هفتگی بسازد");
-assert.match(btcChartScript, /fetchLivePoint[\s\S]*stats\["btc-usdt"\][\s\S]*market\.latest/, "نقطه آخر نمودار باید از قیمت لحظه‌ای بازار ساخته شود");
+assert.match(btcChartScript, /fetchLivePoint[\s\S]*stats\[marketConfig\.statsKey\][\s\S]*market\.latest[\s\S]*marketConfig\.liveScale/, "نقطه آخر نمودار باید از قیمت لحظه‌ای بازار فعال و ضریب واحد آن ساخته شود");
 assert.match(btcChartScript, /setInterval[\s\S]*fetchLivePoint[\s\S]*60000/, "قیمت لحظه‌ای انتهای نمودار باید هر دقیقه تازه شود");
 assert.match(btcChartScript, /width < 520 \? 4/, "محور زمان موبایل باید چهار برچسب داشته باشد");
 assert.match(btcChartScript, /activeRange === "7d" \|\| activeRange === "1m" \? axisDayFormatter : axisMonthFormatter/, "محور هفتگی و ماهانه باید روز و ماه و محورهای بلند باید ماه و سال نشان دهند");
@@ -42,13 +42,15 @@ assert.match(btcChartScript, /activeRange === "24h" \|\| activeRange === "7d" \|
 assert.match(btcChartScript, /label\.setAttribute\("text-anchor", "middle"\)/, "مرکز همه برچسب‌های محور باید با فاصله یکسان چیده شود");
 assert.doesNotMatch(asset, /btc-chart-grid/, "نمودار نباید خطوط افقی پس‌زمینه داشته باشد");
 assert.match(asset, /بر اساس داده‌های بازار «بیت کوین\/تتر»/, "متن منبع نمودار باید مطابق کپی نهایی باشد");
-assert.match(btcChartScript, /symbol: "BTCUSDT"/, "نمودار باید با واحد اصلی صفحه از بازار بیت کوین تتر بیاید");
+assert.match(btcChartScript, /btc: \{[\s\S]*symbol: "BTCUSDT"[\s\S]*statsKey: "btc-usdt"[\s\S]*unit: "تتر"/, "نمودار بیت کوین باید از بازار بیت کوین تتر بیاید");
+assert.match(btcChartScript, /usdt: \{[\s\S]*symbol: "USDTIRT"[\s\S]*statsKey: "usdt-irt"[\s\S]*liveScale: 0\.1[\s\S]*unit: "تومان"/, "نمودار تتر باید داده تاریخی تومانی و قیمت لحظه‌ای تبدیل‌شده از ریال داشته باشد");
+assert.match(btcChartScript, /\(btc\|usdt\)/, "نمودار فقط باید در صفحات بیت کوین و تتر فعال شود");
 assert.match(btcChartScript, /stage\.addEventListener\("pointermove"/, "هاور نمودار باید اطلاعات نقطه را نمایش دهد");
 assert.match(btcChartScript, /stage\.addEventListener\("pointerdown"/, "لمس نمودار در موبایل باید اطلاعات نقطه را نمایش دهد");
 assert.match(btcChartScript, /stage\.addEventListener\("pointerup"[\s\S]*event\.pointerType !== "mouse"[\s\S]*hideTooltip/, "هاور لمسی باید با پایان لمس پاک شود");
 assert.match(btcChartScript, /stage\.addEventListener\("pointercancel", hideTooltip\)/, "لغو لمس باید نشانگر نمودار را پاک کند");
 assert.match(btcChartScript, /stage\.clientWidth < 520 \? 250 : 300/, "نسبت viewBox موبایل باید با ارتفاع واقعی نمودار یکسان باشد");
-assert.match(btcChartScript, /priceFormatter\.format\(point\.price\) \+ " تتر"/, "Tooltip باید قیمت را به تتر نمایش دهد");
+assert.match(btcChartScript, /priceFormatter\.format\(point\.price\) \+ " " \+ marketConfig\.unit/, "Tooltip باید واحد متناسب با بازار فعال را نمایش دهد");
 assert.match(btcChartScript, /svg\.removeAttribute\("hidden"\)/, "پس از دریافت داده باید ویژگی hidden واقعاً از SVG حذف شود");
 
 for (const [name, html] of [["home", home], ["convert", converter], ["price", hub], ["category", category], ["asset", asset]]) {
