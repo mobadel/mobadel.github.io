@@ -4,12 +4,13 @@
   if (!/^\/price\/crypto\/btc\/?$/.test(location.pathname)) return;
 
   var API = "https://apiv2.nobitex.ir/market/udf/history";
+  var STATS_API = "https://apiv2.nobitex.ir/market/stats?srcCurrency=btc&dstCurrency=usdt";
   var RANGE_CONFIG = {
-    "24h": { resolution: "60", seconds: 86400 },
-    "7d": { resolution: "240", seconds: 7 * 86400 },
-    "1m": { resolution: "D", seconds: 30 * 86400 },
+    "24h": { resolution: "15", seconds: 86400 },
+    "7d": { resolution: "60", seconds: 7 * 86400 },
+    "1m": { resolution: "240", seconds: 30 * 86400 },
     "1y": { resolution: "D", seconds: 365 * 86400 },
-    all: { resolution: "D", from: 1483228800, paged: true }
+    all: { resolution: "D", from: 1483228800, paged: true, weekly: true }
   };
   var cache = {};
   var activeRange = "24h";
@@ -20,6 +21,7 @@
   var stage = document.getElementById("btc-chart-stage");
   var svg = document.getElementById("btc-chart-svg");
   var grid = document.getElementById("btc-chart-grid");
+  var xAxis = document.getElementById("btc-chart-x-axis");
   var area = document.getElementById("btc-chart-area");
   var line = document.getElementById("btc-chart-line");
   var crosshair = document.getElementById("btc-chart-crosshair");
@@ -39,6 +41,15 @@
   });
   var dateTimeFormatter = new Intl.DateTimeFormat("fa-IR", {
     timeZone: "Asia/Tehran", month: "long", day: "numeric", hour: "2-digit", minute: "2-digit"
+  });
+  var axisTimeFormatter = new Intl.DateTimeFormat("fa-IR", {
+    timeZone: "Asia/Tehran", hour: "2-digit", minute: "2-digit"
+  });
+  var axisDateTimeFormatter = new Intl.DateTimeFormat("fa-IR", {
+    timeZone: "Asia/Tehran", month: "numeric", day: "numeric", hour: "2-digit"
+  });
+  var axisDateFormatter = new Intl.DateTimeFormat("fa-IR", {
+    timeZone: "Asia/Tehran", year: "2-digit", month: "numeric", day: "numeric"
   });
 
   function fetchJson(url, signal) {
@@ -66,6 +77,32 @@
     }).filter(function (point) {
       return Number.isFinite(point.time) && Number.isFinite(point.price);
     });
+  }
+
+  function aggregateWeekly(points) {
+    var buckets = {};
+    points.forEach(function (point) {
+      buckets[Math.floor(point.time / 604800)] = point;
+    });
+    return Object.keys(buckets).map(function (key) { return buckets[key]; }).sort(function (a, b) {
+      return a.time - b.time;
+    });
+  }
+
+  function fetchLivePoint(signal) {
+    return fetchJson(STATS_API, signal).then(function (payload) {
+      var market = payload && payload.stats && payload.stats["btc-usdt"];
+      var price = market && Number(market.latest);
+      if (!Number.isFinite(price)) throw new Error("no_live_price");
+      return { time: Math.floor(Date.now() / 1000), price: price, live: true };
+    });
+  }
+
+  function appendLivePoint(points, livePoint) {
+    var normalized = points.filter(function (point) { return !point.live; }).sort(function (a, b) { return a.time - b.time; });
+    if (normalized.length && normalized[normalized.length - 1].time === livePoint.time) normalized.pop();
+    normalized.push(livePoint);
+    return normalized;
   }
 
   function loadRange(range) {
@@ -98,6 +135,7 @@
       points.forEach(function (point) { unique[point.time] = point; });
       var normalized = Object.keys(unique).map(function (key) { return unique[key]; });
       if (!normalized.length) throw new Error("no_data");
+      normalized = config.weekly ? aggregateWeekly(normalized) : normalized;
       cache[range] = normalized;
       return normalized;
     });
@@ -106,8 +144,8 @@
   function pathFor(points, width, height, padding, min, max) {
     var span = max - min || 1;
     return points.map(function (point, index) {
-      var x = padding + index * (width - padding * 2) / Math.max(1, points.length - 1);
-      var y = padding + (max - point.price) * (height - padding * 2) / span;
+      var x = padding.left + index * (width - padding.left - padding.right) / Math.max(1, points.length - 1);
+      var y = padding.top + (max - point.price) * (height - padding.top - padding.bottom) / span;
       return { x: x, y: y, command: (index ? "L" : "M") + x.toFixed(2) + " " + y.toFixed(2) };
     });
   }
@@ -115,13 +153,30 @@
   function renderGrid(width, height, padding) {
     grid.replaceChildren();
     for (var index = 0; index < 5; index += 1) {
-      var y = padding + index * (height - padding * 2) / 4;
+      var y = padding.top + index * (height - padding.top - padding.bottom) / 4;
       var rule = document.createElementNS("http://www.w3.org/2000/svg", "line");
-      rule.setAttribute("x1", padding);
-      rule.setAttribute("x2", width - padding);
+      rule.setAttribute("x1", padding.left);
+      rule.setAttribute("x2", width - padding.right);
       rule.setAttribute("y1", y);
       rule.setAttribute("y2", y);
       grid.appendChild(rule);
+    }
+  }
+
+  function renderXAxis(points, width, height, padding) {
+    xAxis.replaceChildren();
+    var labelCount = width < 520 ? 4 : Math.max(5, Math.min(8, Math.floor(width / 105)));
+    for (var index = 0; index < labelCount; index += 1) {
+      var pointIndex = Math.round(index * (points.length - 1) / Math.max(1, labelCount - 1));
+      var point = points[pointIndex];
+      var x = padding.left + index * (width - padding.left - padding.right) / Math.max(1, labelCount - 1);
+      var label = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      var formatter = activeRange === "24h" ? axisTimeFormatter : (activeRange === "7d" || activeRange === "1m" ? axisDateTimeFormatter : axisDateFormatter);
+      label.setAttribute("x", x);
+      label.setAttribute("y", height - 8);
+      label.setAttribute("text-anchor", index === 0 ? "start" : (index === labelCount - 1 ? "end" : "middle"));
+      label.textContent = formatter.format(new Date(point.time * 1000));
+      xAxis.appendChild(label);
     }
   }
 
@@ -129,7 +184,7 @@
     activePoints = points.slice().sort(function (a, b) { return a.time - b.time; });
     var width = Math.max(280, stage.clientWidth);
     var height = Math.max(220, svg.clientHeight || 300);
-    var padding = 18;
+    var padding = { top: 12, right: 7, bottom: 34, left: 7 };
     var prices = activePoints.map(function (point) { return point.price; });
     var min = Math.min.apply(Math, prices);
     var max = Math.max.apply(Math, prices);
@@ -138,15 +193,19 @@
     max += margin;
     var plotted = pathFor(activePoints, width, height, padding, min, max);
     var linePath = plotted.map(function (point) { return point.command; }).join(" ");
-    var floor = height - padding;
+    var floor = height - padding.bottom;
     var areaPath = linePath + " L" + plotted[plotted.length - 1].x.toFixed(2) + " " + floor + " L" + plotted[0].x.toFixed(2) + " " + floor + " Z";
 
     svg.setAttribute("viewBox", "0 0 " + width + " " + height);
+    crosshair.setAttribute("y1", padding.top);
+    crosshair.setAttribute("y2", height - padding.bottom);
     renderGrid(width, height, padding);
+    renderXAxis(activePoints, width, height, padding);
     line.setAttribute("d", linePath);
     area.setAttribute("d", areaPath);
     svg.dataset.width = String(width);
-    svg.dataset.padding = String(padding);
+    svg.dataset.paddingLeft = String(padding.left);
+    svg.dataset.paddingRight = String(padding.right);
     svg.dataset.points = JSON.stringify(plotted.map(function (point) { return [point.x, point.y]; }));
     status.hidden = true;
     svg.removeAttribute("hidden");
@@ -161,11 +220,12 @@
   function showPoint(clientX) {
     if (!activePoints.length) return;
     var rect = svg.getBoundingClientRect();
-    var padding = Number(svg.dataset.padding);
+    var paddingLeft = Number(svg.dataset.paddingLeft);
+    var paddingRight = Number(svg.dataset.paddingRight);
     var width = Number(svg.dataset.width);
     var relative = Math.max(0, Math.min(rect.width, clientX - rect.left));
     var chartX = relative / rect.width * width;
-    var ratio = (chartX - padding) / Math.max(1, width - padding * 2);
+    var ratio = (chartX - paddingLeft) / Math.max(1, width - paddingLeft - paddingRight);
     var index = Math.max(0, Math.min(activePoints.length - 1, Math.round(ratio * (activePoints.length - 1))));
     var plotted = JSON.parse(svg.dataset.points || "[]")[index];
     var point = activePoints[index];
@@ -198,7 +258,9 @@
     status.textContent = "در حال دریافت داده‌های نمودار…";
     if (requestController) requestController.abort();
     requestController = new AbortController();
-    loadRange(range).then(renderChart).catch(function (error) {
+    Promise.all([loadRange(range), fetchLivePoint(requestController.signal)]).then(function (results) {
+      renderChart(appendLivePoint(results[0], results[1]));
+    }).catch(function (error) {
       if (error && error.name === "AbortError") return;
       status.hidden = false;
       status.textContent = "داده‌های نمودار در حال حاضر در دسترس نیست.";
@@ -214,6 +276,12 @@
   window.addEventListener("resize", function () {
     if (activePoints.length) renderChart(activePoints);
   });
+  window.setInterval(function () {
+    var rangeAtRequest = activeRange;
+    fetchLivePoint().then(function (livePoint) {
+      if (rangeAtRequest === activeRange && activePoints.length) renderChart(appendLivePoint(activePoints, livePoint));
+    }).catch(function () {});
+  }, 60000);
 
   selectRange(activeRange);
 })();
