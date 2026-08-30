@@ -69,6 +69,10 @@ for (const [name, source] of [["home", home], ["convert", converter], ["price", 
 assert.match(home, /class="home-hero"[\s\S]*<span>قیمت<\/span>[\s\S]*id="rotating-asset-name">دلار/, "عنوان متغیر هوم باید با دلار شروع شود");
 assert.match(home, /id="rotating-asset-name">دلار<\/span><img id="rotating-asset-icon"/, "آیکون باید در سمت چپ نام متغیر قرار بگیرد");
 assert.match(home, /class="home-market-all" href="\/price\/">مشاهده همه/, "انتهای جدول باید لینک مشاهده همه داشته باشد");
+assert.match(home, /home-market-all[^>]*>مشاهده همه <span class="icon-chevron"/, "فلش مشاهده همه باید chevron مینیمال باشد");
+assert.doesNotMatch(home + asset + script, /←/, "فلش متنی قدیمی نباید باقی بماند");
+assert.match(script, /converter\.textContent = "مبدل قیمت " \+ asset\.name/, "متن دکمه هر دارایی باید مبدل قیمت و نام دارایی باشد");
+assert.match(styles, /\.converter-link\{[^}]*margin-inline-start:auto/, "دکمه مبدل باید در سمت چپ محتوای دارایی قرار بگیرد");
 assert.match(home, /تغییرات ۲۴ ساعته/, "عنوان ستون تغییرات هوم باید کامل باشد");
 assert.match(category, /تغییرات ۲۴ ساعته/, "عنوان ستون تغییرات دسته‌بندی باید کامل باشد");
 assert.doesNotMatch(home, /class="pair-content"/, "محتوای SEO قدیمی مبدل باید از هوم حذف شود");
