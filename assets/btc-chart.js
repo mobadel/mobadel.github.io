@@ -179,7 +179,7 @@
   function renderChart(points) {
     activePoints = points.slice().sort(function (a, b) { return a.time - b.time; });
     var width = Math.max(280, stage.clientWidth);
-    var height = Math.max(220, svg.clientHeight || 300);
+    var height = stage.clientWidth < 520 ? 250 : 300;
     var sidePadding = stage.clientWidth < 520 ? 3 : 7;
     var padding = { top: 12, right: sidePadding, bottom: 34, left: sidePadding };
     var prices = activePoints.map(function (point) { return point.price; });
@@ -268,6 +268,10 @@
   });
   stage.addEventListener("pointermove", function (event) { showPoint(event.clientX); });
   stage.addEventListener("pointerdown", function (event) { showPoint(event.clientX); });
+  stage.addEventListener("pointerup", function (event) {
+    if (event.pointerType !== "mouse") hideTooltip();
+  });
+  stage.addEventListener("pointercancel", hideTooltip);
   stage.addEventListener("pointerleave", hideTooltip);
   window.addEventListener("resize", function () {
     if (activePoints.length) renderChart(activePoints);

@@ -45,6 +45,9 @@ assert.match(asset, /بر اساس داده‌های بازار «بیت کوی�
 assert.match(btcChartScript, /symbol: "BTCUSDT"/, "نمودار باید با واحد اصلی صفحه از بازار بیت کوین تتر بیاید");
 assert.match(btcChartScript, /stage\.addEventListener\("pointermove"/, "هاور نمودار باید اطلاعات نقطه را نمایش دهد");
 assert.match(btcChartScript, /stage\.addEventListener\("pointerdown"/, "لمس نمودار در موبایل باید اطلاعات نقطه را نمایش دهد");
+assert.match(btcChartScript, /stage\.addEventListener\("pointerup"[\s\S]*event\.pointerType !== "mouse"[\s\S]*hideTooltip/, "هاور لمسی باید با پایان لمس پاک شود");
+assert.match(btcChartScript, /stage\.addEventListener\("pointercancel", hideTooltip\)/, "لغو لمس باید نشانگر نمودار را پاک کند");
+assert.match(btcChartScript, /stage\.clientWidth < 520 \? 250 : 300/, "نسبت viewBox موبایل باید با ارتفاع واقعی نمودار یکسان باشد");
 assert.match(btcChartScript, /priceFormatter\.format\(point\.price\) \+ " تتر"/, "Tooltip باید قیمت را به تتر نمایش دهد");
 assert.match(btcChartScript, /svg\.removeAttribute\("hidden"\)/, "پس از دریافت داده باید ویژگی hidden واقعاً از SVG حذف شود");
 
