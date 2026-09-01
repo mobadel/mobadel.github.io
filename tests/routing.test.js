@@ -17,7 +17,9 @@ const stats = {
   stats: {
     "usdt-rls": { latest: "1000000" },
     "btc-rls": { latest: "50000000000" },
-    "eth-rls": { latest: "2500000000" }
+    "eth-rls": { latest: "2500000000" },
+    "100k_floki-rls": { latest: "220000" },
+    "1b_babydoge-rls": { latest: "310000" }
   }
 };
 const options = { status: "ok", coins: [{ coin: "btc", name: "Bitcoin", displayPrecision: "0.00000001" }] };
@@ -109,7 +111,10 @@ function loadAt(pathname, search = "") {
     const u = String(url);
     if (u.includes("api/rates.php")) return { ok: true, json: async () => proxyRates };
     if (u.includes("data/prices.json")) return { ok: false, status: 404, json: async () => ({}) };
-    if (u.includes("data/currencies.json")) return { ok: false, status: 404, json: async () => ({}) };
+    if (u.includes("data/currencies.json")) return { ok: true, json: async () => ({ currencies: {
+      "100k_floki": { fa: "100K_فلوکی", en: "FLOKI", alt: "floki" },
+      "1b_babydoge": { fa: "1B_بیبی دوج", en: "Baby Doge Coin", alt: "babydoge" }
+    } }) };
     if (u.includes("/market/stats")) return { ok: true, json: async () => stats };
     if (u.includes("/v2/options")) return { ok: true, json: async () => options };
     throw new Error(`Unexpected URL: ${u}`);
@@ -177,6 +182,15 @@ function loadAt(pathname, search = "") {
   const cryptoPair = loadAt("/convert/eth-to-btc/");
   await new Promise((resolve) => setTimeout(resolve, 120));
   assert.equal(cryptoPair.heading(), "تبدیل اتریوم به بیت کوین");
+
+  // ضریب بسته‌بندی نوبیتکس در نام می‌ماند، اما وارد URL عمومی نمی‌شود.
+  const flokiPage = loadAt("/convert/floki-to-irt/");
+  await new Promise((resolve) => setTimeout(resolve, 120));
+  assert.equal(flokiPage.heading(), "تبدیل 100K_فلوکی به تومان");
+
+  const babydogePage = loadAt("/convert/irt-to-babydoge/");
+  await new Promise((resolve) => setTimeout(resolve, 120));
+  assert.equal(babydogePage.heading(), "تبدیل تومان به 1B_بیبی دوج");
 
   // ترکیب رمزارز و دارایی پراکسی هم باید کار کند.
   const mixed = loadAt("/convert/btc-to-gold18/", "?amount=2");

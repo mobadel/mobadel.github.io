@@ -116,6 +116,8 @@ for (const source of [read("index.html"), converter, hub, category, asset]) asse
 assert.match(script, /crypto:[\s\S]*gold:[\s\S]*coin:/, "طلا و سکه باید دسته‌های جدا باشند");
 assert.match(script, /fiat:\s*\{ name: "ارز", singular: "ارز"/, "نام دسته فیات باید ارز باشد");
 assert.match(script, /asset\.group === "crypto"\) return asset\.englishName/, "نام انگلیسی رمزارز باید در زیرعنوان حفظ شود");
+assert.match(script, /\^\\d\+\[kmb\]_\(\.\+\)\$/, "اسلاگ دارایی‌های ضریب‌دار باید بدون ضریب ساخته شود");
+assert.match(script, /registerSlug\(id\); assets\[id\]/, "اسلاگ کوتاه باید دوباره به شناسه واقعی نوبیتکس نگاشت شود");
 assert.match(script, /\^\(\.\+\)-rls\$/, "فقط بازار مستقیم تومانی رمزارزها پذیرفته شود");
 assert.match(script, /Number\(tomanRow && tomanRow\.latest\) \/ 10/, "بازار مستقیم ریالی نوبیتکس باید برای معادل تومان استفاده شود");
 assert.match(script, /stats\[id \+ "-usdt"\]/, "قیمت اصلی رمزارز غیراستیبل باید از بازار تتری بیاید");
@@ -164,6 +166,7 @@ assert.doesNotMatch(script, /\{ id: "irt", name: "تومان"[^\n]*group: "fiat"
 assert.match(script, /name: "انس جهانی طلا"/, "عنوان انس باید انس جهانی طلا باشد");
 assert.match(script, /row\.toman_change/, "صفحه انس باید درصد تومانی محاسبه‌شده را مصرف کند");
 assert.match(htaccess, /\^price\/\(crypto\|gold\|coin\|commodity\|currency\)\/\?\$/, "مسیر دسته قیمت باید با currency بازنویسی شود");
+assert.match(htaccess, /price\/crypto\/\[0-9\]\+\[kmb\]_/, "URL قدیمی رمزارز ضریب‌دار باید به اسلاگ کوتاه ریدایرکت شود");
 assert.match(htaccess, /\^price\/fiat\/\?\$ \/price\/currency\/ \[R=301,L,NE\]/, "مسیر قدیمی fiat باید دائمی به currency منتقل شود");
 assert.match(htaccess, /\^price\/\(\?:fiat\|currency\)\/irt\/\?\$ - \[R=410,L\]/, "صفحه قیمت تومان باید حذف و Gone شود");
 assert.match(htaccess, /price\/asset\.html/, "مسیر دارایی قیمت باید بازنویسی شود");

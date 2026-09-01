@@ -128,7 +128,20 @@
   var SLUG_TO_ID = {};
   Object.keys(SLUG_OVERRIDES).forEach(function (id) { SLUG_TO_ID[SLUG_OVERRIDES[id]] = id; });
 
-  function slugOf(id) { return SLUG_OVERRIDES[id] || id; }
+  /* بعضی بازارهای نوبیتکس با ضریب بسته‌بندی نام‌گذاری شده‌اند؛ مثلاً
+     100k_floki. ضریب باید در نام نمایشی بماند، اما اسلاگ عمومی کوتاه و
+     پایدار است: floki. نگاشت معکوس هنگام ثبت دارایی ساخته می‌شود. */
+  function packagedSlug(id) {
+    var match = String(id || "").toLowerCase().match(/^\d+[kmb]_(.+)$/);
+    return match ? match[1] : null;
+  }
+
+  function registerSlug(id) {
+    var slug = packagedSlug(id);
+    if (slug && (!SLUG_TO_ID[slug] || SLUG_TO_ID[slug] === id)) SLUG_TO_ID[slug] = id;
+  }
+
+  function slugOf(id) { return SLUG_OVERRIDES[id] || packagedSlug(id) || id; }
 
   function idFromSlug(slug) {
     slug = String(slug || "").toLowerCase();
@@ -261,6 +274,7 @@
       iconUrls: [],
       aliases: current.aliases || []
     };
+    registerSlug(id);
     return currencies[id];
   }
 
@@ -664,7 +678,10 @@
      بدون این، ورود مستقیم به /btc-to-irt/ به جفت پیش‌فرض می‌افتاد. */
   function resolvePendingRoute() {
     if (!state.pendingRoute) return false;
-    if (!applyRoute(state.pendingRoute)) return false;
+    // نگاشت اسلاگ‌های کوتاه رمزارزهای ضریب‌دار تازه هنگام دریافت فهرست
+    // بازار ساخته می‌شود؛ بنابراین مسیر را با نگاشت تازه دوباره می‌خوانیم.
+    var route = parseRoute(location.pathname) || state.pendingRoute;
+    if (!applyRoute(route)) return false;
     state.pendingRoute = null;
     return true;
   }
