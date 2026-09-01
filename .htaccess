@@ -11,6 +11,12 @@ DirectoryIndex index.html
   RewriteRule ^price/fiat/?$ /price/currency/ [R=301,L,NE]
   RewriteRule ^price/fiat/([a-z0-9]+)/?$ /price/currency/$1/ [R=301,L,NE]
 
+  # شناسهٔ داخلی بازارهای ضریب‌دار در URL عمومی نمایش داده نمی‌شود.
+  RewriteRule ^price/crypto/[0-9]+[kmb]_([a-z0-9_]+)/?$ /price/crypto/$1/ [R=301,L,NE]
+  RewriteRule ^convert/[0-9]+[kmb]_([a-z0-9_]+)-to-[0-9]+[kmb]_([a-z0-9_]+)/?$ /convert/$1-to-$2/ [R=301,L,NE]
+  RewriteRule ^convert/[0-9]+[kmb]_([a-z0-9_]+)-to-([a-z0-9]+)/?$ /convert/$1-to-$2/ [R=301,L,NE]
+  RewriteRule ^convert/([a-z0-9]+)-to-[0-9]+[kmb]_([a-z0-9_]+)/?$ /convert/$1-to-$2/ [R=301,L,NE]
+
   # مسیرهای قدیمی تبدیل با حفظ query string به ساختار جدید منتقل می‌شوند.
   RewriteRule ^([a-z0-9]+)-to-([a-z0-9]+)/?$ /convert/$1-to-$2/ [R=301,L,NE]
 

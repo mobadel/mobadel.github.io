@@ -65,7 +65,9 @@
   FIXED.forEach(function (asset) { assets[asset.id] = Object.assign({}, asset); });
   var latestUpdate = null;
 
-  function slugOf(id) { return SLUGS[id] || id; }
+  function packagedSlug(id) { var match = String(id || "").toLowerCase().match(/^\d+[kmb]_(.+)$/); return match ? match[1] : null; }
+  function registerSlug(id) { var slug = packagedSlug(id); if (slug && (!SLUG_TO_ID[slug] || SLUG_TO_ID[slug] === id)) SLUG_TO_ID[slug] = id; }
+  function slugOf(id) { return SLUGS[id] || packagedSlug(id) || id; }
   function idFromSlug(slug) { return SLUG_TO_ID[slug] || slug; }
   function groupSlug(group) { return GROUP_SLUGS[group] || group; }
   function groupFromSlug(slug) { return slug === "currency" ? "fiat" : slug; }
@@ -128,7 +130,7 @@
         var id = normalizeId(match[1]); if (!id || id === "irt") return;
         var tomanRow = stats[key]; var tomanPrice = Number(tomanRow && tomanRow.latest) / 10; if (!Number.isFinite(tomanPrice) || tomanPrice <= 0) return;
         var usdtRow = stats[id + "-usdt"]; var usdtPrice = Number(usdtRow && usdtRow.latest); var useUsdt = !USD_STABLECOINS[id] && Number.isFinite(usdtPrice) && usdtPrice > 0;
-        var nameRow = names[id] || {}; assets[id] = {
+        var nameRow = names[id] || {}; registerSlug(id); assets[id] = {
           id: id, name: nameRow.fa || id.toUpperCase(), englishName: nameRow.en || id.toUpperCase(), code: id.toUpperCase(), group: "crypto", unit: null,
           icon: iconPath(id), price: useUsdt ? usdtPrice : tomanPrice, priceCurrency: useUsdt ? "USDT" : "IRT", tomanPrice: useUsdt ? tomanPrice : null, tomanChange: useUsdt ? Number(tomanRow.dayChange) : null,
           change: Number((useUsdt ? usdtRow : tomanRow).dayChange), source: useUsdt ? "بازار تتری نوبیتکس" : "بازار تومانی نوبیتکس", updatedAt: new Date()
