@@ -32,7 +32,7 @@ const ASSETS = {
   sol:  { slug: "sol",  name: "سولانا" },
   ada:  { slug: "ada",  name: "کاردانو" },
   shib: { slug: "shib", name: "شیبا اینو" },
-  ton:  { slug: "ton",  name: "تون‌کوین" },
+  gram: { slug: "gram", name: "گرام" },
 
   gold18:     { slug: "gold18",     name: "طلای ۱۸ عیار", unit: "گرم" },
   gold24:     { slug: "gold24",     name: "طلای ۲۴ عیار", unit: "گرم" },
@@ -79,7 +79,7 @@ const ASSETS = {
 
 // هر کدام از این‌ها در هر دو جهت با تومان صفحه می‌گیرد.
 const WITH_TOMAN = [
-  "usdt", "btc", "eth", "usdc", "xrp", "doge", "trx", "sol", "ada", "shib", "ton",
+  "usdt", "btc", "eth", "usdc", "xrp", "doge", "trx", "sol", "ada", "shib", "gram",
   "gold18", "gold24", "goldmelted", "goldounce",
   "emami", "bahar", "halfcoin", "quartercoin", "gramcoin",
   "silver", "copper",

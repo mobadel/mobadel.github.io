@@ -17,7 +17,7 @@
     link: "چین‌لینک", dai: "دای", dot: "پولکادات", uni: "یونی‌سواپ", aave: "آوه",
     sol: "سولانا", fil: "فایل‌کوین", grt: "گراف", atom: "کازماس", avax: "آوالانچ",
     near: "نیر", mana: "دیسنترالند", sand: "سندباکس", usdc: "یو‌اس‌دی کوین",
-    algo: "الگورند", ton: "تون‌کوین", shib: "شیبا اینو", pepe: "پپه", paxg: "پکس گلد"
+    algo: "الگورند", gram: "گرام", ton: "تون‌کوین", shib: "شیبا اینو", pepe: "پپه", paxg: "پکس گلد"
   };
 
   // دستهٔ هر دارایی تعیین می‌کند به چه چیزهایی تبدیل می‌شود. تومان
@@ -94,7 +94,7 @@
   var IMPORTANCE = [
     "irt", "usdt",
     // ارز دیجیتال
-    "btc", "eth", "usdc", "xrp", "bnb", "sol", "doge", "trx", "ada", "ton",
+    "btc", "eth", "usdc", "xrp", "bnb", "sol", "doge", "trx", "ada", "gram",
     "shib", "dot", "avax", "link", "ltc", "bch", "atom", "near", "pepe",
     // طلا و سکه
     "gold18", "gold24", "goldmelted", "goldounce",
