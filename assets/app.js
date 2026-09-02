@@ -484,6 +484,11 @@
   function paintDocumentMeta(heading, fromCurrency, toCurrency) {
     if (typeof document === "undefined") return;
 
+    /* در ورود مستقیم، رمزارزها بعد از پاسخ API شناخته می‌شوند. تا آن
+       زمان متادیتای دقیقِ سرورساخته را با جفت پیش‌فرض جایگزین نکن؛
+       خزنده ممکن است همان canonical موقت و اشتباه را ثبت کند. */
+    if (state.pendingRoute) return;
+
     var pairPath = canonicalForPair(state.from, state.to);
     var pathname = String(location.pathname || "/").replace(/\/+$/, "") || "/";
     var isHub = pathname === "/";
@@ -644,6 +649,9 @@
     var pathname = String(location.pathname || "/").replace(/\/+$/, "") || "/";
     if (pathname === "/") return "/";
     if (pathname === "/convert") return "/convert/";
+    // روی مسیر جفت معتبر، خود URL منبع canonical است. این باعث می‌شود
+    // تأخیر API هیچ‌وقت canonical را موقتاً به جفت پیش‌فرض تغییر ندهد.
+    if (/^\/convert\/[a-z0-9]+-to-[a-z0-9]+$/i.test(pathname)) return pathname + "/";
     return pathForPair(from, to);
   }
 

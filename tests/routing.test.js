@@ -75,7 +75,7 @@ class FakeElement {
 
 // هر بار یک محیط تازه می‌سازد، app.js را با آدرس داده‌شده اجرا می‌کند
 // و وضعیت قابل مشاهده را برمی‌گرداند.
-function loadAt(pathname, search = "") {
+function loadAt(pathname, search = "", initialMeta = null) {
   const ids = [
     "amount-from", "amount-to", "currency-from", "currency-to", "page-title", "rate-value",
     "pair-content-title", "pair-content-intro", "pair-content-rate",
@@ -96,9 +96,10 @@ function loadAt(pathname, search = "") {
     'meta[name="twitter:description"]': new FakeElement("meta"),
     'meta[property="og:url"]': new FakeElement("meta")
   };
+  if (initialMeta && initialMeta.canonical) headTags['link[rel="canonical"]'].setAttribute("href", initialMeta.canonical);
 
   global.document = {
-    activeElement: null, title: "", body: new FakeElement("body"),
+    activeElement: null, title: initialMeta && initialMeta.title || "", body: new FakeElement("body"),
     getElementById: (id) => elements[id],
     createElement: (tag) => new FakeElement(tag),
     querySelector: (s) => headTags[s] || null,
@@ -170,6 +171,16 @@ function loadAt(pathname, search = "") {
   assert.equal(document.title, "تبدیل دلار به تومان | مبدل قیمت | تبدکس");
   assert.equal(dollarPage.headTags['link[rel="canonical"]'].attributes.href, "https://tabdex.ir/convert/usd-to-irt/");
   assert.equal(loadAt("/convert/irt-to-usdt/").heading(), "تبدیل تومان به تتر");
+
+  /* اگر دارایی موقتاً یا دائماً از API نیاید، متادیتای دقیق صفحهٔ
+     ایستایی نباید با canonical جفت پیش‌فرض جایگزین شود. */
+  const tonMeta = {
+    title: "تبدیل تومان به تون‌کوین | مبدل قیمت | تبدکس",
+    canonical: "https://tabdex.ir/convert/irt-to-ton/"
+  };
+  const tonPage = loadAt("/convert/irt-to-ton/", "", tonMeta);
+  assert.equal(document.title, tonMeta.title);
+  assert.equal(tonPage.headTags['link[rel="canonical"]'].attributes.href, tonMeta.canonical);
 
   /* ── رمزارزها هنگام بوت هنوز وجود ندارند ──────────────────────
      نوبیتکس دارایی‌هایش را async می‌آورد، پس آدرس رمزارزی در لحظهٔ
