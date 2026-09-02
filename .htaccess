@@ -11,6 +11,11 @@ DirectoryIndex index.html
   RewriteRule ^price/fiat/?$ /price/currency/ [R=301,L,NE]
   RewriteRule ^price/fiat/([a-z0-9]+)/?$ /price/currency/$1/ [R=301,L,NE]
 
+  # TON نام قدیمی GRAM است؛ هر دو ساختار قدیمی و جدید مستقیماً به
+  # canonical تازه منتقل می‌شوند تا زنجیرهٔ ریدایرکت ساخته نشود.
+  RewriteRule ^(?:convert/)?ton-to-irt/?$ /convert/gram-to-irt/ [R=301,L,NE]
+  RewriteRule ^(?:convert/)?irt-to-ton/?$ /convert/irt-to-gram/ [R=301,L,NE]
+
   # شناسهٔ داخلی بازارهای ضریب‌دار در URL عمومی نمایش داده نمی‌شود.
   RewriteRule ^price/crypto/[0-9]+[kmb]_([a-z0-9_]+)/?$ /price/crypto/$1/ [R=301,L,NE]
   RewriteRule ^convert/[0-9]+[kmb]_([a-z0-9_]+)-to-[0-9]+[kmb]_([a-z0-9_]+)/?$ /convert/$1-to-$2/ [R=301,L,NE]

@@ -113,6 +113,9 @@ assert.ok(fs.existsSync(path.join(workdir, "_site", "convert", "usd-to-irt")), "
 assert.ok(fs.existsSync(path.join(workdir, "_site", "convert", "irt-to-usdt")), "جهت معکوس باید صفحه داشته باشد");
 
 const sitemap = fs.readFileSync(path.join(workdir, "_site", "sitemap.xml"), "utf8");
+assert.match(sitemap, /<loc>https:\/\/tabdex\.ir\/convert\/gram-to-irt\/<\/loc>/, "صفحه GRAM به تومان باید در سایت‌مپ باشد");
+assert.match(sitemap, /<loc>https:\/\/tabdex\.ir\/convert\/irt-to-gram\/<\/loc>/, "صفحه تومان به GRAM باید در سایت‌مپ باشد");
+assert.doesNotMatch(sitemap, /\/convert\/(?:ton-to-irt|irt-to-ton)\//, "صفحه‌های منسوخ TON نباید در سایت‌مپ بمانند");
 assert.equal(fs.readFileSync(path.join(workdir, "sitemap.xml"), "utf8"), sitemap, "سایت‌مپ ریشه و خروجی deploy باید یکسان باشند");
 assert.match(sitemap, /<loc>https:\/\/tabdex\.ir\/<\/loc>/);
 assert.match(sitemap, /<loc>https:\/\/tabdex\.ir\/price\/<\/loc>/);

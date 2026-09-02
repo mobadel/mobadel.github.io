@@ -171,6 +171,8 @@ assert.match(htaccess, /\^price\/fiat\/\?\$ \/price\/currency\/ \[R=301,L,NE\]/,
 assert.match(htaccess, /\^price\/\(\?:fiat\|currency\)\/irt\/\?\$ - \[R=410,L\]/, "صفحه قیمت تومان باید حذف و Gone شود");
 assert.match(htaccess, /price\/asset\.html/, "مسیر دارایی قیمت باید بازنویسی شود");
 assert.match(htaccess, /\^\(\[a-z0-9\]\+\)-to-\(\[a-z0-9\]\+\)\/\?\$ \/convert\/\$1-to-\$2\/ \[R=301,L,NE\]/, "مسیر قدیمی مبدل باید ۳۰۱ شود");
+assert.match(htaccess, /\^\(\?:convert\/\)\?ton-to-irt\/\?\$ \/convert\/gram-to-irt\/ \[R=301,L,NE\]/, "TON به تومان باید به GRAM به تومان منتقل شود");
+assert.match(htaccess, /\^\(\?:convert\/\)\?irt-to-ton\/\?\$ \/convert\/irt-to-gram\/ \[R=301,L,NE\]/, "تومان به TON باید به تومان به GRAM منتقل شود");
 assert.match(htaccess, /\^convert\/\[a-z0-9\]\+-to-\[a-z0-9\]\+\/\?\$ convert\/index\.html/, "مسیرهای جدید مبدل باید بازنویسی شوند");
 assert.match(deploy, /assets data scripts api price convert _site\//, "پوشه‌های price و convert باید منتشر شوند");
 
