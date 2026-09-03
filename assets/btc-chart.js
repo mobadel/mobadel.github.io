@@ -35,6 +35,8 @@
   var xAxis = document.getElementById("btc-chart-x-axis");
   var area = document.getElementById("btc-chart-area");
   var line = document.getElementById("btc-chart-line");
+  var highLabel = document.getElementById("btc-chart-high-label");
+  var lowLabel = document.getElementById("btc-chart-low-label");
   var crosshair = document.getElementById("btc-chart-crosshair");
   var marker = document.getElementById("btc-chart-marker");
   var tooltip = document.getElementById("btc-chart-tooltip");
@@ -193,6 +195,23 @@
     }
   }
 
+  function renderPriceLabel(label, point, price, caption, width, height, positionBelow) {
+    var text = label.querySelector("text");
+    var rect = label.querySelector("rect");
+    var value = caption + ": " + priceFormatter.format(price);
+    var labelWidth = Math.min(width - 8, Math.max(76, value.length * 6.2 + 16));
+    var labelHeight = 21;
+    var x = Math.max(4, Math.min(width - labelWidth - 4, point.x - labelWidth / 2));
+    var y = positionBelow ? Math.min(height - 38 - labelHeight, point.y + 8) : Math.max(4, point.y - labelHeight - 8);
+    label.setAttribute("transform", "translate(" + x.toFixed(2) + " " + y.toFixed(2) + ")");
+    rect.setAttribute("width", labelWidth.toFixed(2));
+    rect.setAttribute("height", labelHeight);
+    text.setAttribute("x", (labelWidth - 8).toFixed(2));
+    text.setAttribute("y", (labelHeight / 2).toFixed(2));
+    text.setAttribute("text-anchor", "end");
+    text.textContent = value;
+  }
+
   function renderChart(points) {
     activePoints = points.slice().sort(function (a, b) { return a.time - b.time; });
     var width = Math.max(280, stage.clientWidth);
@@ -200,8 +219,10 @@
     var sidePadding = stage.clientWidth < 520 ? 3 : 7;
     var padding = { top: 12, right: sidePadding, bottom: 34, left: sidePadding };
     var prices = activePoints.map(function (point) { return point.price; });
-    var min = Math.min.apply(Math, prices);
-    var max = Math.max.apply(Math, prices);
+    var lowestPrice = Math.min.apply(Math, prices);
+    var highestPrice = Math.max.apply(Math, prices);
+    var min = lowestPrice;
+    var max = highestPrice;
     var margin = Math.max((max - min) * 0.08, max * 0.002);
     min -= margin;
     max += margin;
@@ -216,6 +237,10 @@
     renderXAxis(activePoints, width, height, padding);
     line.setAttribute("d", linePath);
     area.setAttribute("d", areaPath);
+    var lowestIndex = prices.indexOf(lowestPrice);
+    var highestIndex = prices.indexOf(highestPrice);
+    renderPriceLabel(highLabel, plotted[highestIndex], highestPrice, "بیشینه", width, height, true);
+    renderPriceLabel(lowLabel, plotted[lowestIndex], lowestPrice, "کمینه", width, height, false);
     svg.dataset.width = String(width);
     svg.dataset.paddingLeft = String(padding.left);
     svg.dataset.paddingRight = String(padding.right);
