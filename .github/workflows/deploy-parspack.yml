@@ -116,6 +116,9 @@ jobs:
           set ftp:ssl-auth TLS
           # Temporary workaround for ParsPack's incomplete FTPS certificate chain.
           set ssl:verify-certificate no
-          mirror --reverse --verbose --parallel=4 _site/ "$FTP_DIRECTORY"
+          # ساعت فایل‌های سرور ممکن است جلوتر از runner باشد. در آن حالت
+          # مقایسهٔ timestamp فایل‌های تولیدشدهٔ مبدل را اشتباهاً قدیمی
+          # تشخیص می‌دهد؛ با ignore-time تفاوت اندازه مبنای انتقال است.
+          mirror --reverse --verbose --parallel=4 --ignore-time _site/ "$FTP_DIRECTORY"
           bye
           EOF
