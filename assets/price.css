@@ -78,8 +78,8 @@
 .btc-chart-price-label{pointer-events:none}
 .btc-chart-price-label rect{stroke-width:1;rx:7;ry:7}.btc-chart-price-label line{stroke-width:1;vector-effect:non-scaling-stroke}
 .btc-chart-price-label text{font-family:Vazirmatn,Tahoma,sans-serif;font-size:9px;font-weight:700;dominant-baseline:middle;unicode-bidi:plaintext}
-.btc-chart-price-label--high rect{fill:rgba(236,253,245,.96);stroke:#22a06b}.btc-chart-price-label--high text{fill:#147a50}.btc-chart-price-label--high line{stroke:#22a06b}
-.btc-chart-price-label--low rect{fill:rgba(254,242,242,.96);stroke:#ef5350}.btc-chart-price-label--low text{fill:#d32f2f}.btc-chart-price-label--low line{stroke:#ef5350}
+.btc-chart-price-label--high rect{fill:rgba(236,253,245,.72);stroke:#22a06b}.btc-chart-price-label--high text{fill:#147a50}.btc-chart-price-label--high line{stroke:#22a06b}
+.btc-chart-price-label--low rect{fill:rgba(254,242,242,.72);stroke:#ef5350}.btc-chart-price-label--low text{fill:#d32f2f}.btc-chart-price-label--low line{stroke:#ef5350}
 .btc-chart-status{position:absolute;inset:0;display:grid;margin:0;place-items:center;color:var(--muted);font-size:14px;direction:rtl}
 .btc-chart-status[hidden],.btc-chart-tooltip[hidden],.btc-chart-svg[hidden],.btc-chart-crosshair[hidden],.btc-chart-marker[hidden]{display:none}
 .btc-chart-tooltip{position:absolute;top:12px;z-index:2;min-width:140px;padding:8px 11px;border:1px solid rgba(184,199,192,.72);border-radius:12px;background:rgba(255,255,255,.96);box-shadow:0 8px 24px rgba(26,58,47,.12);pointer-events:none;text-align:right;direction:rtl}
