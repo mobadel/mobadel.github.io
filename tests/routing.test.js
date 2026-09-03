@@ -9,6 +9,7 @@
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const vm = require("node:vm");
+const TODAY = (() => { const f = new Intl.DateTimeFormat("fa-IR-u-ca-persian-nu-arabext", { timeZone: "Asia/Tehran", weekday: "long", day: "numeric", month: "long", year: "numeric" }); const p = Object.fromEntries(f.formatToParts(new Date()).filter((x) => x.type !== "literal").map((x) => [x.type, x.value])); return `${p.weekday} ${p.day} ${p.month} ${p.year}`; })();
 
 const source = fs.readFileSync("assets/app.js", "utf8");
 
@@ -168,7 +169,7 @@ function loadAt(pathname, search = "", initialMeta = null) {
   assert.equal(loadAt("/convert/usdt-to-irt/").heading(), "تبدیل تتر به تومان");
   const dollarPage = loadAt("/convert/usd-to-irt/");
   assert.equal(dollarPage.heading(), "تبدیل دلار به تومان");
-  assert.equal(document.title, "تبدیل دلار به تومان | مبدل قیمت | تبدکس");
+  assert.equal(document.title, `تبدیل دلار به تومان امروز ${TODAY} | مبدل قیمت`);
   assert.equal(dollarPage.headTags['link[rel="canonical"]'].attributes.href, "https://tabdex.ir/convert/usd-to-irt/");
   assert.equal(loadAt("/convert/irt-to-usdt/").heading(), "تبدیل تومان به تتر");
 

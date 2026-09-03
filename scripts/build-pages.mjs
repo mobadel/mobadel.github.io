@@ -17,6 +17,11 @@ import { fileURLToPath } from "node:url";
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const SITE = resolve(ROOT, "_site");
 const ORIGIN = "https://tabdex.ir";
+function todayLabel(date = new Date()) {
+  const formatter = new Intl.DateTimeFormat("fa-IR-u-ca-persian-nu-arabext", { timeZone: "Asia/Tehran", weekday: "long", day: "numeric", month: "long", year: "numeric" });
+  const values = Object.fromEntries(formatter.formatToParts(date).filter((part) => part.type !== "literal").map((part) => [part.type, part.value]));
+  return `${values.weekday} ${values.day} ${values.month} ${values.year}`;
+}
 
 /* نام‌ها باید با جدول دارایی‌ها در assets/app.js یکی باشند. تست
    tests/pages.test.js این هم‌خوانی را بررسی می‌کند تا از هم جدا نیفتند. */
@@ -135,12 +140,13 @@ function buildPairs() {
    فایل assets/app.js هم هست و تست هم‌خوانی‌شان را بررسی می‌کند. */
 function metaFor(from, to) {
   const heading = `تبدیل ${from.name} به ${to.name}`;
+  const date = todayLabel();
   return {
     heading,
     fromName: from.name,
     toName: to.name,
-    title: `${heading} | مبدل قیمت | تبدکس`,
-    description: `${heading} با قیمت لحظه ای. مبدل نرخ ${from.name} به ${to.name}.`,
+    title: `${heading} امروز ${date} | مبدل قیمت`,
+    description: `${heading} با قیمت لحظه ای امروز ${date}. مبدل نرخ ${from.name} به ${to.name}.`,
     path: `/convert/${from.slug}-to-${to.slug}/`
   };
 }

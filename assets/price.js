@@ -84,6 +84,12 @@
   function formatAbsoluteChange(value) { return Number.isFinite(value) ? formatNumber(Math.abs(value), 2) + "٪" : "—"; }
   function changeClass(value) { return value > 0 ? "positive" : value < 0 ? "negative" : "neutral"; }
   function formatTime(date) { return date ? new Intl.DateTimeFormat("fa-IR", { hour: "2-digit", minute: "2-digit" }).format(date) : "—"; }
+  function todayLabel() {
+    var formatter = new Intl.DateTimeFormat("fa-IR-u-ca-persian-nu-arabext", { timeZone: "Asia/Tehran", weekday: "long", day: "numeric", month: "long", year: "numeric" });
+    var values = {};
+    formatter.formatToParts(new Date()).forEach(function (part) { if (part.type !== "literal") values[part.type] = part.value; });
+    return values.weekday + " " + values.day + " " + values.month + " " + values.year;
+  }
   function unitText(asset) { return asset.unit && UNIT_LABELS[asset.unit] ? UNIT_LABELS[asset.unit] : "واحد"; }
   function text(el, value) { if (el) el.textContent = value; }
 
@@ -161,6 +167,7 @@
   }
   function renderHub() {
     renderCategoryCards();
+    setDocumentMeta("قیمت لحظه ای دلار، طلا، سکه و ارز دیجیتال امروز " + todayLabel(), "مشاهده قیمت لحظه ای دلار، تتر، طلا، سکه، بیت کوین و ارزهای دیجیتال در بازار ایران و جهان.", "/price/");
     var path = "/price/"; setSchema([{ "@type": "WebPage", "@id": ORIGIN + path + "#page", name: "قیمت لحظه ای دارایی‌ها", url: ORIGIN + path, inLanguage: "fa-IR" }, breadcrumb([{ name: "تبدکس", path: "/" }, { name: "قیمت‌ها", path: path }]), { "@type": "ItemList", name: "دسته‌بندی بازارهای تبدکس", itemListElement: CATEGORY_ORDER.map(function (id, index) { return { "@type": "ListItem", position: index + 1, name: CATEGORIES[id].name, url: ORIGIN + categoryUrl(id) }; }) }]);
   }
 
@@ -168,7 +175,7 @@
   function assetSlugFromPath() { var parts = location.pathname.split("/").filter(Boolean); return parts[2] || ""; }
   function renderCategory() {
     var group = categoryFromPath(); var category = CATEGORIES[group]; if (!category) return renderNotFound("دسته‌بندی پیدا نشد");
-    var path = categoryUrl(group); var title = "قیمت لحظه ای " + category.name + " | تبدکس"; var description = category.description + ". مشاهده قیمت و تغییرات ۲۴ ساعته در تبدکس."; setDocumentMeta(title, description, path);
+    var path = categoryUrl(group); var title = "قیمت لحظه ای " + category.name + " امروز " + todayLabel(); var description = category.description + " امروز " + todayLabel() + ". مشاهده قیمت و تغییرات ۲۴ ساعته."; setDocumentMeta(title, description, path);
     text(document.getElementById("category-crumb"), category.name); text(document.getElementById("category-eyebrow"), "بازار " + category.name); text(document.getElementById("category-title"), "قیمت لحظه ای " + category.name); text(document.getElementById("category-description"), category.description + ". نرخ هر دارایی با واحد اصلی بازار آن نمایش داده می‌شود.");
     var heroIcon = document.getElementById("category-hero-icon"); if (heroIcon) { heroIcon.classList.toggle("is-full-bleed", group === "gold" || group === "commodity"); heroIcon.replaceChildren(); var img = document.createElement("img"); img.src = category.icon; img.alt = ""; heroIcon.appendChild(img); }
     var list = availableAssets(group); var input = document.getElementById("market-search");
@@ -177,7 +184,7 @@
     setSchema([{ "@type": "CollectionPage", "@id": ORIGIN + path + "#page", name: "قیمت لحظه ای " + category.name, description: description, url: ORIGIN + path, inLanguage: "fa-IR" }, breadcrumb([{ name: "تبدکس", path: "/" }, { name: "قیمت‌ها", path: "/price/" }, { name: category.name, path: path }]), { "@type": "ItemList", name: "فهرست قیمت " + category.name, numberOfItems: list.length, itemListElement: list.map(function (asset, index) { return { "@type": "ListItem", position: index + 1, name: asset.name, url: ORIGIN + assetUrl(asset) }; }) }]);
   }
 
-  function descriptionFor(asset) { var units = priceLabel(asset) + (Number.isFinite(asset.tomanPrice) ? " و نرخ تومان" : ""); return "قیمت لحظه ای " + asset.name + " امروز به " + units + "، درصد تغییرات ۲۴ ساعته و اطلاعات بازار " + asset.name + " در تبدکس."; }
+  function descriptionFor(asset) { var units = priceLabel(asset) + (Number.isFinite(asset.tomanPrice) ? " و تومان" : ""); return "قیمت لحظه ای " + asset.name + " امروز " + todayLabel() + " به " + units + "، میزان تغییر قیمت و اطلاعات بازار " + asset.name + "."; }
   function assetSubtitle(asset) {
     if (asset.id === "silver") return "هر گرم در بورس کالا";
     if (asset.id === "copper") return "هر کیلوگرم در بورس کالا";
@@ -189,7 +196,7 @@
   }
   function renderAsset() {
     var group = categoryFromPath(); var id = idFromSlug(assetSlugFromPath()); var category = CATEGORIES[group]; var asset = assets[id]; if (!category || !asset || asset.group !== group || !Number.isFinite(asset.price)) return renderNotFound("قیمت این دارایی در دسترس نیست");
-    var path = assetUrl(asset); var title = "قیمت لحظه ای " + asset.name + " امروز | تبدکس"; var description = descriptionFor(asset); setDocumentMeta(title, description, path);
+    var path = assetUrl(asset); var title = "قیمت لحظه ای " + asset.name + " امروز " + todayLabel(); var description = descriptionFor(asset); setDocumentMeta(title, description, path);
     var categoryLink = document.getElementById("asset-category-link"); if (categoryLink) { categoryLink.href = categoryUrl(group); categoryLink.textContent = category.name; }
     text(document.getElementById("asset-crumb"), asset.name); text(document.getElementById("asset-title"), "قیمت " + asset.name); var english = document.getElementById("asset-english"); if (english) { var subtitle = assetSubtitle(asset); english.hidden = !subtitle; text(english, subtitle); }
     var icon = document.getElementById("asset-main-icon"); if (icon) { icon.classList.toggle("is-full-bleed", asset.group === "gold" || asset.group === "commodity"); icon.replaceChildren(); icon.appendChild(createIcon(asset, "asset-main-icon-inner")); }
@@ -204,7 +211,7 @@
   }
 
   function renderNotFound(message) {
-    document.title = "صفحه قیمت پیدا نشد | تبدکس"; setMeta("name", "robots", "noindex, follow"); var main = document.getElementById("price-main"); if (main) { var box = document.createElement("div"); box.className = "empty-state"; box.textContent = message; main.appendChild(box); }
+    document.title = "صفحه قیمت پیدا نشد"; setMeta("name", "robots", "noindex, follow"); var main = document.getElementById("price-main"); if (main) { var box = document.createElement("div"); box.className = "empty-state"; box.textContent = message; main.appendChild(box); }
   }
   function start() {
     var mode = document.body.getAttribute("data-price-page"); if (mode === "hub") renderCategoryCards();

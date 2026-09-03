@@ -7,8 +7,8 @@
 
   var HUB_TITLE = "تبدکس | قیمت لحظه‌ای دلار، طلا، سکه و ارز دیجیتال";
   var HUB_DESCRIPTION = "قیمت لحظه‌ای دلار، تتر، طلا، سکه، بیت کوین و یورو و دسترسی سریع به مبدل قیمت در تبدکس.";
-  var CONVERT_TITLE = "تبدیل قیمت دلار، طلا، ارز دیجیتال و سایر دارایی‌ها | مبدل قیمت | تبدکس";
-  var CONVERT_DESCRIPTION = "تبدیل قیمت دلار، طلا، سکه، تتر، بیت کوین، ارزهای دیجیتال، نقره و سایر دارایی‌ها با نرخ لحظه ای بازار ایران و جهان در تبدکس.";
+  var CONVERT_HEADING = "تبدیل قیمت دلار، طلا، ارز دیجیتال و سایر دارایی‌ها";
+  var CONVERT_DESCRIPTION_BASE = "تبدیل قیمت دلار، طلا، سکه، تتر، بیت کوین، ارزهای دیجیتال، نقره و سایر دارایی‌ها با نرخ لحظه ای بازار ایران و جهان";
 
   var PERSIAN_NAMES = {
     irt: "تومان", usdt: "تتر", btc: "بیت کوین", eth: "اتریوم", ltc: "لایت‌کوین",
@@ -493,10 +493,11 @@
     var pathname = String(location.pathname || "/").replace(/\/+$/, "") || "/";
     var isHub = pathname === "/";
     var isConvertHome = pathname === "/convert";
-    document.title = isHub ? HUB_TITLE : isConvertHome ? CONVERT_TITLE : heading + " | مبدل قیمت | تبدکس";
+    var date = todayLabel();
+    document.title = isHub ? HUB_TITLE : isConvertHome ? CONVERT_HEADING + " امروز " + date + " | مبدل قیمت" : heading + " امروز " + date + " | مبدل قیمت";
 
-    var description = isHub ? HUB_DESCRIPTION : isConvertHome ? CONVERT_DESCRIPTION :
-      heading + " با قیمت لحظه ای. مبدل نرخ " + fromCurrency.name + " به " + toCurrency.name + ".";
+    var description = isHub ? HUB_DESCRIPTION : isConvertHome ? CONVERT_DESCRIPTION_BASE + " امروز " + date + "." :
+      heading + " با قیمت لحظه ای امروز " + date + ". مبدل نرخ " + fromCurrency.name + " به " + toCurrency.name + ".";
     setMeta("name", "description", description);
     setMeta("property", "og:title", document.title);
     setMeta("property", "og:description", description);
@@ -514,6 +515,13 @@
     if (!document.querySelector) return;
     var tag = document.querySelector("meta[" + attribute + '="' + key + '"]');
     if (tag && tag.setAttribute) tag.setAttribute("content", value);
+  }
+
+  function todayLabel() {
+    var formatter = new Intl.DateTimeFormat("fa-IR-u-ca-persian-nu-arabext", { timeZone: "Asia/Tehran", weekday: "long", day: "numeric", month: "long", year: "numeric" });
+    var values = {};
+    formatter.formatToParts(new Date()).forEach(function (part) { if (part.type !== "literal") values[part.type] = part.value; });
+    return values.weekday + " " + values.day + " " + values.month + " " + values.year;
   }
 
   function paintRate() {

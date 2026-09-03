@@ -5,11 +5,12 @@ const assert = require("node:assert/strict");
 process.on("unhandledRejection", (error) => { console.error(error); process.exit(1); });
 const fs = require("node:fs");
 const vm = require("node:vm");
+const TODAY = (() => { const f = new Intl.DateTimeFormat("fa-IR-u-ca-persian-nu-arabext", { timeZone: "Asia/Tehran", weekday: "long", day: "numeric", month: "long", year: "numeric" }); const p = Object.fromEntries(f.formatToParts(new Date()).filter((x) => x.type !== "literal").map((x) => [x.type, x.value])); return `${p.weekday} ${p.day} ${p.month} ${p.year}`; })();
 
 const html = fs.readFileSync("convert/index.html", "utf8");
 const styles = fs.readFileSync("assets/styles.css", "utf8");
-assert.match(html, /<title>تبدیل قیمت دلار، طلا، ارز دیجیتال و سایر دارایی‌ها \| مبدل قیمت \| تبدکس<\/title>/);
-assert.match(html, /<meta name="description" content="تبدیل قیمت دلار، طلا، سکه، تتر، بیت کوین، ارزهای دیجیتال، نقره و سایر دارایی‌ها با نرخ لحظه ای بازار ایران و جهان در تبدکس\.">/);
+assert.match(html, /<title>تبدیل قیمت دلار، طلا، ارز دیجیتال و سایر دارایی‌ها امروز [^<]+ \| مبدل قیمت<\/title>/);
+assert.match(html, /<meta name="description" content="تبدیل قیمت دلار، طلا، سکه، تتر، بیت کوین، ارزهای دیجیتال، نقره و سایر دارایی‌ها با نرخ لحظه ای بازار ایران و جهان امروز [^"]+\.">/);
 assert.match(html, /<link rel="canonical" href="https:\/\/tabdex\.ir\/convert\/">/);
 assert.match(html, /<link rel="icon" href="\/assets\/favicon-48x48\.png" type="image\/png" sizes="48x48">/);
 assert.match(html, /<link rel="apple-touch-icon" href="\/assets\/apple-touch-icon\.png" sizes="180x180">/);
@@ -18,7 +19,7 @@ assert.match(html, /<h1 id="page-title">تبدیل دلار به تومان<\/h1
 assert.match(html, /<h2 class="rate-value" id="rate-value">/);
 assert.match(html, /<h2 id="pair-content-title">تبدیل دلار به تومان با قیمت لحظه ای و سریع<\/h2>/);
 assert.doesNotMatch(html, /<h2 id="asset-dialog-title">/);
-assert.match(html, /<script src="\/assets\/app\.js\?v=20260902-1"><\/script>/);
+assert.match(html, /<script src="\/assets\/app\.js\?v=20260903-1"><\/script>/);
 assert.match(fs.readFileSync("assets/app.js", "utf8"), /coin-emami\.webp\?v=20260825-2/);
 assert.ok(fs.existsSync("assets/coin-emami.webp"));
 assert.ok(fs.statSync("assets/coin-emami.webp").size < 25000, "آیکون سکه باید برای وب بهینه باشد");
@@ -208,7 +209,7 @@ setTimeout(async () => {
   assert.equal(elements["pair-content-rate"].textContent, "هر یک دلار معادل ۲۰۰٬۰۰۰ تومان و هر یک تومان برابر با ۰٫۰۰۰۰۰۵ دلار است.");
   assert.equal(elements["amount-from"].value, "۱۰۰");
   assert.equal(elements["amount-to"].value, "۲۰٬۰۰۰٬۰۰۰");
-  assert.equal(document.title, "تبدیل قیمت دلار، طلا، ارز دیجیتال و سایر دارایی‌ها | مبدل قیمت | تبدکس");
+  assert.equal(document.title, `تبدیل قیمت دلار، طلا، ارز دیجیتال و سایر دارایی‌ها امروز ${TODAY} | مبدل قیمت`);
 
   elements["amount-from"].value = "100.55";
   elements["amount-from"].selectionStart = elements["amount-from"].value.length;
@@ -365,8 +366,8 @@ setTimeout(async () => {
   openDialog("to");
   elements["asset-list"].children.find((item) => item.dataset.currency === "irt").dispatch("click");
   assert.equal(location.pathname, "/convert/btc-to-irt/", "تغییر جفت باید آدرس را عوض کند");
-  assert.equal(document.title, "تبدیل بیت کوین به تومان | مبدل قیمت | تبدکس");
-  assert.equal(headTags['meta[name="description"]'].attributes.content, "تبدیل بیت کوین به تومان با قیمت لحظه ای. مبدل نرخ بیت کوین به تومان.");
+  assert.equal(document.title, `تبدیل بیت کوین به تومان امروز ${TODAY} | مبدل قیمت`);
+  assert.equal(headTags['meta[name="description"]'].attributes.content, `تبدیل بیت کوین به تومان با قیمت لحظه ای امروز ${TODAY}. مبدل نرخ بیت کوین به تومان.`);
   assert.equal(headTags['link[rel="canonical"]'].attributes.href, "https://tabdex.ir/convert/btc-to-irt/");
 
   // ولی تغییر مقدار نباید آدرس را دست بزند.
