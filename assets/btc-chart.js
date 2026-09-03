@@ -195,14 +195,17 @@
     }
   }
 
-  function renderPriceLabel(label, point, price, caption, width, height, positionBelow) {
+  function renderPriceLabel(label, point, price, width, height, positionBelow) {
     var text = label.querySelector("text");
     var rect = label.querySelector("rect");
-    var value = caption + ": " + priceFormatter.format(price);
-    var labelWidth = Math.min(width - 8, stage.clientWidth < 520 ? 112 : 128);
+    var connector = label.querySelector("line");
+    var value = priceFormatter.format(price) + " " + marketConfig.unit;
+    var labelWidth = Math.min(width - 8, stage.clientWidth < 520 ? 92 : 104);
     var labelHeight = 20;
+    var gap = 8;
     var x = Math.max(4, Math.min(width - labelWidth - 4, point.x - labelWidth / 2));
-    var y = positionBelow ? Math.min(height - 38 - labelHeight, point.y + 8) : Math.max(4, point.y - labelHeight - 8);
+    var y = positionBelow ? Math.min(height - 38 - labelHeight, point.y + gap) : Math.max(4, point.y - labelHeight - gap);
+    var pointY = point.y - y;
     label.setAttribute("transform", "translate(" + x.toFixed(2) + " " + y.toFixed(2) + ")");
     rect.setAttribute("width", labelWidth);
     rect.setAttribute("height", labelHeight);
@@ -210,6 +213,10 @@
     text.setAttribute("y", (labelHeight / 2).toFixed(2));
     text.setAttribute("text-anchor", "middle");
     text.textContent = value;
+    connector.setAttribute("x1", (labelWidth / 2).toFixed(2));
+    connector.setAttribute("x2", (labelWidth / 2).toFixed(2));
+    connector.setAttribute("y1", positionBelow ? 0 : labelHeight);
+    connector.setAttribute("y2", pointY.toFixed(2));
   }
 
   function renderChart(points) {
@@ -239,8 +246,8 @@
     area.setAttribute("d", areaPath);
     var lowestIndex = prices.indexOf(lowestPrice);
     var highestIndex = prices.indexOf(highestPrice);
-    renderPriceLabel(highLabel, plotted[highestIndex], highestPrice, "بیشترین", width, height, true);
-    renderPriceLabel(lowLabel, plotted[lowestIndex], lowestPrice, "کمترین", width, height, false);
+    renderPriceLabel(highLabel, plotted[highestIndex], highestPrice, width, height, false);
+    renderPriceLabel(lowLabel, plotted[lowestIndex], lowestPrice, width, height, true);
     svg.dataset.width = String(width);
     svg.dataset.paddingLeft = String(padding.left);
     svg.dataset.paddingRight = String(padding.right);

@@ -30,7 +30,7 @@ assert.match(asset, /id="btc-price-chart"[^>]*hidden[\s\S]*<h2 id="btc-chart-tit
 assert.match(asset, /data-chart-range="24h"[\s\S]*data-chart-range="7d"[\s\S]*data-chart-range="1m"[\s\S]*data-chart-range="1y"[\s\S]*data-chart-range="all"/, "پنج بازه زمانی نمودار لازم است");
 assert.match(asset, /id="btc-chart-high-label"[\s\S]*id="btc-chart-low-label"/, "نمودار باید برچسب سقف و کف بازه را داشته باشد");
 assert.match(btcChartScript, /lowestPrice[\s\S]*highestPrice[\s\S]*renderPriceLabel\(highLabel[\s\S]*renderPriceLabel\(lowLabel/, "سقف و کف هر بازه باید از نقاط همان بازه محاسبه و نمایش داده شوند");
-assert.match(btcChartScript, /stage\.clientWidth < 520 \? 112 : 128[\s\S]*text-anchor", "middle"[\s\S]*"بیشترین"[\s\S]*"کمترین"/, "برچسب‌ها باید کوچک، داخل نمودار و با عنوان نهایی باشند");
+assert.match(btcChartScript, /marketConfig\.unit[\s\S]*stage\.clientWidth < 520 \? 92 : 104[\s\S]*connector\.setAttribute\("y2"[\s\S]*renderPriceLabel\(highLabel[\s\S]*false[\s\S]*renderPriceLabel\(lowLabel[\s\S]*true/, "برچسب‌ها باید کوچک، داخل نمودار و با عنوان نهایی باشند");
 assert.match(btcChartScript, /"24h": \{ resolution: "15", seconds: 86400 \}/, "بازه ۲۴ ساعت باید کندل پانزده دقیقه‌ای بگیرد");
 assert.match(btcChartScript, /"7d": \{ resolution: "60", seconds: 7 \* 86400 \}/, "بازه هفتگی باید کندل ساعتی بگیرد");
 assert.match(btcChartScript, /"1m": \{ resolution: "240", seconds: 30 \* 86400 \}/, "بازه ماهانه باید کندل چهار ساعته بگیرد");
