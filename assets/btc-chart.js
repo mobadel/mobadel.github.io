@@ -199,16 +199,16 @@
     var text = label.querySelector("text");
     var rect = label.querySelector("rect");
     var value = caption + ": " + priceFormatter.format(price);
-    var labelWidth = Math.min(width - 8, Math.max(76, value.length * 6.2 + 16));
-    var labelHeight = 21;
+    var labelWidth = Math.min(width - 8, stage.clientWidth < 520 ? 112 : 128);
+    var labelHeight = 20;
     var x = Math.max(4, Math.min(width - labelWidth - 4, point.x - labelWidth / 2));
     var y = positionBelow ? Math.min(height - 38 - labelHeight, point.y + 8) : Math.max(4, point.y - labelHeight - 8);
     label.setAttribute("transform", "translate(" + x.toFixed(2) + " " + y.toFixed(2) + ")");
-    rect.setAttribute("width", labelWidth.toFixed(2));
+    rect.setAttribute("width", labelWidth);
     rect.setAttribute("height", labelHeight);
-    text.setAttribute("x", (labelWidth - 8).toFixed(2));
+    text.setAttribute("x", (labelWidth / 2).toFixed(2));
     text.setAttribute("y", (labelHeight / 2).toFixed(2));
-    text.setAttribute("text-anchor", "end");
+    text.setAttribute("text-anchor", "middle");
     text.textContent = value;
   }
 
@@ -239,8 +239,8 @@
     area.setAttribute("d", areaPath);
     var lowestIndex = prices.indexOf(lowestPrice);
     var highestIndex = prices.indexOf(highestPrice);
-    renderPriceLabel(highLabel, plotted[highestIndex], highestPrice, "بیشینه", width, height, true);
-    renderPriceLabel(lowLabel, plotted[lowestIndex], lowestPrice, "کمینه", width, height, false);
+    renderPriceLabel(highLabel, plotted[highestIndex], highestPrice, "بیشترین", width, height, true);
+    renderPriceLabel(lowLabel, plotted[lowestIndex], lowestPrice, "کمترین", width, height, false);
     svg.dataset.width = String(width);
     svg.dataset.paddingLeft = String(padding.left);
     svg.dataset.paddingRight = String(padding.right);
