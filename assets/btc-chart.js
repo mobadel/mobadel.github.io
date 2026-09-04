@@ -1,10 +1,15 @@
 (function () {
   "use strict";
 
-  var routeMatch = location.pathname.match(/^\/price\/crypto\/(btc|usdt)\/?$/);
+  var routeMatch = location.pathname.match(/^\/price\/(crypto|gold|coin|currency)\/([a-z0-9]+)\/?$/);
   if (!routeMatch) return;
 
   var API = "https://apiv2.nobitex.ir/market/udf/history";
+  var MARKET_HISTORY_ASSETS = {
+    gold18: "طلای ۱۸ عیار", emami: "سکه امامی", baharazadi: "سکه بهار آزادی",
+    usd: "دلار", eur: "یورو", gbp: "پوند", aed: "درهم امارات", try: "لیر ترکیه",
+    cny: "یوآن چین", rub: "روبل روسیه", afn: "افغانی"
+  };
   var MARKETS = {
     btc: {
       symbol: "BTCUSDT", statsKey: "btc-usdt", src: "btc", dst: "usdt", liveScale: 1,
@@ -15,8 +20,14 @@
       title: "نمودار قیمت تتر", unit: "تومان", source: "بر اساس داده‌های بازار «تتر/تومان»"
     }
   };
-  var marketConfig = MARKETS[routeMatch[1]];
-  var STATS_API = "https://apiv2.nobitex.ir/market/stats?srcCurrency=" + marketConfig.src + "&dstCurrency=" + marketConfig.dst;
+  var isCryptoChart = routeMatch[1] === "crypto" && !!MARKETS[routeMatch[2]];
+  var historyId = routeMatch[2] === "baharazadi" ? "bahar" : routeMatch[2];
+  var historyName = MARKET_HISTORY_ASSETS[routeMatch[2]];
+  if (!isCryptoChart && !historyName) return;
+  var marketConfig = isCryptoChart ? MARKETS[routeMatch[2]] : {
+    id: historyId, title: "نمودار قیمت " + historyName, unit: "تومان", history: true
+  };
+  var STATS_API = marketConfig.history ? "/api/rates.php" : "https://apiv2.nobitex.ir/market/stats?srcCurrency=" + marketConfig.src + "&dstCurrency=" + marketConfig.dst;
   var RANGE_CONFIG = {
     "24h": { resolution: "15", seconds: 86400 },
     "7d": { resolution: "60", seconds: 7 * 86400 },
@@ -117,8 +128,12 @@
 
   function fetchLivePoint(signal) {
     return fetchJson(STATS_API, signal).then(function (payload) {
-      var market = payload && payload.stats && payload.stats[marketConfig.statsKey];
-      var price = market && Number(market.latest) * marketConfig.liveScale;
+      var price;
+      if (marketConfig.history) price = payload && payload.assets && payload.assets[marketConfig.id] && Number(payload.assets[marketConfig.id].toman);
+      else {
+        var market = payload && payload.stats && payload.stats[marketConfig.statsKey];
+        price = market && Number(market.latest) * marketConfig.liveScale;
+      }
       if (!Number.isFinite(price)) throw new Error("no_live_price");
       return { time: Math.floor(Date.now() / 1000), price: price, live: true };
     });
@@ -133,6 +148,19 @@
 
   function loadRange(range) {
     if (cache[range]) return Promise.resolve(cache[range]);
+    if (marketConfig.history) {
+      return fetchJson("/api/history.php?asset=" + encodeURIComponent(marketConfig.id), requestController.signal).then(function (payload) {
+        var now = Math.floor(Date.now() / 1000);
+        var config = RANGE_CONFIG[range];
+        var earliest = range === "all" ? 0 : now - config.seconds;
+        var points = (payload.points || []).map(function (point) { return { time: Number(point[0]), price: Number(point[1]) }; }).filter(function (point) {
+          return Number.isFinite(point.time) && Number.isFinite(point.price) && point.time >= earliest && point.time <= now;
+        });
+        if (!points.length) throw new Error("no_data");
+        cache[range] = points;
+        return points;
+      });
+    }
     var config = RANGE_CONFIG[range];
     var to = Math.floor(Date.now() / 1000);
     var from = config.from || to - config.seconds;

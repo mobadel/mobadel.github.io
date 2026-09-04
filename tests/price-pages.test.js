@@ -19,6 +19,8 @@ const home = read("index.html");
 const homeScript = read("assets/home.js");
 const dateScript = read("assets/date.js");
 const btcChartScript = read("assets/btc-chart.js");
+const marketHistoryApi = read("api/history.php");
+const marketHistory = JSON.parse(read("data/market-history.json"));
 
 // فایل جاوااسکریپت باید مستقل و از نظر نحوی معتبر باشد.
 new vm.Script(script, { filename: "assets/price.js" });
@@ -47,7 +49,10 @@ assert.doesNotMatch(asset, /btc-chart-grid/, "نمودار نباید خطوط �
 assert.match(asset, /بالاترین قیمت[\s\S]*پایین‌ترین قیمت[\s\S]*تغییرات/, "خلاصهٔ بازه باید سه مقدار اصلی را نمایش دهد");
 assert.match(btcChartScript, /btc: \{[\s\S]*symbol: "BTCUSDT"[\s\S]*statsKey: "btc-usdt"[\s\S]*unit: "تتر"/, "نمودار بیت کوین باید از بازار بیت کوین تتر بیاید");
 assert.match(btcChartScript, /usdt: \{[\s\S]*symbol: "USDTIRT"[\s\S]*statsKey: "usdt-irt"[\s\S]*liveScale: 0\.1[\s\S]*unit: "تومان"/, "نمودار تتر باید داده تاریخی تومانی و قیمت لحظه‌ای تبدیل‌شده از ریال داشته باشد");
-assert.match(btcChartScript, /\(btc\|usdt\)/, "نمودار فقط باید در صفحات بیت کوین و تتر فعال شود");
+assert.match(btcChartScript, /MARKET_HISTORY_ASSETS[\s\S]*gold18[\s\S]*baharazadi[\s\S]*afn/, "نمودار باید برای همه دارایی‌های دارای تاریخچه فعال شود");
+assert.match(btcChartScript, /\/api\/history\.php\?asset=/, "نمودارهای غیررمزارزی باید تاریخچهٔ سرور را دریافت کنند");
+assert.ok(Object.keys(marketHistory.assets).length === 11, "تاریخچهٔ بازار باید یازده دارایی را داشته باشد");
+assert.match(marketHistoryApi, /HISTORY_CAPTURE_TOKEN/, "ثبت خودکار تاریخچه باید با کلید مستقل محافظت شود");
 assert.match(btcChartScript, /stage\.addEventListener\("pointermove"/, "هاور نمودار باید اطلاعات نقطه را نمایش دهد");
 assert.match(btcChartScript, /stage\.addEventListener\("pointerdown"/, "لمس نمودار در موبایل باید اطلاعات نقطه را نمایش دهد");
 assert.match(btcChartScript, /stage\.addEventListener\("pointerup"[\s\S]*event\.pointerType !== "mouse"[\s\S]*hideTooltip/, "هاور لمسی باید با پایان لمس پاک شود");

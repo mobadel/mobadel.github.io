@@ -5,6 +5,9 @@ on:
     branches:
       - main
   workflow_dispatch:
+  schedule:
+    # ثبت دادهٔ نمودار ۲۴ساعته؛ GitHub Actions حداقل هر پنج دقیقه اجرا می‌شود.
+    - cron: '*/5 * * * *'
 
 permissions:
   contents: read
@@ -78,6 +81,7 @@ jobs:
         shell: bash
         env:
           BRSAPI_KEY: ${{ secrets.BRSAPI_KEY }}
+          HISTORY_CAPTURE_TOKEN: ${{ secrets.HISTORY_CAPTURE_TOKEN }}
         run: |
           set -euo pipefail
           if [ -z "${BRSAPI_KEY:-}" ]; then
@@ -88,7 +92,8 @@ jobs:
           fi
           mkdir -p _site/api
           encoded=$(printf '%s' "$BRSAPI_KEY" | base64 -w0)
-          printf '<?php\nreturn ["brsapi_key" => base64_decode("%s")];\n' "$encoded" > _site/api/config.php
+          history_encoded=$(printf '%s' "${HISTORY_CAPTURE_TOKEN:-}" | base64 -w0)
+          printf '<?php\nreturn ["brsapi_key" => base64_decode("%s"), "history_capture_token" => base64_decode("%s")];\n' "$encoded" "$history_encoded" > _site/api/config.php
           echo "config.php نوشته شد."
 
       - name: Install FTPS client
@@ -98,6 +103,7 @@ jobs:
           sudo apt-get install --yes lftp
 
       - name: Deploy site
+        if: github.event_name != 'schedule'
         shell: bash
         env:
           FTP_SERVER: ${{ secrets.PARS_FTP_SERVER }}
@@ -122,3 +128,30 @@ jobs:
           mirror --reverse --verbose --parallel=4 --ignore-time _site/ "$FTP_DIRECTORY"
           bye
           EOF
+
+      - name: ثبت اسنپ‌شات نمودارهای بازار
+        shell: bash
+        env:
+          HISTORY_CAPTURE_TOKEN: ${{ secrets.HISTORY_CAPTURE_TOKEN }}
+        run: |
+          set -euo pipefail
+          # rates.php ابتدا کش BRS را تازه می‌کند و سپس همان نرخ‌ها ثبت می‌شوند.
+          curl --fail --silent --show-error --max-time 25 'https://tabdex.ir/api/rates.php' > /dev/null
+          curl --fail --silent --show-error --max-time 25 \
+            -H "X-Tabdex-Internal-Key: $HISTORY_CAPTURE_TOKEN" \
+            'https://tabdex.ir/api/history.php?capture=1'
+  capture-market-history:
+    if: github.event_name == 'schedule'
+    name: Capture market chart snapshots
+    runs-on: ubuntu-latest
+    steps:
+      - name: ثبت اسنپ‌شات نمودارهای بازار
+        shell: bash
+        env:
+          HISTORY_CAPTURE_TOKEN: ${{ secrets.HISTORY_CAPTURE_TOKEN }}
+        run: |
+          set -euo pipefail
+          curl --fail --silent --show-error --max-time 25 'https://tabdex.ir/api/rates.php' > /dev/null
+          curl --fail --silent --show-error --max-time 25 \
+            -H "X-Tabdex-Internal-Key: $HISTORY_CAPTURE_TOKEN" \
+            'https://tabdex.ir/api/history.php?capture=1'
