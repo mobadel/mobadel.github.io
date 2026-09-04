@@ -231,6 +231,11 @@
     return new Intl.DateTimeFormat("fa-IR", { hour: "2-digit", minute: "2-digit" }).format(date);
   }
 
+  function formatCurrencyNumber(value, currency) {
+    var decimals = currency && currency.group === "crypto" && value >= 1 ? 2 : currency.decimals;
+    return formatNumber(value, decimals);
+  }
+
   function decimalsFromPrecision(value) {
     var text = String(value || "");
     if (/e-/i.test(text)) return Math.min(Number(text.split(/e-/i)[1]) || 8, 12);
@@ -473,8 +478,8 @@
     paintCurrency(elements.currencyFrom, fromCurrency);
     paintCurrency(elements.currencyTo, toCurrency);
     var result = convertEditedAmount();
-    if (state.edited === "from") setInput(elements.amountTo, result === null ? "" : formatNumber(result, toCurrency.decimals));
-    else setInput(elements.amountFrom, result === null ? "" : formatNumber(result, fromCurrency.decimals));
+    if (state.edited === "from") setInput(elements.amountTo, result === null ? "" : formatCurrencyNumber(result, toCurrency));
+    else setInput(elements.amountFrom, result === null ? "" : formatCurrencyNumber(result, fromCurrency));
   }
 
   /* عنوان و متای صفحه با جفت فعلی هم‌راستا می‌شوند. صفحه‌های ایستایی
@@ -538,7 +543,7 @@
     // «۱ گرم طلای ۱۸ عیار» به‌جای «۱ طلای ۱۸ عیار»
     var fromUnit = unitPrefix(fromCurrency);
     elements.rateValue.textContent = "۱ " + (fromUnit ? fromUnit + " " : "") + fromCurrency.name +
-      " = " + formatNumber(state.rate, toCurrency.decimals) + " " + toCurrency.name;
+      " = " + formatCurrencyNumber(state.rate, toCurrency) + " " + toCurrency.name;
     elements.rateStatus.classList.toggle("error", !state.live);
     elements.rateStatus.innerHTML = '<span class="status-dot" aria-hidden="true"></span>' +
       (state.live ? "آخرین به‌روزرسانی " + formatTime(state.updatedAt) : "نمایش آخرین نرخ ذخیره‌شده");
@@ -558,8 +563,8 @@
     }
     var reverseRate = 1 / state.rate;
     elements.pairContentRate.textContent = "هر یک " + unitizedName(fromCurrency) + " معادل " +
-      formatNumber(state.rate, toCurrency.decimals) + " " + unitizedName(toCurrency) + " و هر یک " + unitizedName(toCurrency) +
-      " برابر با " + formatNumber(reverseRate, fromCurrency.decimals) + " " + unitizedName(fromCurrency) + " است.";
+      formatCurrencyNumber(state.rate, toCurrency) + " " + unitizedName(toCurrency) + " و هر یک " + unitizedName(toCurrency) +
+      " برابر با " + formatCurrencyNumber(reverseRate, fromCurrency) + " " + unitizedName(fromCurrency) + " است.";
   }
 
   function paint() { updateRate(); refreshPairStatus(); paintConversion(); paintRate(); paintPairContent(); }
@@ -707,7 +712,7 @@
     var previousFrom = state.from;
     state.from = state.to; state.to = previousFrom; state.edited = "from";
     state.amount = Number.isFinite(visibleResult) ? visibleResult : 0;
-    setInput(elements.amountFrom, formatNumber(state.amount, currencies[state.from].decimals));
+    setInput(elements.amountFrom, formatCurrencyNumber(state.amount, currencies[state.from]));
     elements.swap.classList.toggle("turned"); syncRoute(); paint();
     if (elements.dialog.hidden) { elements.amountFrom.focus(); elements.amountFrom.select(); }
   }
@@ -985,7 +990,7 @@
   if (initialAmount !== null) {
     state.amount = initialAmount;
     state.edited = "from";
-    setInput(elements.amountFrom, formatNumber(initialAmount, currencies[state.from].decimals));
+    setInput(elements.amountFrom, formatCurrencyNumber(initialAmount, currencies[state.from]));
   }
 
   // دکمهٔ بازگشت مرورگر باید به جفت قبلی برگردد، نه از سایت بیرون ببرد.

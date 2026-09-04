@@ -17,6 +17,7 @@
   var UNIT_LABELS = { gram: "گرم", piece: "عدد", mesghal: "مثقال", ounce: "انس", kilogram: "کیلو" };
   var RANKED = ["btc", "usdt", "eth", "usdc", "xrp", "bnb", "sol", "doge", "trx", "ada", "gold18", "gold24", "goldmelted", "goldounce", "emami", "bahar", "halfcoin", "quartercoin", "gramcoin", "silver", "copper", "usd", "eur", "gbp", "aed", "try", "chf", "cad", "aud"];
   var RANK = {};
+  var cmcRanks = {};
   var USD_STABLECOINS = { usdt: true, usdc: true, dai: true, busd: true, usde: true, tusd: true, fdusd: true, usdd: true, pyusd: true, gusd: true, susd: true, frax: true };
   RANKED.forEach(function (id, index) { RANK[id] = index; });
 
@@ -74,12 +75,12 @@
   function assetUrl(asset) { return "/price/" + groupSlug(asset.group) + "/" + slugOf(asset.id) + "/"; }
   function categoryUrl(group) { return "/price/" + groupSlug(group) + "/"; }
   function normalizeId(id) { id = String(id || "").toLowerCase(); return id === "rls" ? "irt" : id; }
-  function rank(asset) { return RANK[asset.id] == null ? RANKED.length : RANK[asset.id]; }
+  function rank(asset) { if (asset.group === "crypto") return Number.isFinite(cmcRanks[asset.id]) ? cmcRanks[asset.id] : 999999; return RANK[asset.id] == null ? RANKED.length : RANK[asset.id]; }
   function compareAssets(a, b) { return rank(a) - rank(b) || a.name.localeCompare(b.name, "fa"); }
   function formatNumber(value, digits) { return new Intl.NumberFormat("fa-IR", { maximumFractionDigits: digits == null ? 0 : digits }).format(value); }
-  function formatPrice(value) { return Number.isFinite(value) ? formatNumber(value, value < 1 ? 6 : 0) : "ناموجود"; }
+  function formatPrice(value, asset) { return Number.isFinite(value) ? formatNumber(value, asset && asset.group === "crypto" && value >= 1 ? 2 : value < 1 ? 6 : 0) : "ناموجود"; }
   function priceLabel(asset) { return asset.priceCurrency === "USDT" ? "تتر" : asset.priceCurrency === "USD" ? "دلار" : "تومان"; }
-  function formattedPrice(asset) { return formatPrice(asset.price) + " " + priceLabel(asset); }
+  function formattedPrice(asset) { return formatPrice(asset.price, asset) + " " + priceLabel(asset); }
   function formatChange(value) { if (!Number.isFinite(value)) return "—"; var sign = value > 0 ? "+" : ""; return sign + formatNumber(value, 2) + "٪"; }
   function formatAbsoluteChange(value) { return Number.isFinite(value) ? formatNumber(Math.abs(value), 2) + "٪" : "—"; }
   function changeClass(value) { return value > 0 ? "positive" : value < 0 ? "negative" : "neutral"; }
@@ -152,7 +153,12 @@
       if (!latestUpdate || at > latestUpdate) latestUpdate = at;
     });
   }
-  function loadAll() { return Promise.allSettled([loadNobitex(), loadProxy()]); }
+  function loadCmcRanks() {
+    return loadJson("/data/cmc-ranks.json?t=" + Date.now(), 5000).then(function (payload) {
+      cmcRanks = payload && payload.ranks || {};
+    });
+  }
+  function loadAll() { return Promise.allSettled([loadNobitex(), loadProxy(), loadCmcRanks()]); }
   function availableAssets(group) { return Object.keys(assets).map(function (id) { return assets[id]; }).filter(function (asset) { return asset.group === group && Number.isFinite(asset.price); }).sort(compareAssets); }
 
   function renderCategoryCards() {
@@ -200,7 +206,7 @@
     var categoryLink = document.getElementById("asset-category-link"); if (categoryLink) { categoryLink.href = categoryUrl(group); categoryLink.textContent = category.name; }
     text(document.getElementById("asset-crumb"), asset.name); text(document.getElementById("asset-title"), "قیمت " + asset.name); var english = document.getElementById("asset-english"); if (english) { var subtitle = assetSubtitle(asset); english.hidden = !subtitle; text(english, subtitle); }
     var icon = document.getElementById("asset-main-icon"); if (icon) { icon.classList.toggle("is-full-bleed", asset.group === "gold" || asset.group === "commodity"); icon.replaceChildren(); icon.appendChild(createIcon(asset, "asset-main-icon-inner")); }
-    text(document.getElementById("asset-price"), formatPrice(asset.price)); text(document.getElementById("asset-unit"), priceLabel(asset)); var secondary = document.getElementById("asset-secondary"); if (secondary) { var hasToman = Number.isFinite(asset.tomanPrice); secondary.hidden = !hasToman; text(document.getElementById("asset-secondary-price"), hasToman ? formatPrice(asset.tomanPrice) : "—"); var secondaryChange = document.getElementById("asset-secondary-change"); if (secondaryChange) { secondaryChange.className = "price-change secondary-change " + (hasToman ? changeClass(asset.tomanChange) : "neutral"); text(secondaryChange.querySelector("strong"), hasToman ? formatChange(asset.tomanChange) : "—"); } } var changeBox = document.getElementById("asset-change"); if (changeBox) { changeBox.className = "price-change " + changeClass(asset.change); var strong = changeBox.querySelector("strong"); text(strong, formatChange(asset.change)); }
+    text(document.getElementById("asset-price"), formatPrice(asset.price, asset)); text(document.getElementById("asset-unit"), priceLabel(asset)); var secondary = document.getElementById("asset-secondary"); if (secondary) { var hasToman = Number.isFinite(asset.tomanPrice); secondary.hidden = !hasToman; text(document.getElementById("asset-secondary-price"), hasToman ? formatPrice(asset.tomanPrice) : "—"); var secondaryChange = document.getElementById("asset-secondary-change"); if (secondaryChange) { secondaryChange.className = "price-change secondary-change " + (hasToman ? changeClass(asset.tomanChange) : "neutral"); text(secondaryChange.querySelector("strong"), hasToman ? formatChange(asset.tomanChange) : "—"); } } var changeBox = document.getElementById("asset-change"); if (changeBox) { changeBox.className = "price-change " + changeClass(asset.change); var strong = changeBox.querySelector("strong"); text(strong, formatChange(asset.change)); }
     var freshness = document.getElementById("asset-freshness"); if (freshness) { var dot = document.createElement("i"); dot.setAttribute("aria-hidden", "true"); freshness.replaceChildren(dot, document.createTextNode(" آخرین به‌روزرسانی " + formatTime(asset.updatedAt || latestUpdate))); }
     text(document.getElementById("asset-content-title"), "قیمت " + asset.name + " امروز"); var movement = asset.change > 0 ? "افزایش" : asset.change < 0 ? "کاهش" : "بدون تغییر"; var tomanSentence = Number.isFinite(asset.tomanPrice) ? " نرخ آن در بازار تومانی " + formatPrice(asset.tomanPrice) + " تومان است." : ""; text(document.getElementById("asset-content-lead"), "قیمت هر " + unitText(asset) + " " + asset.name + " اکنون " + formattedPrice(asset) + " است." + tomanSentence + " این قیمت در ۲۴ ساعت گذشته " + formatAbsoluteChange(asset.change) + " " + movement + " داشته است.");
     text(document.getElementById("asset-about-title"), "درباره " + asset.name); text(document.getElementById("asset-about-text"), asset.name + (asset.code ? " با نماد " + asset.code : "") + " در دسته " + category.name + " قرار دارد. این صفحه آخرین قیمت قابل دریافت از " + (asset.source || "بازار") + " را نمایش می‌دهد و برای پیگیری ارزش روز این دارایی به‌روزرسانی می‌شود.");

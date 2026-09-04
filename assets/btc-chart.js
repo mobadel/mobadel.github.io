@@ -201,7 +201,7 @@
     summaryHigh.textContent = priceFormatter.format(highestPrice) + " " + marketConfig.unit;
     summaryLow.textContent = priceFormatter.format(lowestPrice) + " " + marketConfig.unit;
     summaryChange.className = "btc-chart-summary-value " + (percentageChange > 0 ? "positive" : percentageChange < 0 ? "negative" : "neutral");
-    summaryChange.textContent = (percentageChange > 0 ? "+" : percentageChange < 0 ? "−" : "") + percentFormatter.format(Math.abs(percentageChange)) + "٪";
+    summaryChange.textContent = percentFormatter.format(Math.abs(percentageChange)) + (percentageChange > 0 ? "+" : percentageChange < 0 ? "−" : "") + "٪";
   }
 
   function renderChart(points) {
