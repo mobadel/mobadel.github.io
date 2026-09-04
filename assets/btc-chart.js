@@ -35,8 +35,9 @@
   var xAxis = document.getElementById("btc-chart-x-axis");
   var area = document.getElementById("btc-chart-area");
   var line = document.getElementById("btc-chart-line");
-  var highLabel = document.getElementById("btc-chart-high-label");
-  var lowLabel = document.getElementById("btc-chart-low-label");
+  var summaryHigh = document.getElementById("btc-chart-summary-high");
+  var summaryLow = document.getElementById("btc-chart-summary-low");
+  var summaryChange = document.getElementById("btc-chart-summary-change");
   var crosshair = document.getElementById("btc-chart-crosshair");
   var marker = document.getElementById("btc-chart-marker");
   var tooltip = document.getElementById("btc-chart-tooltip");
@@ -44,16 +45,17 @@
   var tooltipPrice = document.getElementById("btc-chart-tooltip-price");
   var status = document.getElementById("btc-chart-status");
   var chartTitle = document.getElementById("btc-chart-title");
-  var chartSource = section && section.querySelector(".btc-chart-source");
+
   var buttons = Array.prototype.slice.call(document.querySelectorAll("[data-chart-range]"));
 
   if (!section || !stage || !svg) return;
   chartTitle.textContent = marketConfig.title;
-  chartSource.textContent = marketConfig.source;
+
   svg.setAttribute("aria-label", "نمودار تاریخی " + marketConfig.title.replace("نمودار ", "") + " به " + marketConfig.unit);
   section.hidden = false;
 
   var priceFormatter = new Intl.NumberFormat("fa-IR", { maximumFractionDigits: 2 });
+  var percentFormatter = new Intl.NumberFormat("fa-IR", { maximumFractionDigits: 2 });
   var dateFormatter = new Intl.DateTimeFormat("fa-IR", {
     timeZone: "Asia/Tehran", year: "numeric", month: "long", day: "numeric"
   });
@@ -195,24 +197,11 @@
     }
   }
 
-  function renderPriceLabel(label, point, price, width, height, positionBelow) {
-    var text = label.querySelector("text");
-    var rect = label.querySelector("rect");
-
-    var value = priceFormatter.format(price) + " " + marketConfig.unit;
-    var labelWidth = Math.min(width - 8, stage.clientWidth < 520 ? 92 : 104);
-    var labelHeight = 20;
-    var gap = 8;
-    var x = Math.max(4, Math.min(width - labelWidth - 4, point.x - labelWidth / 2));
-    var y = positionBelow ? Math.min(height - 38 - labelHeight, point.y + gap) : Math.max(4, point.y - labelHeight - gap);
-
-    label.setAttribute("transform", "translate(" + x.toFixed(2) + " " + y.toFixed(2) + ")");
-    rect.setAttribute("width", labelWidth);
-    rect.setAttribute("height", labelHeight);
-    text.setAttribute("x", (labelWidth / 2).toFixed(2));
-    text.setAttribute("y", (labelHeight / 2).toFixed(2));
-    text.setAttribute("text-anchor", "middle");
-    text.textContent = value;
+  function renderChartSummary(highestPrice, lowestPrice, percentageChange) {
+    summaryHigh.textContent = priceFormatter.format(highestPrice) + " " + marketConfig.unit;
+    summaryLow.textContent = priceFormatter.format(lowestPrice) + " " + marketConfig.unit;
+    summaryChange.className = "btc-chart-summary-value " + (percentageChange > 0 ? "positive" : percentageChange < 0 ? "negative" : "neutral");
+    summaryChange.textContent = (percentageChange > 0 ? "+" : percentageChange < 0 ? "−" : "") + percentFormatter.format(Math.abs(percentageChange)) + "٪";
   }
 
   function renderChart(points) {
@@ -240,10 +229,10 @@
     renderXAxis(activePoints, width, height, padding);
     line.setAttribute("d", linePath);
     area.setAttribute("d", areaPath);
-    var lowestIndex = prices.indexOf(lowestPrice);
-    var highestIndex = prices.indexOf(highestPrice);
-    renderPriceLabel(highLabel, plotted[highestIndex], highestPrice, width, height, false);
-    renderPriceLabel(lowLabel, plotted[lowestIndex], lowestPrice, width, height, true);
+    var firstPrice = activePoints[0].price;
+    var lastPrice = activePoints[activePoints.length - 1].price;
+    var percentageChange = firstPrice ? (lastPrice - firstPrice) / firstPrice * 100 : 0;
+    renderChartSummary(highestPrice, lowestPrice, percentageChange);
     svg.dataset.width = String(width);
     svg.dataset.paddingLeft = String(padding.left);
     svg.dataset.paddingRight = String(padding.right);

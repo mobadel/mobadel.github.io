@@ -28,9 +28,9 @@ new vm.Script(btcChartScript, { filename: "assets/btc-chart.js" });
 
 assert.match(asset, /id="btc-price-chart"[^>]*hidden[\s\S]*<h2 id="btc-chart-title">نمودار قیمت بیت کوین<\/h2>/, "نمودار آزمایشی باید در قالب دارایی و به صورت پیش‌فرض مخفی باشد");
 assert.match(asset, /data-chart-range="24h"[\s\S]*data-chart-range="7d"[\s\S]*data-chart-range="1m"[\s\S]*data-chart-range="1y"[\s\S]*data-chart-range="all"/, "پنج بازه زمانی نمودار لازم است");
-assert.match(asset, /id="btc-chart-high-label"[\s\S]*id="btc-chart-low-label"/, "نمودار باید برچسب سقف و کف بازه را داشته باشد");
-assert.match(btcChartScript, /lowestPrice[\s\S]*highestPrice[\s\S]*renderPriceLabel\(highLabel[\s\S]*renderPriceLabel\(lowLabel/, "سقف و کف هر بازه باید از نقاط همان بازه محاسبه و نمایش داده شوند");
-assert.match(btcChartScript, /marketConfig\.unit[\s\S]*stage\.clientWidth < 520 \? 92 : 104[\s\S]*renderPriceLabel\(highLabel[\s\S]*false[\s\S]*renderPriceLabel\(lowLabel[\s\S]*true/, "برچسب‌ها باید کوچک، داخل نمودار و با عنوان نهایی باشند");
+assert.match(asset, /id="btc-chart-summary-high"[\s\S]*id="btc-chart-summary-low"[\s\S]*id="btc-chart-summary-change"/, "نمودار باید خلاصهٔ بیشترین، پایین‌ترین و تغییرات بازه را داشته باشد");
+assert.doesNotMatch(asset, /btc-chart-high-label|btc-chart-low-label|btc-chart-source/, "برچسب‌های روی نمودار و متن منبع قدیمی باید حذف شوند");
+assert.match(btcChartScript, /lowestPrice[\s\S]*highestPrice[\s\S]*percentageChange[\s\S]*renderChartSummary/, "خلاصهٔ پایین نمودار باید از نقاط همان بازه محاسبه شود");
 assert.match(btcChartScript, /"24h": \{ resolution: "15", seconds: 86400 \}/, "بازه ۲۴ ساعت باید کندل پانزده دقیقه‌ای بگیرد");
 assert.match(btcChartScript, /"7d": \{ resolution: "60", seconds: 7 \* 86400 \}/, "بازه هفتگی باید کندل ساعتی بگیرد");
 assert.match(btcChartScript, /"1m": \{ resolution: "240", seconds: 30 \* 86400 \}/, "بازه ماهانه باید کندل چهار ساعته بگیرد");
@@ -44,7 +44,7 @@ assert.match(btcChartScript, /axisMonthFormatter\.format\(labelDate\) \+ " " \+ 
 assert.match(btcChartScript, /activeRange === "24h" \|\| activeRange === "7d" \|\| activeRange === "1m" \? dateTimeFormatter/, "هاور بازه ماهانه نیز باید ساعت را نمایش دهد");
 assert.match(btcChartScript, /label\.setAttribute\("text-anchor", "middle"\)/, "مرکز همه برچسب‌های محور باید با فاصله یکسان چیده شود");
 assert.doesNotMatch(asset, /btc-chart-grid/, "نمودار نباید خطوط افقی پس‌زمینه داشته باشد");
-assert.match(asset, /بر اساس داده‌های بازار «بیت کوین\/تتر»/, "متن منبع نمودار باید مطابق کپی نهایی باشد");
+assert.match(asset, /بالاترین قیمت[\s\S]*پایین‌ترین قیمت[\s\S]*تغییرات/, "خلاصهٔ بازه باید سه مقدار اصلی را نمایش دهد");
 assert.match(btcChartScript, /btc: \{[\s\S]*symbol: "BTCUSDT"[\s\S]*statsKey: "btc-usdt"[\s\S]*unit: "تتر"/, "نمودار بیت کوین باید از بازار بیت کوین تتر بیاید");
 assert.match(btcChartScript, /usdt: \{[\s\S]*symbol: "USDTIRT"[\s\S]*statsKey: "usdt-irt"[\s\S]*liveScale: 0\.1[\s\S]*unit: "تومان"/, "نمودار تتر باید داده تاریخی تومانی و قیمت لحظه‌ای تبدیل‌شده از ریال داشته باشد");
 assert.match(btcChartScript, /\(btc\|usdt\)/, "نمودار فقط باید در صفحات بیت کوین و تتر فعال شود");
