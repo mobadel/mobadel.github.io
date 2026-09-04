@@ -55,6 +55,9 @@ assert.match(btcChartScript, /resolveCryptoMarket[\s\S]*marketConfig\.symbol = i
 assert.match(btcChartScript, /range === "all" && to - normalized\[0\]\.time > 2 \* 365 \* 86400 \? aggregateWeekly/, "بازه همه فقط برای تاریخچهٔ بیش از دو سال باید هفتگی شود");
 assert.ok(Object.keys(marketHistory.assets).length === 11, "تاریخچهٔ بازار باید یازده دارایی را داشته باشد");
 assert.match(marketHistoryApi, /HISTORY_CAPTURE_TOKEN/, "ثبت خودکار تاریخچه باید با کلید مستقل محافظت شود");
+assert.match(marketHistoryApi, /OFFICIAL_HOLIDAYS_1405[\s\S]*2026-08-30[\s\S]*2027-03-20/, "تعطیلات رسمی ۱۴۰۵ باید ثبت اسنپ‌شات را متوقف کنند");
+assert.match(marketHistoryApi, /marketIsOpen[\s\S]*\$hour >= 11 && \$hour < 20[\s\S]*\$hour >= 12 && \$hour < 18/, "ساعت‌های هر دو بازار باید رعایت شود");
+assert.match(marketHistoryApi, /foreach \(\$rates\['assets'\][\s\S]*marketIsOpen/, "فیلتر باید پیش از نوشتن هر نقطه اعمال شود");
 assert.match(btcChartScript, /stage\.addEventListener\("pointermove"/, "هاور نمودار باید اطلاعات نقطه را نمایش دهد");
 assert.match(btcChartScript, /stage\.addEventListener\("pointerdown"/, "لمس نمودار در موبایل باید اطلاعات نقطه را نمایش دهد");
 assert.match(btcChartScript, /stage\.addEventListener\("pointerup"[\s\S]*event\.pointerType !== "mouse"[\s\S]*hideTooltip/, "هاور لمسی باید با پایان لمس پاک شود");

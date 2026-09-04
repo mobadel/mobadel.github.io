@@ -10,6 +10,17 @@ const CACHE_FILE = __DIR__ . '/cache/market-history.json';
 const SEED_FILE = __DIR__ . '/../data/market-history.json';
 const RATES_FILE = __DIR__ . '/cache/rates.json';
 
+/* تعطیلات رسمی سال ۱۴۰۵، طبق https://www.bahesab.ir/time/1405/ .
+ * این فهرست فقط جلوی ذخیرهٔ اسنپ‌شات‌های جدید را می‌گیرد؛ به دادهٔ
+ * تاریخی منتشرشده هیچ تغییری نمی‌دهد. */
+const OFFICIAL_HOLIDAYS_1405 = [
+    '2026-03-21', '2026-03-22', '2026-03-23', '2026-03-24', '2026-04-01', '2026-04-02',
+    '2026-04-14', '2026-05-27', '2026-06-04', '2026-06-05', '2026-06-24', '2026-06-25',
+    '2026-08-04', '2026-08-12', '2026-08-13', '2026-08-21', '2026-08-30', '2026-11-13',
+    '2026-12-23', '2027-01-06', '2027-01-24', '2027-02-11', '2027-02-28', '2027-03-10',
+    '2027-03-11', '2027-03-20',
+];
+
 header('Content-Type: application/json; charset=utf-8');
 header('Cache-Control: public, max-age=60');
 
@@ -34,6 +45,20 @@ function writeJson(string $path, array $payload): bool {
     return file_put_contents($path, json_encode($payload, JSON_UNESCAPED_UNICODE), LOCK_EX) !== false;
 }
 
+function marketIsOpen(string $group, int $time): bool {
+    if (!in_array($group, ['fiat', 'gold', 'coin', 'commodity'], true)) return true;
+    $tehran = (new DateTimeImmutable('@' . $time))->setTimezone(new DateTimeZone('Asia/Tehran'));
+    if (in_array($tehran->format('Y-m-d'), OFFICIAL_HOLIDAYS_1405, true)) return false;
+    $weekday = (int) $tehran->format('N'); // دوشنبه=۱ … پنجشنبه=۴، جمعه=۵، شنبه=۶
+    $hour = (int) $tehran->format('G');
+    if ($group === 'commodity') {
+        return in_array($weekday, [6, 7, 1, 2, 3], true) && $hour >= 12 && $hour < 18;
+    }
+    if (in_array($weekday, [6, 7, 1, 2, 3], true)) return $hour >= 11 && $hour < 20;
+    if ($weekday === 4) return $hour >= 11 && $hour < 18;
+    return false;
+}
+
 function capture(): array {
     $key = configKey();
     $provided = (string) ($_SERVER['HTTP_X_TABDEX_INTERNAL_KEY'] ?? '');
@@ -51,6 +76,7 @@ function capture(): array {
     $time = (int) ($rates['fetched_unix'] ?? time());
     $time -= $time % 300;
     foreach ($rates['assets'] as $id => $asset) {
+        if (!marketIsOpen((string) ($asset['group'] ?? ''), $time)) continue;
         $price = (float) ($asset['toman'] ?? 0);
         if ($price <= 0) continue;
         $points = is_array($history['assets'][$id] ?? null) ? $history['assets'][$id] : [];
