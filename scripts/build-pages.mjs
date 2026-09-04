@@ -110,6 +110,16 @@ const TOP_CRYPTO = [
   "jup", "sui", "1m_pepe", "wld", "pyth", "fet", "tao", "hype", "pol", "cake"
 ];
 
+// صفحه‌های رمزارزِ canonical که در گزارش ایندکس سرچ کنسول دیده شده‌اند
+// و خارج از فهرست پرمخاطب بالا هستند.
+const INDEXED_CRYPTO = [
+  "api3", "at", "ath", "bard", "coti", "edu", "eigen", "esp", "glm", "la",
+  "me", "met", "one", "opg", "orca", "re", "safe", "turbo", "x"
+];
+
+// این جفت‌ها canonical هستند ولی هنوز در فهرست صفحه‌های ایستای پرتقاضا
+// قرار ندارند؛ برای پایدار ماندن حضورشان در سایت‌مپ جداگانه ثبت می‌شوند.
+const INDEXED_CONVERT_PATHS = ["cake-to-irt", "hype-to-irt", "safe-to-irt"];
 // چند جفت پرتقاضا که یک سرشان تومان نیست.
 const EXTRA_PAIRS = [
   ["btc", "usdt"], ["usdt", "btc"],
@@ -199,7 +209,7 @@ for (const group of [...Object.keys(PRICE_GROUPS), "crypto"]) addSitemapUrl(`/pr
 for (const [group, slugs] of Object.entries(PRICE_GROUPS)) {
   for (const slug of slugs) addSitemapUrl(`/price/${group}/${slug}/`);
 }
-for (const slug of TOP_CRYPTO) addSitemapUrl(`/price/crypto/${slug}/`);
+for (const slug of [...TOP_CRYPTO, ...INDEXED_CRYPTO]) addSitemapUrl(`/price/crypto/${slug}/`);
 
 for (const [fromId, toId] of pairs) {
   const from = ASSETS[fromId];
@@ -211,6 +221,8 @@ for (const [fromId, toId] of pairs) {
   await writeFile(resolve(directory, "index.html"), renderPage(template, meta), "utf8");
   urls.push(`  <url>\n    <loc>${ORIGIN}${meta.path}</loc>\n    <lastmod>${today}</lastmod>\n    <priority>0.8</priority>\n  </url>`);
 }
+
+for (const path of INDEXED_CONVERT_PATHS) addSitemapUrl(`/convert/${path}/`, "0.8");
 
 const sitemapXml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.join("\n")}\n</urlset>\n`;
 await Promise.all([
