@@ -51,6 +51,8 @@ assert.match(btcChartScript, /btc: \{[\s\S]*symbol: "BTCUSDT"[\s\S]*statsKey: "b
 assert.match(btcChartScript, /usdt: \{[\s\S]*symbol: "USDTIRT"[\s\S]*statsKey: "usdt-irt"[\s\S]*liveScale: 0\.1[\s\S]*unit: "تومان"/, "نمودار تتر باید داده تاریخی تومانی و قیمت لحظه‌ای تبدیل‌شده از ریال داشته باشد");
 assert.match(btcChartScript, /MARKET_HISTORY_ASSETS[\s\S]*gold18[\s\S]*baharazadi[\s\S]*afn/, "نمودار باید برای همه دارایی‌های دارای تاریخچه فعال شود");
 assert.match(btcChartScript, /\/api\/history\.php\?asset=/, "نمودارهای غیررمزارزی باید تاریخچهٔ سرور را دریافت کنند");
+assert.match(btcChartScript, /resolveCryptoMarket[\s\S]*marketConfig\.symbol = id\.toUpperCase\(\) \+ \(useUsdt \? "USDT" : "IRT"\)/, "همهٔ رمزارزها باید نماد تاریخچه را از بازار نوبیتکس بسازند");
+assert.match(btcChartScript, /range === "all" && to - normalized\[0\]\.time > 2 \* 365 \* 86400 \? aggregateWeekly/, "بازه همه فقط برای تاریخچهٔ بیش از دو سال باید هفتگی شود");
 assert.ok(Object.keys(marketHistory.assets).length === 11, "تاریخچهٔ بازار باید یازده دارایی را داشته باشد");
 assert.match(marketHistoryApi, /HISTORY_CAPTURE_TOKEN/, "ثبت خودکار تاریخچه باید با کلید مستقل محافظت شود");
 assert.match(btcChartScript, /stage\.addEventListener\("pointermove"/, "هاور نمودار باید اطلاعات نقطه را نمایش دهد");

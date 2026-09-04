@@ -20,14 +20,15 @@
       title: "نمودار قیمت تتر", unit: "تومان", source: "بر اساس داده‌های بازار «تتر/تومان»"
     }
   };
-  var isCryptoChart = routeMatch[1] === "crypto" && !!MARKETS[routeMatch[2]];
+  var isCryptoChart = routeMatch[1] === "crypto";
   var historyId = routeMatch[2] === "baharazadi" ? "bahar" : routeMatch[2];
   var historyName = MARKET_HISTORY_ASSETS[routeMatch[2]];
   if (!isCryptoChart && !historyName) return;
-  var marketConfig = isCryptoChart ? MARKETS[routeMatch[2]] : {
+  var marketConfig = isCryptoChart ? (MARKETS[routeMatch[2]] || { id: routeMatch[2], crypto: true }) : {
     id: historyId, title: "نمودار قیمت " + historyName, unit: "تومان", history: true
   };
-  var STATS_API = marketConfig.history ? "/api/rates.php" : "https://apiv2.nobitex.ir/market/stats?srcCurrency=" + marketConfig.src + "&dstCurrency=" + marketConfig.dst;
+  var STATS_API = marketConfig.history ? "/api/rates.php" : (marketConfig.symbol ? "https://apiv2.nobitex.ir/market/stats?srcCurrency=" + marketConfig.src + "&dstCurrency=" + marketConfig.dst : "");
+  var USD_STABLECOINS = { usdt: true, usdc: true, dai: true, busd: true, usde: true, tusd: true, fdusd: true, usdd: true, pyusd: true, gusd: true, susd: true, frax: true };
   var RANGE_CONFIG = {
     "24h": { resolution: "15", seconds: 86400 },
     "7d": { resolution: "60", seconds: 7 * 86400 },
@@ -60,10 +61,12 @@
   var buttons = Array.prototype.slice.call(document.querySelectorAll("[data-chart-range]"));
 
   if (!section || !stage || !svg) return;
-  chartTitle.textContent = marketConfig.title;
 
-  svg.setAttribute("aria-label", "نمودار تاریخی " + marketConfig.title.replace("نمودار ", "") + " به " + marketConfig.unit);
-  section.hidden = false;
+  function prepareChart() {
+    chartTitle.textContent = marketConfig.title;
+    svg.setAttribute("aria-label", "نمودار تاریخی " + marketConfig.title.replace("نمودار ", "") + " به " + marketConfig.unit);
+    section.hidden = false;
+  }
 
   var priceFormatter = new Intl.NumberFormat("fa-IR", { maximumFractionDigits: 2 });
   var percentFormatter = new Intl.NumberFormat("fa-IR", { maximumFractionDigits: 2 });
@@ -96,6 +99,30 @@
     });
   }
 
+  function resolveCryptoMarket() {
+    if (!marketConfig.crypto || marketConfig.symbol) return Promise.resolve();
+    return Promise.all([
+      fetchJson("https://apiv2.nobitex.ir/market/stats"),
+      fetchJson("/data/currencies.json?t=" + Date.now())
+    ]).then(function (responses) {
+      var stats = responses[0] && responses[0].stats || {};
+      var names = responses[1] && responses[1].currencies || {};
+      var id = marketConfig.id;
+      var usdtMarket = stats[id + "-usdt"];
+      var rlsMarket = stats[id + "-rls"];
+      var useUsdt = !USD_STABLECOINS[id] && usdtMarket && Number(usdtMarket.latest) > 0;
+      if (!useUsdt && (!rlsMarket || Number(rlsMarket.latest) <= 0)) throw new Error("market_unavailable");
+      var name = names[id] && names[id].fa || id.toUpperCase();
+      marketConfig.symbol = id.toUpperCase() + (useUsdt ? "USDT" : "IRT");
+      marketConfig.statsKey = id + (useUsdt ? "-usdt" : "-rls");
+      marketConfig.src = id;
+      marketConfig.dst = useUsdt ? "usdt" : "rls";
+      marketConfig.liveScale = useUsdt ? 1 : 0.1;
+      marketConfig.title = "نمودار قیمت " + name;
+      marketConfig.unit = useUsdt ? "تتر" : "تومان";
+      STATS_API = "https://apiv2.nobitex.ir/market/stats?srcCurrency=" + marketConfig.src + "&dstCurrency=" + marketConfig.dst;
+    });
+  }
   function fetchPage(config, from, to, page, signal) {
     var params = new URLSearchParams({
       symbol: marketConfig.symbol,
@@ -189,7 +216,7 @@
       points.forEach(function (point) { unique[point.time] = point; });
       var normalized = Object.keys(unique).map(function (key) { return unique[key]; });
       if (!normalized.length) throw new Error("no_data");
-      normalized = config.weekly ? aggregateWeekly(normalized) : normalized;
+      normalized = range === "all" && to - normalized[0].time > 2 * 365 * 86400 ? aggregateWeekly(normalized) : normalized;
       cache[range] = normalized;
       return normalized;
     });
@@ -345,5 +372,14 @@
     }).catch(function () {});
   }, 60000);
 
-  selectRange(activeRange);
+  if (marketConfig.crypto && !marketConfig.symbol) {
+    status.textContent = "در حال آماده‌سازی داده‌های نمودار…";
+    resolveCryptoMarket().then(function () { prepareChart(); selectRange(activeRange); }).catch(function () {
+      status.textContent = "داده‌های نمودار در حال حاضر در دسترس نیست.";
+      section.hidden = false;
+    });
+  } else {
+    prepareChart();
+    selectRange(activeRange);
+  }
 })();
