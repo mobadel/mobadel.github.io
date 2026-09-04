@@ -76,7 +76,7 @@
 .btc-chart-crosshair{stroke:rgba(26,58,47,.35);stroke-width:1;stroke-dasharray:4 4;vector-effect:non-scaling-stroke}
 .btc-chart-marker{fill:#fff;stroke:var(--green);stroke-width:3;vector-effect:non-scaling-stroke}
 .btc-chart-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:13px 2px 0;direction:rtl;text-align:center}
-.btc-chart-summary-item{min-width:0}.btc-chart-summary-label,.btc-chart-summary-value{display:block}.btc-chart-summary-label{color:var(--subtle);font-size:11px}.btc-chart-summary-value{margin-top:4px;font-size:13px;font-weight:700;white-space:nowrap}.btc-chart-summary-high{color:var(--green-dark)}.btc-chart-summary-low{color:var(--danger)}
+.btc-chart-summary-item{min-width:0}.btc-chart-summary-label,.btc-chart-summary-value{display:block}.btc-chart-summary-label{color:var(--subtle);font-size:11px}.btc-chart-summary-value{margin-top:4px;font-size:13px;font-weight:700;white-space:nowrap}.btc-chart-summary-high{color:var(--green-dark)}.btc-chart-summary-low{color:var(--danger)}.btc-chart-summary-change{direction:ltr;unicode-bidi:isolate}
 .btc-chart-status{position:absolute;inset:0;display:grid;margin:0;place-items:center;color:var(--muted);font-size:14px;direction:rtl}
 .btc-chart-status[hidden],.btc-chart-tooltip[hidden],.btc-chart-svg[hidden],.btc-chart-crosshair[hidden],.btc-chart-marker[hidden]{display:none}
 .btc-chart-tooltip{position:absolute;top:12px;z-index:2;min-width:140px;padding:8px 11px;border:1px solid rgba(184,199,192,.72);border-radius:12px;background:rgba(255,255,255,.96);box-shadow:0 8px 24px rgba(26,58,47,.12);pointer-events:none;text-align:right;direction:rtl}
