@@ -129,8 +129,8 @@
   Object.keys(SLUG_OVERRIDES).forEach(function (id) { SLUG_TO_ID[SLUG_OVERRIDES[id]] = id; });
 
   /* بعضی بازارهای نوبیتکس با ضریب بسته‌بندی نام‌گذاری شده‌اند؛ مثلاً
-     100k_floki. ضریب باید در نام نمایشی بماند، اما اسلاگ عمومی کوتاه و
-     پایدار است: floki. نگاشت معکوس هنگام ثبت دارایی ساخته می‌شود. */
+     100k_floki. ضریب فقط بخشی از شناسه و نماد بازار است؛ اسلاگ عمومی
+     کوتاه و پایدار می‌ماند: floki. نگاشت معکوس هنگام ثبت دارایی ساخته می‌شود. */
   function packagedSlug(id) {
     var match = String(id || "").toLowerCase().match(/^\d+[kmb]_(.+)$/);
     return match ? match[1] : null;

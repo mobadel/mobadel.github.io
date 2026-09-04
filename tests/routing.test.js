@@ -114,8 +114,8 @@ function loadAt(pathname, search = "", initialMeta = null) {
     if (u.includes("api/rates.php")) return { ok: true, json: async () => proxyRates };
     if (u.includes("data/prices.json")) return { ok: false, status: 404, json: async () => ({}) };
     if (u.includes("data/currencies.json")) return { ok: true, json: async () => ({ currencies: {
-      "100k_floki": { fa: "100K_فلوکی", en: "FLOKI", alt: "floki" },
-      "1b_babydoge": { fa: "1B_بیبی دوج", en: "Baby Doge Coin", alt: "babydoge" }
+      "100k_floki": { fa: "فلوکی", en: "FLOKI", alt: "floki" },
+      "1b_babydoge": { fa: "بیبی دوج", en: "Baby Doge Coin", alt: "babydoge" }
     } }) };
     if (u.includes("/market/stats")) return { ok: true, json: async () => stats };
     if (u.includes("/v2/options")) return { ok: true, json: async () => options };
@@ -195,14 +195,14 @@ function loadAt(pathname, search = "", initialMeta = null) {
   await new Promise((resolve) => setTimeout(resolve, 120));
   assert.equal(cryptoPair.heading(), "تبدیل اتریوم به بیت کوین");
 
-  // ضریب بسته‌بندی نوبیتکس در نام می‌ماند، اما وارد URL عمومی نمی‌شود.
+  // ضریب بسته‌بندی نوبیتکس فقط در شناسهٔ بازار می‌ماند و وارد نام نمایشی یا URL عمومی نمی‌شود.
   const flokiPage = loadAt("/convert/floki-to-irt/");
   await new Promise((resolve) => setTimeout(resolve, 120));
-  assert.equal(flokiPage.heading(), "تبدیل 100K_فلوکی به تومان");
+  assert.equal(flokiPage.heading(), "تبدیل فلوکی به تومان");
 
   const babydogePage = loadAt("/convert/irt-to-babydoge/");
   await new Promise((resolve) => setTimeout(resolve, 120));
-  assert.equal(babydogePage.heading(), "تبدیل تومان به 1B_بیبی دوج");
+  assert.equal(babydogePage.heading(), "تبدیل تومان به بیبی دوج");
 
   // ترکیب رمزارز و دارایی پراکسی هم باید کار کند.
   const mixed = loadAt("/convert/btc-to-gold18/", "?amount=2");
