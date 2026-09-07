@@ -15,7 +15,7 @@ declare(strict_types=1);
  * متفاوت وارد یک گراف می‌شود و تبدیل‌ها با هم نمی‌خوانند.
  */
 
-const CACHE_TTL        = 120;
+const CACHE_TTL        = 300;
 const UPSTREAM_TIMEOUT = 12;
 const UPSTREAM_URL     = 'https://api.brsapi.ir/Market/Gold_Currency.php';
 
@@ -91,6 +91,12 @@ header('Cache-Control: public, max-age=60');
 $cacheDir  = __DIR__ . '/cache';
 $cacheFile = $cacheDir . '/rates.json';
 
+/* زودتر از قبل ساخته می‌شود: فایل قفل و فایل عقب‌نشینی هم اینجا
+   می‌نشینند و خیلی پیش از نوشتنِ کش لازم می‌شوند. */
+if (!is_dir($cacheDir)) {
+    @mkdir($cacheDir, 0775, true);
+}
+
 /* ── کش تازه؟ همان را بده و تمام ─────────────────────────────── */
 $cached = null;
 if (is_readable($cacheFile)) {
@@ -116,6 +122,71 @@ if ($key === '' && is_readable(__DIR__ . '/config.php')) {
     if (is_array($config)) {
         $key = (string) ($config['brsapi_key'] ?? '');
     }
+}
+
+/* ── عقب‌نشینی بعد از خطای بالادست ───────────────────────────────
+   BrsApi کلید را وقتی از سقف رد شود مسدود می‌کند، و در صفحهٔ هشدارش
+   نوشته ادامهٔ کوبیدن یعنی مسدودی دائمِ حساب. تا پیش از این هیچ
+   عقب‌نشینی‌ای نبود: کلیدِ مسدود هم هر بار که کش منقضی می‌شد دوباره
+   صدا زده می‌شد، یعنی دقیقاً همان رفتاری که هشدار داده‌اند.
+
+   حالا بعد از هر شکست تا مدتی اصلاً به بالادست دست نمی‌زنیم و همان
+   کش قدیمی سرو می‌شود. مسدودی کلید تا بازنشدنِ سهمیه برطرف نمی‌شود،
+   پس عقب‌نشینی‌اش بلند است؛ خطای گذرا زود دوباره امتحان می‌شود. */
+const BACKOFF_FILE       = __DIR__ . '/cache/backoff.json';
+const BACKOFF_BLOCKED    = 1800;
+const BACKOFF_TRANSIENT  = 120;
+
+function backoffUntil(): array
+{
+    if (!is_readable(BACKOFF_FILE)) {
+        return [0, ''];
+    }
+    $decoded = json_decode((string) @file_get_contents(BACKOFF_FILE), true);
+    if (!is_array($decoded)) {
+        return [0, ''];
+    }
+
+    return [(int) ($decoded['until'] ?? 0), (string) ($decoded['reason'] ?? '')];
+}
+
+function recordFailure(string $reason, int $code): void
+{
+    /* ۴۰۳ و ۴۲۹ یعنی سهمیه؛ اینها با تلاش دوباره درست نمی‌شوند. */
+    $cooldown = in_array($code, [401, 403, 429], true) ? BACKOFF_BLOCKED : BACKOFF_TRANSIENT;
+    @file_put_contents(
+        BACKOFF_FILE,
+        json_encode(['until' => time() + $cooldown, 'reason' => $reason], JSON_UNESCAPED_UNICODE),
+        LOCK_EX
+    );
+}
+
+function clearBackoff(): void
+{
+    if (is_file(BACKOFF_FILE)) {
+        @unlink(BACKOFF_FILE);
+    }
+}
+
+/* ── فقط یک تازه‌سازی هم‌زمان ────────────────────────────────────
+   کش قفل نداشت، پس وقتی منقضی می‌شد هر درخواستی که هم‌زمان می‌رسید
+   جداگانه به بالادست می‌زد. یک لحظه ترافیک یعنی چند برابر شدن مصرف
+   سهمیه — همان چیزی که کلید را به سقف رساند.
+
+   قفل نابلاک‌کننده است: هر که نگرفت منتظر نمی‌ماند، کش قبلی را
+   می‌گیرد. چند ثانیه قدیمی‌تر بودنِ نرخ از سوزاندن سهمیه بهتر است. */
+function acquireRefreshLock()
+{
+    $handle = @fopen(__DIR__ . '/cache/refresh.lock', 'c');
+    if ($handle === false) {
+        return null;
+    }
+    if (!flock($handle, LOCK_EX | LOCK_NB)) {
+        fclose($handle);
+        return false;
+    }
+
+    return $handle;
 }
 
 /* ── تماس با بالادست ─────────────────────────────────────────────
@@ -202,12 +273,26 @@ if ($key === '') {
 }
 
 /* ── گرفتن از بالادست ────────────────────────────────────────── */
-$result = upstreamGet(UPSTREAM_URL . '?key=' . urlencode($key));
-$body   = $result['body'];
-
-if ($body === false || $result['code'] !== 200) {
-    serveStale($cached, upstreamReason($result));
+[$blockedUntil, $blockedReason] = backoffUntil();
+if ($blockedUntil > time()) {
+    serveStale($cached, 'backoff ' . $blockedReason);
 }
+
+$lock = acquireRefreshLock();
+if ($lock === false) {
+    serveStale($cached, 'refresh_in_progress');
+}
+
+$upstream = upstreamGet(UPSTREAM_URL . '?key=' . urlencode($key));
+$body     = $upstream['body'];
+
+if ($body === false || $upstream['code'] !== 200) {
+    $reason = upstreamReason($upstream);
+    recordFailure($reason, $upstream['code']);
+    serveStale($cached, $reason);
+}
+
+clearBackoff();
 
 $payload = json_decode((string) $body, true);
 if (!is_array($payload)) {
@@ -317,7 +402,11 @@ if (is_readable($imeCacheFile)) {
 }
 
 if ($imeRows === null) {
-    $imeResult = upstreamGet(IME_URL . '?key=' . urlencode($key));
+    /* همان کلید و همان سهمیه؛ پس همان عقب‌نشینی. */
+    [$imeBlockedUntil] = backoffUntil();
+    $imeResult = $imeBlockedUntil > time()
+        ? ['body' => false, 'code' => 0, 'effective' => '', 'hops' => 0, 'error' => 'backoff']
+        : upstreamGet(IME_URL . '?key=' . urlencode($key));
     $imeBody   = $imeResult['body'];
     $imeCode   = $imeResult['code'];
 
@@ -376,9 +465,6 @@ $result = [
     'assets'       => $assets,
 ];
 
-if (!is_dir($cacheDir)) {
-    @mkdir($cacheDir, 0775, true);
-}
 $encoded = json_encode($result, JSON_UNESCAPED_UNICODE);
 // نوشتن اتمیک تا درخواست هم‌زمان، فایل نیمه‌نوشته نخواند.
 $temp = $cacheFile . '.' . getmypid() . '.tmp';
