@@ -118,6 +118,66 @@ if ($key === '' && is_readable(__DIR__ . '/config.php')) {
     }
 }
 
+/* ── تماس با بالادست ─────────────────────────────────────────────
+   ریدایرکت را دنبال می‌کند: BrsApi گاهی به‌جای کد خطای صریح، ۳۰۲
+   می‌دهد و بدون دنبال‌کردن، پاسخ سالمِ پشتِ ریدایرکت هم از دست
+   می‌رفت.
+
+   هدر Location و تکه‌ای از بدنه را هم برمی‌گرداند تا وقتی بالادست
+   خطا داد بشود از بیرون فهمید چرا. بدون این، `upstream_http_302`
+   تنها چیزی بود که می‌دیدیم و فرقی بین «سهمیه تمام شد» و «آی‌پی
+   بلاک شد» نمی‌گذاشت. */
+function upstreamGet(string $url): array
+{
+    $channel = curl_init($url);
+    curl_setopt_array($channel, [
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_TIMEOUT        => UPSTREAM_TIMEOUT,
+        CURLOPT_CONNECTTIMEOUT => 8,
+        CURLOPT_USERAGENT      => 'tabdex-rates/1.0 (+https://tabdex.ir)',
+        CURLOPT_FOLLOWLOCATION => true,
+        CURLOPT_MAXREDIRS      => 3,
+    ]);
+    $body = curl_exec($channel);
+    $info = curl_getinfo($channel);
+    $err  = curl_error($channel);
+    curl_close($channel);
+
+    return [
+        'body'      => $body,
+        'code'      => (int) ($info['http_code'] ?? 0),
+        'effective' => (string) ($info['url'] ?? ''),
+        'hops'      => (int) ($info['redirect_count'] ?? 0),
+        'error'     => $err,
+    ];
+}
+
+/* کلید داخل query string است و `reason` در پاسخ عمومی JSON دیده
+   می‌شود. پس هر چیزی که ثبت می‌کنیم اول باید کلید را از دست بدهد. */
+function redactKey(string $text): string
+{
+    return (string) preg_replace('/([?&]key=)[^&\s]*/i', '$1***', $text);
+}
+
+/* شرحی که بشود با آن عیب را تشخیص داد، نه فقط یک عدد. */
+function upstreamReason(array $res): string
+{
+    $reason = 'upstream_http_' . $res['code'];
+
+    if ($res['error'] !== '') {
+        $reason .= ' curl=' . redactKey($res['error']);
+    }
+    if ($res['hops'] > 0) {
+        $reason .= ' via=' . redactKey($res['effective']);
+    }
+    if (is_string($res['body']) && $res['body'] !== '') {
+        $snippet = (string) preg_replace('/\s+/', ' ', mb_substr($res['body'], 0, 200));
+        $reason .= ' body=' . redactKey(trim($snippet));
+    }
+
+    return $reason;
+}
+
 /* ── ناتوانی در تازه‌سازی هرگز نباید صفحه را خالی کند ────────── */
 function serveStale(?array $cached, string $reason): never
 {
@@ -142,19 +202,11 @@ if ($key === '') {
 }
 
 /* ── گرفتن از بالادست ────────────────────────────────────────── */
-$channel = curl_init(UPSTREAM_URL . '?key=' . urlencode($key));
-curl_setopt_array($channel, [
-    CURLOPT_RETURNTRANSFER => true,
-    CURLOPT_TIMEOUT        => UPSTREAM_TIMEOUT,
-    CURLOPT_CONNECTTIMEOUT => 8,
-    CURLOPT_USERAGENT      => 'tabdex-rates/1.0 (+https://tabdex.ir)',
-]);
-$body     = curl_exec($channel);
-$httpCode = curl_getinfo($channel, CURLINFO_HTTP_CODE);
-curl_close($channel);
+$result = upstreamGet(UPSTREAM_URL . '?key=' . urlencode($key));
+$body   = $result['body'];
 
-if ($body === false || $httpCode !== 200) {
-    serveStale($cached, 'upstream_http_' . $httpCode);
+if ($body === false || $result['code'] !== 200) {
+    serveStale($cached, upstreamReason($result));
 }
 
 $payload = json_decode((string) $body, true);
@@ -265,16 +317,9 @@ if (is_readable($imeCacheFile)) {
 }
 
 if ($imeRows === null) {
-    $imeChannel = curl_init(IME_URL . '?key=' . urlencode($key));
-    curl_setopt_array($imeChannel, [
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_TIMEOUT        => UPSTREAM_TIMEOUT,
-        CURLOPT_CONNECTTIMEOUT => 8,
-        CURLOPT_USERAGENT      => 'tabdex-rates/1.0 (+https://tabdex.ir)',
-    ]);
-    $imeBody = curl_exec($imeChannel);
-    $imeCode = curl_getinfo($imeChannel, CURLINFO_HTTP_CODE);
-    curl_close($imeChannel);
+    $imeResult = upstreamGet(IME_URL . '?key=' . urlencode($key));
+    $imeBody   = $imeResult['body'];
+    $imeCode   = $imeResult['code'];
 
     if ($imeBody !== false && $imeCode === 200) {
         $imePayload = json_decode((string) $imeBody, true);

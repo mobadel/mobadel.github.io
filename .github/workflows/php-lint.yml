@@ -1,0 +1,20 @@
+name: PHP lint
+
+# api/rates.php روی سرور اجرا می‌شود و خطای نحوی در آن یعنی ۵۰۰ شدن
+# کل اندپوینت نرخ. تا پیش از این هیچ‌جا بررسی نمی‌شد.
+on:
+  push:
+    branches-ignore:
+      - main
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: php -l روی همهٔ فایل‌های PHP
+        run: find . -name '*.php' -not -path './node_modules/*' -print0 | xargs -0 -n1 php -l
