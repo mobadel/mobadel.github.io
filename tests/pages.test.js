@@ -129,9 +129,10 @@ for (const slug of ["emami", "gerami"]) assert.match(sitemap, new RegExp(`<loc>h
 // شمار صفحه‌ها از خود سازنده مشتق می‌شود، وگرنه با هر رمزارز تازه
 // عددِ ثابت کهنه می‌شود — همان اتفاقی که با افزوده شدن INDEXED_CRYPTO افتاد.
 const cryptoListSize = (name) => {
-  const list = builder.match(new RegExp(`${name}\s*=\s*\[([\s\S]*?)\]`));
-  assert.ok(list, `فهرست ${name} باید در سازنده پیدا شود`);
-  return (list[1].match(/"[^"]+"/g) || []).length;
+  const start = builder.indexOf("[", builder.indexOf(name));
+  const end = builder.indexOf("]", start);
+  assert.ok(start > 0 && end > start, `فهرست ${name} باید در سازنده پیدا شود`);
+  return (builder.slice(start, end).match(/"[^"]+"/g) || []).length;
 };
 const expectedCryptoPages = cryptoListSize("TOP_CRYPTO") + cryptoListSize("INDEXED_CRYPTO");
 assert.ok(expectedCryptoPages > 0, "فهرست رمزارزهای سازنده نباید خالی باشد");
