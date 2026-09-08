@@ -137,7 +137,14 @@ const BACKOFF_FILE       = __DIR__ . '/cache/backoff.json';
 const BACKOFF_BLOCKED    = 1800;
 const BACKOFF_TRANSIENT  = 120;
 
-function backoffUntil(): array
+/* اثرانگشت کلید، نه خود کلید: فایل عقب‌نشینی نباید هیچ‌وقت کلید را
+   روی دیسک نگه دارد. */
+function keyFingerprint(string $key): string
+{
+    return substr(hash('sha256', $key), 0, 16);
+}
+
+function backoffUntil(string $key): array
 {
     if (!is_readable(BACKOFF_FILE)) {
         return [0, ''];
@@ -147,16 +154,27 @@ function backoffUntil(): array
         return [0, ''];
     }
 
+    /* عقب‌نشینی به کلیدی تعلق دارد که شکست خورده. با کلید تازه باید
+       بلافاصله دوباره امتحان شود، وگرنه بعد از تعویض کلیدِ مسدود
+       نیم‌ساعت الکی صبر می‌کردیم. */
+    if ((string) ($decoded['key'] ?? '') !== keyFingerprint($key)) {
+        return [0, ''];
+    }
+
     return [(int) ($decoded['until'] ?? 0), (string) ($decoded['reason'] ?? '')];
 }
 
-function recordFailure(string $reason, int $code): void
+function recordFailure(string $reason, int $code, string $key): void
 {
     /* ۴۰۳ و ۴۲۹ یعنی سهمیه؛ اینها با تلاش دوباره درست نمی‌شوند. */
     $cooldown = in_array($code, [401, 403, 429], true) ? BACKOFF_BLOCKED : BACKOFF_TRANSIENT;
     @file_put_contents(
         BACKOFF_FILE,
-        json_encode(['until' => time() + $cooldown, 'reason' => $reason], JSON_UNESCAPED_UNICODE),
+        json_encode([
+            'until'  => time() + $cooldown,
+            'reason' => $reason,
+            'key'    => keyFingerprint($key),
+        ], JSON_UNESCAPED_UNICODE),
         LOCK_EX
     );
 }
@@ -273,7 +291,7 @@ if ($key === '') {
 }
 
 /* ── گرفتن از بالادست ────────────────────────────────────────── */
-[$blockedUntil, $blockedReason] = backoffUntil();
+[$blockedUntil, $blockedReason] = backoffUntil($key);
 if ($blockedUntil > time()) {
     serveStale($cached, 'backoff ' . $blockedReason);
 }
@@ -288,7 +306,7 @@ $body     = $upstream['body'];
 
 if ($body === false || $upstream['code'] !== 200) {
     $reason = upstreamReason($upstream);
-    recordFailure($reason, $upstream['code']);
+    recordFailure($reason, $upstream['code'], $key);
     serveStale($cached, $reason);
 }
 
@@ -403,7 +421,7 @@ if (is_readable($imeCacheFile)) {
 
 if ($imeRows === null) {
     /* همان کلید و همان سهمیه؛ پس همان عقب‌نشینی. */
-    [$imeBlockedUntil] = backoffUntil();
+    [$imeBlockedUntil] = backoffUntil($key);
     $imeResult = $imeBlockedUntil > time()
         ? ['body' => false, 'code' => 0, 'effective' => '', 'hops' => 0, 'error' => 'backoff']
         : upstreamGet(IME_URL . '?key=' . urlencode($key));
