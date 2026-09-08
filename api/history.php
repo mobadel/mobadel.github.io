@@ -45,18 +45,37 @@ function writeJson(string $path, array $payload): bool {
     return file_put_contents($path, json_encode($payload, JSON_UNESCAPED_UNICODE), LOCK_EX) !== false;
 }
 
-function marketIsOpen(string $group, int $time): bool {
+/* آیا بازار در آن روز اصلاً باز بوده؟ تعطیل رسمی یا روزِ تعطیلِ هفته.
+   عمداً به ساعت کاری نگاه نمی‌کند: دادهٔ بلندمدت یک بستهٔ روزانه با
+   تایم‌استمپ ۰۳:۳۰ تهران است و معیار ساعتی هر ۳۸۰۰ نقطهٔ تاریخی را
+   دور می‌ریخت. */
+function marketDayIsOpen(string $group, int $time): bool {
     if (!in_array($group, ['fiat', 'gold', 'coin', 'commodity'], true)) return true;
     $tehran = (new DateTimeImmutable('@' . $time))->setTimezone(new DateTimeZone('Asia/Tehran'));
     if (in_array($tehran->format('Y-m-d'), OFFICIAL_HOLIDAYS_1405, true)) return false;
     $weekday = (int) $tehran->format('N'); // دوشنبه=۱ … پنجشنبه=۴، جمعه=۵، شنبه=۶
+    // بورس کالا پنجشنبه‌ها هم بسته است، برخلاف بازار طلا و ارز.
+    return in_array($weekday, $group === 'commodity' ? [6, 7, 1, 2, 3] : [6, 7, 1, 2, 3, 4], true);
+}
+
+function marketIsOpen(string $group, int $time): bool {
+    if (!marketDayIsOpen($group, $time)) return false;
+    if (!in_array($group, ['fiat', 'gold', 'coin', 'commodity'], true)) return true;
+    $tehran = (new DateTimeImmutable('@' . $time))->setTimezone(new DateTimeZone('Asia/Tehran'));
+    $weekday = (int) $tehran->format('N');
     $hour = (int) $tehran->format('G');
-    if ($group === 'commodity') {
-        return in_array($weekday, [6, 7, 1, 2, 3], true) && $hour >= 12 && $hour < 18;
-    }
-    if (in_array($weekday, [6, 7, 1, 2, 3], true)) return $hour >= 11 && $hour < 20;
+    if ($group === 'commodity') return $hour >= 12 && $hour < 18;
     if ($weekday === 4) return $hour >= 11 && $hour < 18;
-    return false;
+    return $hour >= 11 && $hour < 20;
+}
+
+/* گروه دارایی از کش نرخ‌ها می‌آید؛ همان‌جایی که ثبت اسنپ‌شات هم از آن
+   می‌خواند. اگر پیدا نشد رشتهٔ خالی برمی‌گردد و آن‌وقت هیچ فیلتری
+   اعمال نمی‌شود — ارز دیجیتال دقیقاً همین حالت است و بازارش تعطیلی
+   ندارد. */
+function assetGroup(string $id): string {
+    $rates = readJson(RATES_FILE);
+    return (string) ($rates['assets'][$id]['group'] ?? '');
 }
 
 function capture(): array {
@@ -105,11 +124,18 @@ if (!preg_match('/^[a-z0-9]+$/', $id)) {
 $seed = readJson(SEED_FILE);
 $dynamic = readJson(CACHE_FILE);
 $merged = [];
+/* فیلتر روزهای تعطیل اینجا هم اعمال می‌شود، نه فقط هنگام ثبت. قاعدهٔ
+   ساعت کاری بعداً اضافه شد و نقطه‌هایی که پیش از آن ثبت شده بودند در
+   نمودار مانده‌اند — مثلاً جمعه ۱۳ شهریور ۱۴۰۵. فیلتر هنگام خواندن،
+   مستقل از اینکه نقطه کِی ثبت شده، تعطیلی را از نمودار بیرون می‌گذارد. */
+$group = assetGroup($id);
 foreach ([$seed, $dynamic] as $source) {
     foreach (($source['assets'][$id] ?? []) as $point) {
         if (!is_array($point) || !isset($point[0], $point[1])) continue;
         $time = (int) $point[0]; $price = (float) $point[1];
-        if ($time > 0 && $price > 0) $merged[$time] = [$time, $price];
+        if ($time <= 0 || $price <= 0) continue;
+        if (!marketDayIsOpen($group, $time)) continue;
+        $merged[$time] = [$time, $price];
     }
 }
 ksort($merged, SORT_NUMERIC);
