@@ -143,6 +143,31 @@
     });
   }
 
+  var TEHRAN_OFFSET = 12600; // ‎+۳:۳۰ نسبت به گرینویچ
+
+  function tehranDay(time) {
+    return Math.floor((time + TEHRAN_OFFSET) / 86400);
+  }
+
+  /* یک نقطه به ازای هر روز: آخرین قیمت آن روز، یعنی قیمت پایانی.
+     تاریخچهٔ سرور دو جنس داده دارد — بستهٔ روزانهٔ بلندمدت و اسنپ‌شات‌های
+     پنج‌دقیقه‌ای روزهای اخیر — و بدون این کار، نمای یک‌ساله برای روزهای
+     قدیمی یک نقطه و برای چند روز آخر ده‌ها نقطه نشان می‌داد.
+     مرتب‌سازی لازم است تا «آخرین» واقعاً آخرینِ روز باشد. */
+  function aggregateDaily(points) {
+    var buckets = {};
+    points.slice().sort(function (a, b) { return a.time - b.time; }).forEach(function (point) {
+      buckets[tehranDay(point.time)] = point;
+    });
+    return Object.keys(buckets).map(function (key) { return buckets[key]; }).sort(function (a, b) {
+      return a.time - b.time;
+    });
+  }
+
+  function isDailyRange(range) {
+    return !!RANGE_CONFIG[range] && RANGE_CONFIG[range].resolution === "D";
+  }
+
   function aggregateWeekly(points) {
     var buckets = {};
     points.forEach(function (point) {
@@ -168,7 +193,14 @@
 
   function appendLivePoint(points, livePoint) {
     var normalized = points.filter(function (point) { return !point.live; }).sort(function (a, b) { return a.time - b.time; });
-    if (normalized.length && normalized[normalized.length - 1].time === livePoint.time) normalized.pop();
+    var last = normalized[normalized.length - 1];
+    /* روی نمودار روزانه، قیمت لحظه‌ای جای نقطهٔ همان روز را می‌گیرد و
+       کنارش نمی‌نشیند؛ وگرنه امروز دو نقطه با چند دقیقه فاصله داشت،
+       آن هم روی نموداری که فاصلهٔ بقیهٔ نقطه‌هایش یک روز است. */
+    var replaces = last && (marketConfig.history && isDailyRange(activeRange)
+      ? tehranDay(last.time) === tehranDay(livePoint.time)
+      : last.time === livePoint.time);
+    if (replaces) normalized.pop();
     normalized.push(livePoint);
     return normalized;
   }
@@ -184,6 +216,8 @@
           return Number.isFinite(point.time) && Number.isFinite(point.price) && point.time >= earliest && point.time <= now;
         });
         if (!points.length) throw new Error("no_data");
+        // بازه‌های با تفکیک روزانه باید یک نقطه در روز داشته باشند.
+        if (isDailyRange(range)) points = aggregateDaily(points);
         cache[range] = points;
         return points;
       });

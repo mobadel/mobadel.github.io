@@ -126,7 +126,17 @@ for (const group of ["currency", "gold", "coin", "commodity", "crypto"]) {
 for (const slug of ["usd", "gel"]) assert.match(sitemap, new RegExp(`<loc>https://tabdex\\.ir/price/currency/${slug}/</loc>`));
 for (const slug of ["gold18", "ounce"]) assert.match(sitemap, new RegExp(`<loc>https://tabdex\\.ir/price/gold/${slug}/</loc>`));
 for (const slug of ["emami", "gerami"]) assert.match(sitemap, new RegExp(`<loc>https://tabdex\\.ir/price/coin/${slug}/</loc>`));
-assert.equal((sitemap.match(/<loc>https:\/\/tabdex\.ir\/price\/crypto\/[^<]+<\/loc>/g) || []).length, 50, "دقیقاً ۵۰ صفحه قیمت رمزارز باید در سایت‌مپ باشد");
+// شمار صفحه‌ها از خود سازنده مشتق می‌شود، وگرنه با هر رمزارز تازه
+// عددِ ثابت کهنه می‌شود — همان اتفاقی که با افزوده شدن INDEXED_CRYPTO افتاد.
+const cryptoListSize = (name) => {
+  const start = builder.indexOf("[", builder.indexOf(name));
+  const end = builder.indexOf("]", start);
+  assert.ok(start > 0 && end > start, `فهرست ${name} باید در سازنده پیدا شود`);
+  return (builder.slice(start, end).match(/"[^"]+"/g) || []).length;
+};
+const expectedCryptoPages = cryptoListSize("TOP_CRYPTO") + cryptoListSize("INDEXED_CRYPTO");
+assert.ok(expectedCryptoPages > 0, "فهرست رمزارزهای سازنده نباید خالی باشد");
+assert.equal((sitemap.match(/<loc>https:\/\/tabdex\.ir\/price\/crypto\/[^<]+<\/loc>/g) || []).length, expectedCryptoPages, "هر رمزارز فهرست‌شده در سازنده باید دقیقاً یک صفحه قیمت در سایت‌مپ داشته باشد");
 assert.match(sitemap, /<loc>https:\/\/tabdex\.ir\/convert\/melted-to-irt\/<\/loc>/);
 assert.match(sitemap, /<loc>https:\/\/tabdex\.ir\/convert\/irt-to-baharazadi\/<\/loc>/);
 // نقره و مس هم در هر دو جهت با تومان صفحه دارند

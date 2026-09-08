@@ -1,4 +1,4 @@
-name: PHP lint
+name: Checks
 
 # api/rates.php روی سرور اجرا می‌شود و خطای نحوی در آن یعنی ۵۰۰ شدن
 # کل اندپوینت نرخ. تا پیش از این هیچ‌جا بررسی نمی‌شد.
@@ -18,3 +18,10 @@ jobs:
       - uses: actions/checkout@v4
       - name: php -l روی همهٔ فایل‌های PHP
         run: find . -name '*.php' -not -path './node_modules/*' -print0 | xargs -0 -n1 php -l
+
+      # تست‌های node در ریپو بودند ولی هیچ‌جا اجرا نمی‌شدند.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: تست‌های node
+        run: node --test tests/

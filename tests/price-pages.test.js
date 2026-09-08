@@ -53,6 +53,36 @@ assert.match(btcChartScript, /MARKET_HISTORY_ASSETS[\s\S]*gold18[\s\S]*baharazad
 assert.match(btcChartScript, /\/api\/history\.php\?asset=/, "نمودارهای غیررمزارزی باید تاریخچهٔ سرور را دریافت کنند");
 assert.match(btcChartScript, /resolveCryptoMarket[\s\S]*marketConfig\.symbol = id\.toUpperCase\(\) \+ \(useUsdt \? "USDT" : "IRT"\)/, "همهٔ رمزارزها باید نماد تاریخچه را از بازار نوبیتکس بسازند");
 assert.match(btcChartScript, /range === "all" && to - normalized\[0\]\.time > 2 \* 365 \* 86400 \? aggregateWeekly/, "بازه همه فقط برای تاریخچهٔ بیش از دو سال باید هفتگی شود");
+assert.match(btcChartScript, /if \(isDailyRange\(range\)\) points = aggregateDaily\(points\);/, "بازه‌های با تفکیک روزانه باید به یک نقطه در روز تبدیل شوند");
+
+// توابع کمکی تجمیع روزانه بدون DOM اجرا می‌شوند تا رفتارشان واقعاً سنجیده شود.
+const dailyHelpers = vm.runInNewContext(
+  btcChartScript.slice(
+    btcChartScript.indexOf("var TEHRAN_OFFSET"),
+    btcChartScript.indexOf("function isDailyRange")
+  ) + "({ tehranDay: tehranDay, aggregateDaily: aggregateDaily })"
+);
+
+// ۱۴۰۵/۰۶/۱۷ و ۱۸ به وقت تهران. بستهٔ روزانه ۰۳:۳۰ ثبت می‌شود و
+// اسنپ‌شات‌های میان‌روز بعد از آن می‌آیند.
+const seedLike = Date.UTC(2026, 8, 7, 0, 0, 0) / 1000;      // ۰۳:۳۰ تهران
+const middayOne = Date.UTC(2026, 8, 7, 9, 0, 0) / 1000;     // ۱۲:۳۰ تهران
+const closeOne = Date.UTC(2026, 8, 7, 16, 0, 0) / 1000;     // ۱۹:۳۰ تهران
+const nextDay = Date.UTC(2026, 8, 8, 9, 0, 0) / 1000;       // فردا ۱۲:۳۰ تهران
+
+assert.equal(dailyHelpers.tehranDay(seedLike), dailyHelpers.tehranDay(closeOne), "بستهٔ روزانه و پایان همان روز باید در یک سطل بیفتند");
+assert.notEqual(dailyHelpers.tehranDay(closeOne), dailyHelpers.tehranDay(nextDay), "دو روز تقویمی تهران نباید در یک سطل بیفتند");
+
+const aggregated = dailyHelpers.aggregateDaily([
+  { time: middayOne, price: 20 },
+  { time: seedLike, price: 10 },
+  { time: closeOne, price: 30 },
+  { time: nextDay, price: 40 }
+]);
+assert.equal(aggregated.length, 2, "چهار نقطه در دو روز باید به دو نقطه تبدیل شوند");
+assert.equal(aggregated[0].price, 30, "نقطهٔ هر روز باید قیمت پایانی همان روز باشد، نه اولین یا میانگین");
+assert.equal(aggregated[1].price, 40, "روز بعد باید نقطهٔ خودش را نگه دارد");
+assert.ok(aggregated[0].time < aggregated[1].time, "خروجی باید بر حسب زمان مرتب باشد");
 assert.ok(Object.keys(marketHistory.assets).length === 11, "تاریخچهٔ بازار باید یازده دارایی را داشته باشد");
 assert.match(marketHistoryApi, /HISTORY_CAPTURE_TOKEN/, "ثبت خودکار تاریخچه باید با کلید مستقل محافظت شود");
 assert.match(marketHistoryApi, /OFFICIAL_HOLIDAYS_1405[\s\S]*2026-08-30[\s\S]*2027-03-20/, "تعطیلات رسمی ۱۴۰۵ باید ثبت اسنپ‌شات را متوقف کنند");
