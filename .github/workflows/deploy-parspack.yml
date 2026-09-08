@@ -113,21 +113,32 @@ jobs:
           FTP_DIRECTORY: ${{ secrets.PARS_FTP_DIRECTORY }}
         run: |
           set -euo pipefail
-          lftp -u "$FTP_USERNAME","$FTP_PASSWORD" -p "$FTP_PORT" "$FTP_SERVER" <<EOF
-          set cmd:fail-exit yes
-          set net:max-retries 2
-          set net:timeout 20
-          set ftp:ssl-force yes
-          set ftp:ssl-protect-data yes
-          set ftp:ssl-auth TLS
-          # Temporary workaround for ParsPack's incomplete FTPS certificate chain.
-          set ssl:verify-certificate no
-          # ساعت فایل‌های سرور ممکن است جلوتر از runner باشد. در آن حالت
-          # مقایسهٔ timestamp فایل‌های تولیدشدهٔ مبدل را اشتباهاً قدیمی
-          # تشخیص می‌دهد؛ با ignore-time تفاوت اندازه مبنای انتقال است.
-          mirror --reverse --verbose --parallel=4 --ignore-time _site/ "$FTP_DIRECTORY"
-          bye
-          EOF
+          # اسکریپت lftp خط‌به‌خط ساخته می‌شود چون یک خط از آن شرطی است.
+          {
+            echo 'set cmd:fail-exit yes'
+            echo 'set net:max-retries 2'
+            echo 'set net:timeout 20'
+            echo 'set ftp:ssl-force yes'
+            echo 'set ftp:ssl-protect-data yes'
+            echo 'set ftp:ssl-auth TLS'
+            # Temporary workaround for ParsPack's incomplete FTPS certificate chain.
+            echo 'set ssl:verify-certificate no'
+
+            # ساعت فایل‌های سرور ممکن است جلوتر از runner باشد. در آن حالت
+            # مقایسهٔ timestamp فایل‌های تولیدشدهٔ مبدل را اشتباهاً قدیمی
+            # تشخیص می‌دهد؛ با ignore-time تفاوت اندازه مبنای انتقال است.
+            echo "mirror --reverse --verbose --parallel=4 --ignore-time _site/ \"$FTP_DIRECTORY\""
+
+            # ولی همان ignore-time یعنی config.php فقط وقتی می‌رود که
+            # اندازه‌اش عوض شده باشد، و دو کلید API هم‌طول اندازهٔ یکسان
+            # می‌دهند. یک بار کلید عوض شد و بی‌صدا هرگز آپلود نشد، پس سایت
+            # با کلید قدیمیِ مسدود ماند. این یکی جدا و بی‌قیدوشرط می‌رود.
+            if [ -f _site/api/config.php ]; then
+              echo "put -O \"$FTP_DIRECTORY/api\" _site/api/config.php"
+            fi
+
+            echo bye
+          } | lftp -u "$FTP_USERNAME","$FTP_PASSWORD" -p "$FTP_PORT" "$FTP_SERVER"
 
       - name: ثبت اسنپ‌شات نمودارهای بازار
         shell: bash
