@@ -84,7 +84,22 @@
   function formatChange(value) { if (!Number.isFinite(value)) return "—"; var sign = value > 0 ? "+" : ""; return sign + formatNumber(value, 2) + "٪"; }
   function formatAbsoluteChange(value) { return Number.isFinite(value) ? formatNumber(Math.abs(value), 2) + "٪" : "—"; }
   function changeClass(value) { return value > 0 ? "positive" : value < 0 ? "negative" : "neutral"; }
-  function formatTime(date) { return date ? new Intl.DateTimeFormat("fa-IR", { hour: "2-digit", minute: "2-digit" }).format(date) : "—"; }
+  /* ساعت تهران، نه ساعت دستگاه: کاربرِ خارج از ایران یا دستگاهی با
+     منطقهٔ زمانی اشتباه وگرنه عددی می‌دید که با بازار نمی‌خواند.
+
+     گرد کردن به نزدیک‌ترین دقیقه هم لازم است: زمانِ داده ثانیه دارد و
+     قیچی‌کردنش باعث می‌شد نرخی که در ۱۳:۳۹:۵۰ ساخته شده تا ۱۳:۴۰:۴۹
+     روی «۱۳:۳۹» بماند — یعنی همیشه یک دقیقه عقب به نظر برسد. فقط
+     جلو نمی‌افتد: اگر گرد کردن از زمان حال رد شود، به پایین برمی‌گردد
+     تا ساعتی از آینده نمایش داده نشود. */
+  var TIME_FORMATTER = new Intl.DateTimeFormat("fa-IR", { timeZone: "Asia/Tehran", hour: "2-digit", minute: "2-digit" });
+
+  function roundToMinute(date) {
+    var rounded = new Date(Math.round(date.getTime() / 60000) * 60000);
+    return rounded.getTime() > Date.now() ? new Date(Math.floor(date.getTime() / 60000) * 60000) : rounded;
+  }
+
+  function formatTime(date) { return date ? TIME_FORMATTER.format(roundToMinute(date)) : "—"; }
   function todayLabel() {
     var formatter = new Intl.DateTimeFormat("fa-IR-u-ca-persian-nu-arabext", { timeZone: "Asia/Tehran", weekday: "long", day: "numeric", month: "long", year: "numeric" });
     var values = {};
