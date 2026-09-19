@@ -638,6 +638,8 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
 .home-market-label small { min-height: 1.35em; color: var(--muted); font-size: 11px; direction: rtl; text-align: right; unicode-bidi: plaintext; }
 .home-market-price,.home-market-change { text-align: right; white-space: nowrap; }
 .home-market-price { font-weight: 700; }
+/* وزن ۷۰۰ اینجا و نه فقط داخل مدیا کوئری موبایل: ستون تغییرات باید
+   در هر دو اندازه هم‌وزن .market-row-change در صفحه‌های دارایی بماند. */
 .home-market-change { direction: ltr; font-size: 14px; font-weight: 700; }
 .home-market-change.positive { color: var(--green); }
 .home-market-change.negative { color: var(--danger); }
