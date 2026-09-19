@@ -43,3 +43,23 @@ python -m http.server 8000
 - دکمهٔ وسط، جهت تبدیل را جابه‌جا می‌کند.
 - جهت پیش‌فرض تتر به تومان با مقدار اولیه ۱۰۰ تتر است و تغییر جهت، آدرس صفحه را عوض نمی‌کند.
 - اعداد فارسی، عربی و لاتین پذیرفته می‌شوند و خروجی با قالب فارسی نمایش داده می‌شود.
+
+## گزارش سرچ کنسول
+
+`scripts/gsc/` دادهٔ Search Console را می‌گیرد و تحلیل می‌کند. property از
+نوع Domain است (`sc-domain:tabdex.ir`)، پس نسخهٔ URL-prefix دسترسی جدا
+می‌خواهد.
+
+```bash
+pip install google-auth google-api-python-client
+GSC_KEY=~/gsc-key.json python3 scripts/gsc/pull.py -o gsc.json
+python3 scripts/gsc/report.py gsc.json
+```
+
+کلید سرویس‌اکانت هیچ‌وقت در مخزن نمی‌آید؛ مسیرش از `GSC_KEY` یا `--key`
+خوانده می‌شود. سرویس‌اکانت باید در Search Console روی property دسترسی
+خواندن داشته باشد.
+
+بخش «آدرس‌های قدیمی که هنوز ایندکس‌اند» در گزارش، وضعیت
+`sitemap-legacy.xml` را نشان می‌دهد: وقتی به صفر رسید، آن سایت‌مپ و
+تولیدش در `scripts/build-pages.mjs` دیگر لازم نیست و باید حذف شود.

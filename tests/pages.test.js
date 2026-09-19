@@ -90,6 +90,12 @@ fs.mkdirSync(path.join(workdir, "convert"), { recursive: true });
 fs.cpSync("convert/index.html", path.join(workdir, "convert", "index.html"));
 fs.mkdirSync(path.join(workdir, "scripts"), { recursive: true });
 fs.cpSync("scripts/build-pages.mjs", path.join(workdir, "scripts/build-pages.mjs"));
+// صفحه‌های قیمت هم سرورساخته‌اند، پس مولد به قالب‌ها و نام دارایی‌ها نیاز دارد.
+fs.mkdirSync(path.join(workdir, "price"), { recursive: true });
+fs.cpSync("price/asset.html", path.join(workdir, "price/asset.html"));
+fs.cpSync("price/category.html", path.join(workdir, "price/category.html"));
+fs.mkdirSync(path.join(workdir, "data"), { recursive: true });
+fs.cpSync("data/currencies.json", path.join(workdir, "data/currencies.json"));
 
 execFileSync(process.execPath, ["scripts/build-pages.mjs"], { cwd: workdir, stdio: "pipe" });
 
