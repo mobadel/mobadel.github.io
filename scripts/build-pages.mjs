@@ -102,6 +102,17 @@ const PRICE_GROUPS = {
   coin: ["emami", "baharazadi", "nim", "rob", "gerami"],
   commodity: ["silver", "copper"]
 };
+/* نام و توضیح هر دسته باید با CATEGORIES در assets/price.js یکی بماند،
+   وگرنه عنوان سرورساخته با چیزی که جاوااسکریپت بعداً می‌نویسد فرق می‌کند.
+   tests/price-pages.test.js این هم‌خوانی را بررسی می‌کند. */
+const PRICE_CATEGORIES = {
+  crypto:    { name: "ارزهای دیجیتال" },
+  gold:      { name: "طلا" },
+  coin:      { name: "سکه" },
+  commodity: { name: "فلزات" },
+  currency:  { name: "ارز" }
+};
+
 const TOP_CRYPTO = [
   "btc", "usdt", "eth", "usdc", "xrp", "bnb", "sol", "doge", "trx", "ada",
   "link", "avax", "dot", "ltc", "bch", "1k_shib", "dai", "near", "uni", "atom",
@@ -143,6 +154,34 @@ function buildPairs() {
   for (const id of WITH_TOMAN) { add(id, "irt"); add("irt", id); }
   for (const [from, to] of EXTRA_PAIRS) add(from, to);
   return pairs;
+}
+
+/* شناسه‌های ضریب‌دار (1k_shib) فقط داخلی‌اند؛ .htaccess آدرس عمومی را
+   به شکل بدون ضریب ۳۰۱ می‌کند، پس سایت‌مپ هم باید همان را بدهد وگرنه
+   خودمان آدرس ریدایرکتی به گوگل معرفی می‌کنیم. */
+function cryptoSlug(id) {
+  const match = /^[0-9]+[kmb]_(.+)$/.exec(id);
+  return match ? match[1] : id;
+}
+
+/* نام فارسی دارایی‌ها دو منبع دارد: جدول ASSETS بالا برای ارز و طلا و
+   سکه، و data/currencies.json برای رمزارزها. همان منبعی که price.js در
+   مرورگر می‌خواند، تا متن ایستا و متن جاوااسکریپت یکی دربیاید. */
+const currencyNames = JSON.parse(await readFile(resolve(ROOT, "data", "currencies.json"), "utf8")).currencies;
+const NAME_BY_SLUG = new Map();
+for (const asset of Object.values(ASSETS)) NAME_BY_SLUG.set(asset.slug, asset.name);
+
+function cryptoName(id) {
+  const entry = currencyNames[id];
+  if (!entry || !entry.fa) throw new Error(`نام فارسی رمزارز «${id}» در data/currencies.json نیست.`);
+  return entry.fa;
+}
+
+function priceName(group, slug, id) {
+  if (group === "crypto") return cryptoName(id);
+  const name = NAME_BY_SLUG.get(slug);
+  if (!name) throw new Error(`نام فارسی دارایی «${slug}» در جدول ASSETS نیست.`);
+  return name;
 }
 
 /* واحد فقط وقتی جلوی نام می‌آید که نام خودش با آن شروع نشده باشد،
@@ -194,7 +233,77 @@ function renderPage(template, meta) {
     .replace(/(src|href)="data\//g, '$1="/data/');
 }
 
+/* صفحه‌های قیمت تا امروز فقط از راه بازنویسی به price/asset.html
+   می‌رسیدند، یعنی هر ۱۳۰ صفحه همین یک HTML را با عنوان «قیمت دارایی»
+   و canonical «/price/» تحویل می‌دادند و تفکیکشان به اجرای جاوااسکریپت
+   توسط خزنده وابسته بود. همان کاری که برای جفت‌های تبدیل می‌کنیم اینجا
+   هم لازم است: فایل واقعی با عنوان و canonical خودِ دارایی. */
+function renderPricePage(template, meta) {
+  const replacements = [
+    [/<title>[^<]*<\/title>/, `<title>${meta.title}</title>`],
+    [/(<meta name="description" content=")[^"]*(">)/, `$1${meta.description}$2`],
+    [/(<meta property="og:title" content=")[^"]*(">)/, `$1${meta.title}$2`],
+    [/(<meta property="og:description" content=")[^"]*(">)/, `$1${meta.description}$2`],
+    [/(<link rel="canonical" href=")[^"]*(">)/, `$1${ORIGIN}${meta.path}$2`],
+    [/(<meta property="og:url" content=")[^"]*(">)/, `$1${ORIGIN}${meta.path}$2`],
+    ...meta.slots
+  ];
+
+  /* قالب‌های قیمت کارت توییتر ندارند. نبودشان خطا نیست، ولی اگر روزی
+     اضافه شدند باید مثل بقیه پر شوند و از قالب عقب نمانند. */
+  const optional = [
+    [/(<meta name="twitter:title" content=")[^"]*(">)/, `$1${meta.title}$2`],
+    [/(<meta name="twitter:description" content=")[^"]*(">)/, `$1${meta.description}$2`]
+  ];
+
+  let html = template;
+  for (const [pattern, replacement] of replacements) {
+    if (!pattern.test(html)) {
+      throw new Error(`الگوی «${pattern}» در قالب صفحهٔ قیمت پیدا نشد؛ قالب عوض شده است.`);
+    }
+    html = html.replace(pattern, replacement);
+  }
+  for (const [pattern, replacement] of optional) html = html.replace(pattern, replacement);
+  return html;
+}
+
+/* عنوان‌ها دقیقاً همان چیزی است که renderAsset و renderCategory در
+   assets/price.js می‌نویسند، تا بین HTML اولیه و بعد از اجرای
+   جاوااسکریپت پرشی در عنوان و h1 دیده نشود. */
+function priceAssetMeta(group, slug, name) {
+  const category = PRICE_CATEGORIES[group];
+  const date = todayLabel();
+  return {
+    title: `قیمت لحظه ای ${name} امروز ${date}`,
+    description: `قیمت لحظه ای ${name} امروز ${date}، میزان تغییر قیمت و اطلاعات بازار ${name}.`,
+    path: `/price/${group}/${slug}/`,
+    slots: [
+      [/(<h1 id="asset-title">)[^<]*(<\/h1>)/, `$1قیمت ${name}$2`],
+      [/(<li id="asset-crumb" aria-current="page">)[^<]*(<\/li>)/, `$1${name}$2`],
+      [/(<a id="asset-category-link" href=")[^"]*(">)[^<]*(<\/a>)/, `$1/price/${group}/$2${category.name}$3`],
+      [/(<h2 id="asset-content-title">)[^<]*(<\/h2>)/, `$1قیمت ${name} امروز$2`],
+      [/(<h3 id="asset-about-title">)[^<]*(<\/h3>)/, `$1درباره ${name}$2`]
+    ]
+  };
+}
+
+function priceCategoryMeta(group) {
+  const category = PRICE_CATEGORIES[group];
+  const date = todayLabel();
+  return {
+    title: `قیمت لحظه ای ${category.name} امروز ${date}`,
+    description: `فهرست قیمت لحظه ای ${category.name} امروز ${date}. مشاهده قیمت و تغییرات ۲۴ ساعته.`,
+    path: `/price/${group}/`,
+    slots: [
+      [/(<h1 id="category-title">)[^<]*(<\/h1>)/, `$1قیمت لحظه ای ${category.name}$2`],
+      [/(<li id="category-crumb" aria-current="page">)[^<]*(<\/li>)/, `$1${category.name}$2`]
+    ]
+  };
+}
+
 const template = await readFile(resolve(ROOT, "convert", "index.html"), "utf8");
+const assetTemplate = await readFile(resolve(ROOT, "price", "asset.html"), "utf8");
+const categoryTemplate = await readFile(resolve(ROOT, "price", "category.html"), "utf8");
 const pairs = buildPairs();
 const today = new Date().toISOString().slice(0, 10);
 const urls = [`  <url>\n    <loc>${ORIGIN}/</loc>\n    <lastmod>${today}</lastmod>\n    <priority>1.0</priority>\n  </url>`];
@@ -205,11 +314,37 @@ function addSitemapUrl(path, priority = "0.7") {
 
 addSitemapUrl("/price/", "0.9");
 addSitemapUrl("/convert/", "0.9");
-for (const group of [...Object.keys(PRICE_GROUPS), "crypto"]) addSitemapUrl(`/price/${group}/`, "0.8");
-for (const [group, slugs] of Object.entries(PRICE_GROUPS)) {
-  for (const slug of slugs) addSitemapUrl(`/price/${group}/${slug}/`);
+
+async function writePricePage(path, html) {
+  const directory = resolve(SITE, path.replace(/^\/|\/$/g, ""));
+  await mkdir(directory, { recursive: true });
+  await writeFile(resolve(directory, "index.html"), html, "utf8");
 }
-for (const slug of [...TOP_CRYPTO, ...INDEXED_CRYPTO]) addSitemapUrl(`/price/crypto/${slug}/`);
+
+let pricePages = 0;
+for (const group of [...Object.keys(PRICE_GROUPS), "crypto"]) {
+  const meta = priceCategoryMeta(group);
+  await writePricePage(meta.path, renderPricePage(categoryTemplate, meta));
+  addSitemapUrl(meta.path, "0.8");
+  pricePages += 1;
+}
+
+/* شناسهٔ داخلی با اسلاگ عمومی یکی نیست؛ رمزارزهای ضریب‌دار با نام
+   بدون ضریب آدرس می‌گیرند ولی نامشان زیر شناسهٔ اصلی ثبت شده است. */
+const priceAssets = [
+  ...Object.entries(PRICE_GROUPS).flatMap(([group, slugs]) => slugs.map((slug) => ({ group, slug, id: slug }))),
+  ...[...TOP_CRYPTO, ...INDEXED_CRYPTO].map((id) => ({ group: "crypto", slug: cryptoSlug(id), id }))
+];
+
+const seenPricePaths = new Set();
+for (const { group, slug, id } of priceAssets) {
+  const meta = priceAssetMeta(group, slug, priceName(group, slug, id));
+  if (seenPricePaths.has(meta.path)) continue;
+  seenPricePaths.add(meta.path);
+  await writePricePage(meta.path, renderPricePage(assetTemplate, meta));
+  addSitemapUrl(meta.path);
+  pricePages += 1;
+}
 
 for (const [fromId, toId] of pairs) {
   const from = ASSETS[fromId];
@@ -224,10 +359,27 @@ for (const [fromId, toId] of pairs) {
 
 for (const path of INDEXED_CONVERT_PATHS) addSitemapUrl(`/convert/${path}/`, "0.8");
 
+/* آدرس‌های قدیمی بدون پیشوند /convert/ از کامیت 3d17369 با ۳۰۱ به
+   مسیر تازه می‌روند، ولی گوگل تا صفحه‌ای را دوباره نخزد ریدایرکت را
+   نمی‌بیند و هر دو نسخه در نتایج می‌مانند و رتبهٔ هم را می‌خورند.
+   این سایت‌مپ فقط برای همین است: گوگل می‌خزد، ۳۰۱ را می‌بیند و دو
+   نسخه را یکی می‌کند. عمداً از sitemap.xml اصلی جداست و بعد از
+   ادغام شدن آدرس‌ها باید حذف شود؛ سایت‌مپ جای آدرس ریدایرکتی نیست.
+   TON نام قدیمی GRAM است و .htaccess هر دو شکلش را جابه‌جا می‌کند. */
+const legacyPaths = [
+  ...pairs.map(([fromId, toId]) => `/${ASSETS[fromId].slug}-to-${ASSETS[toId].slug}/`),
+  "/ton-to-irt/",
+  "/irt-to-ton/"
+];
+const legacyXml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${legacyPaths
+  .map((path) => `  <url>\n    <loc>${ORIGIN}${path}</loc>\n    <lastmod>${today}</lastmod>\n    <priority>0.1</priority>\n  </url>`)
+  .join("\n")}\n</urlset>\n`;
+await writeFile(resolve(SITE, "sitemap-legacy.xml"), legacyXml, "utf8");
+
 const sitemapXml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.join("\n")}\n</urlset>\n`;
 await Promise.all([
   writeFile(resolve(ROOT, "sitemap.xml"), sitemapXml, "utf8"),
   writeFile(resolve(SITE, "sitemap.xml"), sitemapXml, "utf8")
 ]);
 
-console.log(`${pairs.length} صفحهٔ ایستا ساخته شد و ${urls.length} آدرس در سایت‌مپ ثبت شد.`);
+console.log(`${pairs.length} صفحهٔ تبدیل و ${pricePages} صفحهٔ قیمت ساخته شد، ${urls.length} آدرس در سایت‌مپ و ${legacyPaths.length} آدرس قدیمی در سایت‌مپ ریدایرکت‌ها ثبت شد.`);

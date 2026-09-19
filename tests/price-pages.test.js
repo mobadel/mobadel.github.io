@@ -224,7 +224,7 @@ assert.match(deploy, /assets data scripts api price convert _site\//, "پوشه�
 // دارایی‌های غیرکریپتو و دقیقاً ۵۰ رمزارز منتخب را ثبت کند.
 assert.match(builder, /addSitemapUrl\("\/price\/", "0\.9"\)/, "هاب قیمت باید در سایت‌مپ باشد");
 for (const group of ["currency", "gold", "coin", "commodity", "crypto"]) {
-  if (group === "crypto") assert.match(builder, /"crypto"\]\) addSitemapUrl/, "دسته crypto باید در مولد سایت‌مپ باشد");
+  if (group === "crypto") assert.match(builder, /"crypto"\]\) \{[\s\S]*?priceCategoryMeta\(group\)/, "دسته crypto باید در مولد سایت‌مپ باشد");
   else assert.match(builder, new RegExp("\\b" + group + ": \\["), `دسته ${group} باید در مولد سایت‌مپ باشد`);
 }
 const cryptoBlock = builder.match(/const TOP_CRYPTO = \[([\s\S]*?)\];/);
@@ -237,5 +237,23 @@ assert.equal(new Set(cryptoIds).size, 50, "رمزارز تکراری در فهر
 for (const [name, source] of [["converter", converter], ["hub", hub], ["category", category], ["asset", asset], ["app", read("assets/app.js")], ["price script", script]]) {
   assert.doesNotMatch(source, /nofollow/i, `${name}: لینک داخلی nofollow نباید وجود داشته باشد`);
 }
+
+/* صفحه‌های قیمت باید سرورساخته باشند. وقتی همه‌شان از یک قالب با
+   عنوان «قیمت دارایی» و canonical «/price/» سرو می‌شدند، تفکیکشان به
+   اجرای جاوااسکریپت توسط خزنده وابسته بود و گوگل ۱۳۰ صفحه را تقریباً
+   یکسان می‌دید. این بررسی جلوی برگشت آن وضع را می‌گیرد. */
+assert.match(builder, /const assetTemplate = await readFile/, "قالب صفحهٔ دارایی باید در مولد خوانده شود");
+assert.match(builder, /function renderPricePage/, "مولد باید صفحهٔ قیمت را رندر کند");
+for (const pattern of [/<h1 id="asset-title">/, /<link rel="canonical" href="/, /<title>/]) {
+  assert.match(builder, pattern, "مولد باید عنوان و canonical صفحهٔ قیمت را پر کند");
+}
+
+/* سایت‌مپ نباید آدرسی بدهد که خودمان ۳۰۱ می‌کنیم؛ شناسهٔ ضریب‌دار
+   (1k_shib) در .htaccess به شکل بدون ضریب منتقل می‌شود. */
+assert.doesNotMatch(sitemap, /price\/crypto\/[0-9]+[kmb]_/, "آدرس ضریب‌دار نباید در سایت‌مپ بیاید");
+assert.match(builder, /function cryptoSlug/, "اسلاگ رمزارز باید از ضریب پاک شود");
+
+// سایت‌مپ ریدایرکت‌ها موقتی است ولی تا وقتی هست باید ساخته شود.
+assert.match(builder, /sitemap-legacy\.xml/, "سایت‌مپ آدرس‌های قدیمی باید ساخته شود");
 
 console.log("price page tests passed");
