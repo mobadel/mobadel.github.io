@@ -638,7 +638,7 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
 .home-market-label small { min-height: 1.35em; color: var(--muted); font-size: 11px; direction: rtl; text-align: right; unicode-bidi: plaintext; }
 .home-market-price,.home-market-change { text-align: right; white-space: nowrap; }
 .home-market-price { font-weight: 700; }
-.home-market-change { direction: ltr; font-size: 14px; }
+.home-market-change { direction: ltr; font-size: 14px; font-weight: 700; }
 .home-market-change.positive { color: var(--green); }
 .home-market-change.negative { color: var(--danger); }
 .home-market-change.neutral { color: var(--muted); }
@@ -663,6 +663,6 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
   .home-market-identity { grid-row: 1 / 3; gap: 12px; }
   .home-market-label strong { font-size: 14px; }
   .home-market-price { grid-column: 2; grid-row: 1; text-align: left; }
-  .home-market-change { grid-column: 2; grid-row: 2; justify-self: end; font-size: 13px; font-weight: 700; }
+  .home-market-change { grid-column: 2; grid-row: 2; justify-self: end; font-size: 13px; }
   .site-footer { width: min(100% - 24px,720px); }
 }
