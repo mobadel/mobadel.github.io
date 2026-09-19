@@ -82,10 +82,47 @@
     });
   }
 
-  Promise.allSettled([
-    getJson("https://apiv2.nobitex.ir/market/stats"),
-    getJson("/api/rates.php?t=" + Date.now())
-  ]).then(function (results) {
-    paint(results[0].status === "fulfilled" ? results[0].value : null, results[1].status === "fulfilled" ? results[1].value : null);
-  });
+  function load() {
+    return Promise.allSettled([
+      getJson("https://apiv2.nobitex.ir/market/stats"),
+      getJson("/api/rates.php?t=" + Date.now())
+    ]).then(function (results) {
+      paint(results[0].status === "fulfilled" ? results[0].value : null, results[1].status === "fulfilled" ? results[1].value : null);
+    });
+  }
+
+  load();
+
+  /* ── تازه‌سازی دوره‌ای ───────────────────────────────────────────
+     جدول صفحهٔ اول فقط یک‌بار موقع لود پر می‌شد و تا رفرش دستی همان
+     اعداد می‌ماند. تبِ پنهان و صفحهٔ رهاشده درخواستی نمی‌سازند، پس
+     سهمیهٔ BrsApi جای نگرانی ندارد؛ کش سرور هم مشترک است. */
+  /* محیط تست مرورگر کامل نیست؛ بدون این بررسی، بارگذاریِ فایل
+     همان‌جا می‌شکست. */
+  if (typeof window.setInterval === "function" && typeof window.addEventListener === "function") {
+    var REFRESH_INTERVAL = 60000;
+    var IDLE_TIMEOUT = 15 * 60000;
+    var lastRefresh = Date.now();
+    var lastActivity = Date.now();
+
+    function markActivity() { lastActivity = Date.now(); }
+    ["pointerdown", "keydown", "focus"].forEach(function (name) {
+      window.addEventListener(name, markActivity, true);
+    });
+
+    function maybeRefresh() {
+      if (document.visibilityState !== "visible") return;
+      if (Date.now() - lastActivity > IDLE_TIMEOUT) return;
+      if (Date.now() - lastRefresh < REFRESH_INTERVAL) return;
+      lastRefresh = Date.now();
+      load();
+    }
+
+    window.setInterval(maybeRefresh, REFRESH_INTERVAL);
+    document.addEventListener("visibilitychange", function () {
+      if (document.visibilityState !== "visible") return;
+      markActivity();
+      maybeRefresh();
+    });
+  }
 }());

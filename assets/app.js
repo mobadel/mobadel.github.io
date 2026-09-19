@@ -1003,4 +1003,45 @@
   paint();
   paintFilters();
   loadSnapshot().finally(refreshAll);
+
+  /* ── تازه‌سازی دوره‌ای ───────────────────────────────────────────
+     تا پیش از این نرخ‌ها فقط یک‌بار موقع لود گرفته می‌شدند: هر کس
+     صفحه را باز می‌گذاشت، تا رفرش‌نکردن همان عدد لحظهٔ ورود را
+     می‌دید — حتی وقتی کش سرور ده بار تازه شده بود.
+
+     سه قید جلوی هدررفتِ سهمیه و باتری را می‌گیرد: تبِ پنهان اصلاً
+     درخواست نمی‌دهد، صفحه‌ای که ربع ساعت هیچ تعاملی نداشته خوابیده
+     حساب می‌شود، و برگشتن به تب فقط وقتی درخواست می‌سازد که داده
+     واقعاً کهنه باشد. سرور هم کش مشترک دارد، پس چند تب باز هم‌زمان
+     بیش از یک تماس با بالادست نمی‌سازد. */
+  /* محیط تست مرورگر کامل نیست؛ بدون این بررسی، بارگذاریِ فایل
+     همان‌جا می‌شکست. */
+  if (typeof window.setInterval === "function" && typeof window.addEventListener === "function") {
+    var REFRESH_INTERVAL = 60000;
+    var IDLE_TIMEOUT = 15 * 60000;
+    var lastRefresh = Date.now();
+    var lastActivity = Date.now();
+
+    function markActivity() { lastActivity = Date.now(); }
+    ["pointerdown", "keydown", "focus"].forEach(function (name) {
+      window.addEventListener(name, markActivity, true);
+    });
+
+    function maybeRefresh() {
+      if (document.visibilityState !== "visible") return;
+      if (Date.now() - lastActivity > IDLE_TIMEOUT) return;
+      if (Date.now() - lastRefresh < REFRESH_INTERVAL) return;
+      lastRefresh = Date.now();
+      refreshAll();
+    }
+
+    window.setInterval(maybeRefresh, REFRESH_INTERVAL);
+    document.addEventListener("visibilitychange", function () {
+      if (document.visibilityState !== "visible") return;
+      // برگشتن به تب خودش تعامل است، وگرنه صفحه‌ای که مدتی پنهان بوده
+      // بیدار می‌شد ولی بی‌درنگ بیکار حساب می‌شد و هرگز تازه نمی‌شد.
+      markActivity();
+      maybeRefresh();
+    });
+  }
 })();
