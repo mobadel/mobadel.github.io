@@ -21,6 +21,10 @@ jobs:
     name: Deploy over FTPS
     runs-on: ubuntu-latest
     environment: production
+    # بدون این، یک انتقال گیرکرده تا سقف شش‌ساعتهٔ گیت‌هاب معلق می‌ماند
+    # و هیچ‌کس نمی‌فهمد دیپلوی تمام نشده. یک‌بار همین اتفاق افتاد و
+    # تغییرات منتشرنشده ماندند در حالی که ران «در حال اجرا» بود.
+    timeout-minutes: 25
 
     steps:
       - name: Check out repository
@@ -132,6 +136,7 @@ jobs:
 
       - name: Deploy site
         if: github.event_name != 'schedule'
+        timeout-minutes: 18
         shell: bash
         env:
           FTP_SERVER: ${{ secrets.PARS_FTP_SERVER }}
@@ -146,6 +151,10 @@ jobs:
             echo 'set cmd:fail-exit yes'
             echo 'set net:max-retries 2'
             echo 'set net:timeout 20'
+            # net:timeout فقط تا برقراری اتصال است. انتقالی که وسط کار
+            # می‌خوابد سقف نداشت و lftp تا ابد منتظر می‌ماند.
+            echo 'set xfer:timeout 90'
+            echo 'set net:reconnect-interval-max 15'
             echo 'set ftp:ssl-force yes'
             echo 'set ftp:ssl-protect-data yes'
             echo 'set ftp:ssl-auth TLS'
