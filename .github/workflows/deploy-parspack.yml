@@ -25,6 +25,11 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
+        # کلون پیش‌فرض فقط یک کامیت می‌آورد، پس کامیت مبنای پوش در
+        # دسترس نیست و نمی‌شود فهمید چه فایل‌هایی عوض شده‌اند. کل
+        # تاریخچه اینجا چند مگابایت است، پس هزینه‌اش ناچیز است.
+        with:
+          fetch-depth: 0
 
       - name: Prepare static site
         shell: bash
@@ -102,6 +107,29 @@ jobs:
           sudo apt-get update
           sudo apt-get install --yes lftp
 
+      # mirror با ignore-time فقط اندازه را می‌بیند، پس تغییرِ هم‌اندازه
+      # را بی‌صدا رد می‌کند. گیت دقیقاً می‌داند چه چیزی عوض شده؛ همان
+      # فهرست مبنای آپلود اجباری در گام بعد است.
+      - name: فهرست فایل‌های تغییرکردهٔ این پوش
+        if: github.event_name != 'schedule'
+        shell: bash
+        env:
+          PUSH_BEFORE: ${{ github.event.before }}
+        run: |
+          set -euo pipefail
+          : > changed-files.txt
+          if [ -n "${PUSH_BEFORE:-}" ] && git cat-file -e "$PUSH_BEFORE^{commit}" 2>/dev/null; then
+            git diff --name-only --diff-filter=ACMRT "$PUSH_BEFORE" "$GITHUB_SHA" > changed-files.txt
+          else
+            # اولین پوش یک برنچ، اجرای دستی، یا تاریخچهٔ کوتاه‌شده: مبنای
+            # مقایسه وجود ندارد. به‌جای شکستن دیپلوی، فایل‌های دست‌نویسی
+            # که کوچک‌اند و بیشترین ریسک هم‌اندازه بودن را دارند می‌روند.
+            echo "::warning::کامیت مبنا در دسترس نیست؛ همهٔ فایل‌های assets اجباری آپلود می‌شوند."
+            git ls-files 'assets/*.css' 'assets/*.js' '*.html' > changed-files.txt
+          fi
+          echo "تعداد فایل‌های اجباری: $(wc -l < changed-files.txt)"
+          cat changed-files.txt
+
       - name: Deploy site
         if: github.event_name != 'schedule'
         shell: bash
@@ -136,6 +164,25 @@ jobs:
             if [ -f _site/api/config.php ]; then
               echo "put -O \"$FTP_DIRECTORY/api\" _site/api/config.php"
             fi
+
+            # config.php تنها قربانی نبود. هر تغییری که طول فایل را عوض
+            # نکند از همان سوراخ رد می‌شود: بامپ نسخهٔ کش با رشته‌ای
+            # هم‌طول، یا جابه‌جا کردن یک اعلان CSS بین دو قاعده. هر دو
+            # اتفاق افتادند و دیپلوی «موفق» گزارش شد در حالی که فایل
+            # هرگز نرفته بود.
+            #
+            # پس هر فایلی که این پوش دست‌کاری کرده، بی‌قیدوشرط هم فرستاده
+            # می‌شود. فهرست از خود گیت می‌آید، نه از مقایسهٔ اندازه.
+            while IFS= read -r changed; do
+              [ -n "$changed" ] || continue
+              [ -f "_site/$changed" ] || continue
+              target="$FTP_DIRECTORY"
+              directory=$(dirname "$changed")
+              if [ "$directory" != "." ]; then
+                target="$FTP_DIRECTORY/$directory"
+              fi
+              echo "put -O \"$target\" \"_site/$changed\""
+            done < changed-files.txt
 
             echo bye
           } | lftp -u "$FTP_USERNAME","$FTP_PASSWORD" -p "$FTP_PORT" "$FTP_SERVER"
