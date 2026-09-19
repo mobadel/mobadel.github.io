@@ -256,4 +256,15 @@ assert.match(builder, /function cryptoSlug/, "اسلاگ رمزارز باید �
 // سایت‌مپ ریدایرکت‌ها موقتی است ولی تا وقتی هست باید ساخته شود.
 assert.match(builder, /sitemap-legacy\.xml/, "سایت‌مپ آدرس‌های قدیمی باید ساخته شود");
 
+/* متن اختصاصی جفت‌های لب مرز صفحهٔ اول نباید بی‌صدا از قالب بیفتد:
+   اگر بخش pair-content عوض شود، مولد باید خطا بدهد نه اینکه صفحه را
+   بدون متن بسازد. اینجا فقط وجود نقشه و تزریقش بررسی می‌شود. */
+assert.match(builder, /const PAIR_CONTENT = \{/, "نقشهٔ متن اختصاصی جفت‌ها باید وجود داشته باشد");
+for (const pair of ["afn-to-irt", "iqd-to-irt", "irt-to-iqd", "amd-to-irt", "irt-to-try", "rub-to-irt"]) {
+  assert.match(builder, new RegExp(`"${pair}":`), `متن اختصاصی ${pair} باید در مولد باشد`);
+}
+assert.match(builder, /پایان بخش pair-content پیدا نشد/, "نبودن جای تزریق متن باید خطا بدهد");
+assert.match(converter, /<p id="pair-content-rate">[\s\S]*?<\/p>\s*<p>[\s\S]*?<\/p>\s*<\/section>/,
+  "قالب مبدل باید جای تزریق متن اختصاصی را داشته باشد");
+
 console.log("price page tests passed");
