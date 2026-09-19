@@ -175,6 +175,7 @@
   var state = {
     from: "usd", to: "irt", amount: 100, edited: "from", rate: null,
     graph: {}, updatedAt: null, live: false, loading: false, dialogSide: null, lastFocused: null,
+    proxyCache: null,
     filterGroup: "all", proxyAssets: null, pendingRoute: null,
     // دو منبع مستقل داریم. وضعیت هرکدام جدا نگه داشته می‌شود چون نوار
     // وضعیت باید زمانِ همان منبعی را نشان بدهد که جفت فعلی از آن آمده.
@@ -943,6 +944,8 @@
       var assets = payload && payload.assets;
       if (!assets || typeof assets !== "object") throw new Error("invalid rates payload");
       state.proxyAssets = assets;
+      // سن و عمر کش سرور: زمان‌بند از همین‌ها می‌فهمد کی دوباره بگیرد.
+      state.proxyCache = { fetchedUnix: Number(payload.fetched_unix) || 0, ttl: Number(payload.ttl) || 0 };
       if (!applyProxyEdges()) throw new Error("no usable rates");
       state.sources.proxy.live = !payload.stale;
       state.sources.proxy.at = payload.updated ? new Date(payload.updated) : new Date();
@@ -1031,32 +1034,62 @@
      بیش از یک تماس با بالادست نمی‌سازد. */
   /* محیط تست مرورگر کامل نیست؛ بدون این بررسی، بارگذاریِ فایل
      همان‌جا می‌شکست. */
-  if (typeof window.setInterval === "function" && typeof window.addEventListener === "function") {
-    var REFRESH_INTERVAL = 60000;
+  if (typeof window.setTimeout === "function" && typeof window.clearTimeout === "function"
+    && typeof window.addEventListener === "function" && typeof document.addEventListener === "function") {
+    /* فاصلهٔ ثابت شصت‌ثانیه‌ای با انقضای کش سرور هم‌فاز نبود: می‌شد
+       درست یک لحظه قبل از تازه شدن کش درخواست داد و تا شصت ثانیهٔ بعد
+       نرخی را نشان داد که همان موقع کهنه شده بود. برچسب ساعت هم همان
+       اندازه عقب می‌افتاد.
+
+       حالا سرور سن و عمر کشش را می‌گوید و درخواست بعدی درست بعد از
+       انقضای آن می‌نشیند. تعداد درخواست‌ها همان است، فقط فازش درست
+       می‌شود؛ سقف شصت ثانیه هم برای ارز دیجیتال است که کش سرور ندارد
+       و شبانه‌روز تکان می‌خورد. */
+    var REFRESH_MAX = 60000;
+    var MIN_GAP = 5000;
     var IDLE_TIMEOUT = 15 * 60000;
     var lastRefresh = Date.now();
     var lastActivity = Date.now();
+    var refreshTimer = null;
 
     function markActivity() { lastActivity = Date.now(); }
     ["pointerdown", "keydown", "focus"].forEach(function (name) {
       window.addEventListener(name, markActivity, true);
     });
 
+    function nextDelay() {
+      var cache = state.proxyCache;
+      if (!cache || !cache.fetchedUnix || !cache.ttl) return REFRESH_MAX;
+      var age = Date.now() / 1000 - cache.fetchedUnix;
+      // دو ثانیه تحمل تا درخواست زودتر از انقضا نرسد و کش قبلی را بگیرد.
+      var remaining = (cache.ttl - age + 2) * 1000;
+      return Math.min(REFRESH_MAX, Math.max(MIN_GAP, remaining));
+    }
+
     function maybeRefresh() {
       if (document.visibilityState !== "visible") return;
       if (Date.now() - lastActivity > IDLE_TIMEOUT) return;
-      if (Date.now() - lastRefresh < REFRESH_INTERVAL) return;
+      if (Date.now() - lastRefresh < MIN_GAP) return;
       lastRefresh = Date.now();
       refreshAll();
     }
 
-    window.setInterval(maybeRefresh, REFRESH_INTERVAL);
+    function scheduleRefresh() {
+      if (refreshTimer) window.clearTimeout(refreshTimer);
+      refreshTimer = window.setTimeout(function () {
+        maybeRefresh();
+        scheduleRefresh();
+      }, nextDelay());
+    }
+
+    scheduleRefresh();
     document.addEventListener("visibilitychange", function () {
       if (document.visibilityState !== "visible") return;
       // برگشتن به تب خودش تعامل است، وگرنه صفحه‌ای که مدتی پنهان بوده
       // بیدار می‌شد ولی بی‌درنگ بیکار حساب می‌شد و هرگز تازه نمی‌شد.
       markActivity();
       maybeRefresh();
+      scheduleRefresh();
     });
   }
 })();

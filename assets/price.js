@@ -161,8 +161,12 @@
       latestUpdate = new Date();
     });
   }
+  // سن و عمر کش سرور؛ زمان‌بند تازه‌سازی از همین‌ها فاز می‌گیرد.
+  var proxyCache = { fetchedUnix: 0, ttl: 0 };
+
   function loadProxy() {
     return loadJson("/api/rates.php?t=" + Date.now(), 9000).then(function (payload) {
+      proxyCache = { fetchedUnix: Number(payload && payload.fetched_unix) || 0, ttl: Number(payload && payload.ttl) || 0 };
       var rows = payload && payload.assets || {}; var at = payload.updated ? new Date(payload.updated) : new Date(); if (!Number.isFinite(at.getTime())) at = new Date();
       Object.keys(rows).forEach(function (id) { if (!assets[id]) return; var row = rows[id]; var usd = Number(row.usd); var dollarPrimary = id === "goldounce" && Number.isFinite(usd) && usd > 0; assets[id].price = dollarPrimary ? usd : Number(row.toman); assets[id].priceCurrency = dollarPrimary ? "USD" : "IRT"; assets[id].tomanPrice = dollarPrimary ? Number(row.toman) : null; assets[id].tomanChange = dollarPrimary ? Number(row.toman_change) : null; assets[id].change = Number(row.change); assets[id].source = dollarPrimary ? "بازار جهانی طلا" : id === "silver" || id === "copper" ? "بورس کالا" : "بازار ایران"; assets[id].updatedAt = at; });
       if (!latestUpdate || at > latestUpdate) latestUpdate = at;
@@ -262,30 +266,50 @@
        تبِ پنهان و صفحهٔ رهاشده درخواستی نمی‌سازند. */
       /* محیط تست مرورگر کامل نیست؛ بدون این بررسی، بارگذاریِ فایل
        همان‌جا می‌شکست. */
-    if (typeof window.setInterval === "function" && typeof window.addEventListener === "function") {
-    var REFRESH_INTERVAL = 60000;
+    if (typeof window.setTimeout === "function" && typeof window.clearTimeout === "function"
+      && typeof window.addEventListener === "function" && typeof document.addEventListener === "function") {
+      /* فاصلهٔ ثابت با انقضای کش سرور هم‌فاز نبود، پس می‌شد یک لحظه
+         پیش از تازه شدن کش درخواست داد و تا یک دور بعد نرخِ همان موقع
+         کهنه‌شده را نشان داد. سرور حالا سن و عمر کشش را می‌گوید و
+         درخواست بعدی درست بعد از انقضای آن می‌نشیند. */
+      var REFRESH_MAX = 60000;
+      var MIN_GAP = 5000;
       var IDLE_TIMEOUT = 15 * 60000;
       var lastRefresh = Date.now();
       var lastActivity = Date.now();
+      var refreshTimer = null;
 
       function markActivity() { lastActivity = Date.now(); }
       ["pointerdown", "keydown", "focus"].forEach(function (name) {
         window.addEventListener(name, markActivity, true);
       });
 
+      function nextDelay() {
+        if (!proxyCache.fetchedUnix || !proxyCache.ttl) return REFRESH_MAX;
+        var age = Date.now() / 1000 - proxyCache.fetchedUnix;
+        // دو ثانیه تحمل تا درخواست زودتر از انقضا نرسد و کش قبلی را بگیرد.
+        return Math.min(REFRESH_MAX, Math.max(MIN_GAP, (proxyCache.ttl - age + 2) * 1000));
+      }
+
       function maybeRefresh() {
         if (document.visibilityState !== "visible") return;
         if (Date.now() - lastActivity > IDLE_TIMEOUT) return;
-        if (Date.now() - lastRefresh < REFRESH_INTERVAL) return;
+        if (Date.now() - lastRefresh < MIN_GAP) return;
         lastRefresh = Date.now();
         loadAll().then(render);
       }
 
-      window.setInterval(maybeRefresh, REFRESH_INTERVAL);
+      function scheduleRefresh() {
+        if (refreshTimer) window.clearTimeout(refreshTimer);
+        refreshTimer = window.setTimeout(function () { maybeRefresh(); scheduleRefresh(); }, nextDelay());
+      }
+
+      scheduleRefresh();
       document.addEventListener("visibilitychange", function () {
         if (document.visibilityState !== "visible") return;
         markActivity();
         maybeRefresh();
+        scheduleRefresh();
       });
     }
   }

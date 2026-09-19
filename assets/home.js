@@ -82,12 +82,17 @@
     });
   }
 
+  // سن و عمر کش سرور؛ زمان‌بند تازه‌سازی از همین‌ها فاز می‌گیرد.
+  var proxyCache = { fetchedUnix: 0, ttl: 0 };
+
   function load() {
     return Promise.allSettled([
       getJson("https://apiv2.nobitex.ir/market/stats"),
       getJson("/api/rates.php?t=" + Date.now())
     ]).then(function (results) {
-      paint(results[0].status === "fulfilled" ? results[0].value : null, results[1].status === "fulfilled" ? results[1].value : null);
+      var proxy = results[1].status === "fulfilled" ? results[1].value : null;
+      if (proxy) proxyCache = { fetchedUnix: Number(proxy.fetched_unix) || 0, ttl: Number(proxy.ttl) || 0 };
+      paint(results[0].status === "fulfilled" ? results[0].value : null, proxy);
     });
   }
 
@@ -99,30 +104,50 @@
      سهمیهٔ BrsApi جای نگرانی ندارد؛ کش سرور هم مشترک است. */
   /* محیط تست مرورگر کامل نیست؛ بدون این بررسی، بارگذاریِ فایل
      همان‌جا می‌شکست. */
-  if (typeof window.setInterval === "function" && typeof window.addEventListener === "function") {
-    var REFRESH_INTERVAL = 60000;
+  if (typeof window.setTimeout === "function" && typeof window.clearTimeout === "function"
+    && typeof window.addEventListener === "function" && typeof document.addEventListener === "function") {
+    /* فاصلهٔ ثابت با انقضای کش سرور هم‌فاز نبود، پس می‌شد یک لحظه
+       پیش از تازه شدن کش درخواست داد و تا یک دور بعد نرخِ همان موقع
+       کهنه‌شده را نشان داد. سرور حالا سن و عمر کشش را می‌گوید و
+       درخواست بعدی درست بعد از انقضای آن می‌نشیند. */
+    var REFRESH_MAX = 60000;
+    var MIN_GAP = 5000;
     var IDLE_TIMEOUT = 15 * 60000;
     var lastRefresh = Date.now();
     var lastActivity = Date.now();
+    var refreshTimer = null;
 
     function markActivity() { lastActivity = Date.now(); }
     ["pointerdown", "keydown", "focus"].forEach(function (name) {
       window.addEventListener(name, markActivity, true);
     });
 
+    function nextDelay() {
+      if (!proxyCache.fetchedUnix || !proxyCache.ttl) return REFRESH_MAX;
+      var age = Date.now() / 1000 - proxyCache.fetchedUnix;
+      // دو ثانیه تحمل تا درخواست زودتر از انقضا نرسد و کش قبلی را بگیرد.
+      return Math.min(REFRESH_MAX, Math.max(MIN_GAP, (proxyCache.ttl - age + 2) * 1000));
+    }
+
     function maybeRefresh() {
       if (document.visibilityState !== "visible") return;
       if (Date.now() - lastActivity > IDLE_TIMEOUT) return;
-      if (Date.now() - lastRefresh < REFRESH_INTERVAL) return;
+      if (Date.now() - lastRefresh < MIN_GAP) return;
       lastRefresh = Date.now();
       load();
     }
 
-    window.setInterval(maybeRefresh, REFRESH_INTERVAL);
+    function scheduleRefresh() {
+      if (refreshTimer) window.clearTimeout(refreshTimer);
+      refreshTimer = window.setTimeout(function () { maybeRefresh(); scheduleRefresh(); }, nextDelay());
+    }
+
+    scheduleRefresh();
     document.addEventListener("visibilitychange", function () {
       if (document.visibilityState !== "visible") return;
       markActivity();
       maybeRefresh();
+      scheduleRefresh();
     });
   }
 }());
