@@ -7,28 +7,111 @@ declare(strict_types=1);
  * چرا اصلاً وجود دارد: سهمیهٔ رایگان BrsApi روزی ۱۵۰۰ درخواست است و
  * کلید هم نباید در جاوااسکریپت عمومی دیده شود. اگر مرورگرِ هر
  * بازدیدکننده مستقیم صدا می‌زد، سهمیه با ترافیک بسیار کم ته می‌کشید.
- * با کش ۱۲۰ ثانیه‌ای مصرف روزانه حدود ۷۲۰ درخواست می‌شود، مستقل از
- * اینکه چند نفر سایت را باز کنند.
+ * با کش مشترک، مصرف روزانه مستقل از اینکه چند نفر سایت را باز کنند
+ * ثابت می‌ماند؛ عمر کش به ساعت بازار بستگی دارد (بخش marketTtl).
  *
  * ارز دیجیتال عمداً از اینجا نمی‌آید. آن‌ها را مرورگر مستقیم از
  * نوبیتکس می‌گیرد. اگر هر دو منبع یک دارایی را قیمت بدهند، دو نرخ
  * متفاوت وارد یک گراف می‌شود و تبدیل‌ها با هم نمی‌خوانند.
  */
 
-const CACHE_TTL        = 300;
 const UPSTREAM_TIMEOUT = 12;
 const UPSTREAM_URL     = 'https://api.brsapi.ir/Market/Gold_Currency.php';
 
 /* گواهی سپردهٔ بورس کالا (نقره و مس) اندپوینت جداست و روزی یک‌بار
    تسویه می‌شود، نه لحظه‌ای. پس کش خیلی طولانی‌تری می‌گیرد.
 
-   این عدد مهم است: سهمیهٔ رایگان BrsApi روی همهٔ سرویس‌هایش روی‌هم
-   ۱۵۰۰ درخواست در روز است. با TTL صد و بیست ثانیه، اندپوینت طلا و ارز
-   حدود ۷۲۰ درخواست می‌برد. اگر بورس کالا هم همان TTL را داشت، مجموع
-   به ۱۴۴۰ می‌رسید که خطرناک نزدیک سقف است. با ۹۰۰ ثانیه فقط حدود ۹۶
-   درخواست می‌شود و مجموع زیر ۸۵۰ می‌ماند. */
-const IME_CACHE_TTL = 900;
+   سهمیهٔ رایگان BrsApi روی همهٔ سرویس‌هایش روی‌هم ۱۵۰۰ درخواست در روز
+   است و این عدد از همان بودجه کم می‌کند. چون داده‌اش روزی یک‌بار عوض
+   می‌شود، ۱۵ دقیقه‌ای گرفتنش فقط سهمیه هدر می‌داد؛ با نیم‌ساعت حدود
+   ۴۸ درخواست می‌شود و جا برای تازه‌سازیِ یک‌دقیقه‌ای نرخ‌های لحظه‌ای
+   باز می‌کند. */
+const IME_CACHE_TTL = 1800;
 const IME_URL       = 'https://api.brsapi.ir/IME/Certificate.php';
+
+/* ── عمر کش بر اساس ساعت بازار ───────────────────────────────────
+   TTL ثابتِ ۳۰۰ ثانیه دو جا اشتباه بود: در ساعات بازار برای کاربر
+   کند بود، و شب و جمعه که هیچ نرخی تکان نمی‌خورد سهمیه را الکی
+   می‌سوزاند. حالا همان بودجه جایی خرج می‌شود که ارزش دارد.
+
+   حساب بدترین روز (شنبه تا پنجشنبه):
+     ۰۹:۰۰–۱۹:۰۰  ۶۰ ثانیه  → ۶۰۰ درخواست
+     ۰۷:۰۰–۰۹:۰۰ و ۱۹:۰۰–۲۳:۰۰  ۱۸۰ ثانیه → ۱۲۰
+     بقیهٔ ساعات  ۶۰۰ ثانیه → ۴۸
+   جمعاً ~۷۶۸ به‌علاوهٔ ~۴۸ تای بورس کالا ≈ ۸۱۶ از سقف ۱۵۰۰ رایگان.
+   این سقفِ نظری است؛ تازه‌سازی فقط وقتی رخ می‌دهد که درخواستی برسد. */
+const TTL_MARKET   = 60;
+const TTL_SHOULDER = 180;
+const TTL_CLOSED   = 600;
+
+function marketTtl(): int
+{
+    $now  = new DateTimeImmutable('now', new DateTimeZone('Asia/Tehran'));
+    $hour = (int) $now->format('G');
+
+    /* جمعه بازار ایران تعطیل است؛ نرخ‌ها تا شنبه تکان نمی‌خورند. */
+    if ($now->format('N') === '5') {
+        return TTL_CLOSED;
+    }
+    if ($hour >= 9 && $hour < 19) {
+        return TTL_MARKET;
+    }
+    if ($hour >= 7 && $hour < 23) {
+        return TTL_SHOULDER;
+    }
+
+    return TTL_CLOSED;
+}
+
+/* ── ترمز سهمیهٔ روزانه ──────────────────────────────────────────
+   حسابِ بالا فقط تا وقتی درست است که هیچ‌چیز غیرمنتظره‌ای پیش نیاید:
+   کرون اضافه، اسکریپت اشتباه، یا سرویس دیگری که همین کلید را مصرف
+   کند. شمارنده تضمین می‌کند هر اتفاقی بیفتد کلید به سقف نرسد، چون
+   مسدودیِ کلید تا باز شدن سهمیه برطرف نمی‌شود.
+
+   شمارش به تاریخ تهران گره خورده و نه UTC، چون نیمه‌شب تهران مرزی
+   است که خودمان با آن فکر می‌کنیم. */
+const QUOTA_FILE       = __DIR__ . '/cache/quota.json';
+const QUOTA_SOFT_LIMIT = 1200;
+const TTL_THROTTLED    = 300;
+
+function tehranToday(): string
+{
+    return (new DateTimeImmutable('now', new DateTimeZone('Asia/Tehran')))->format('Y-m-d');
+}
+
+function quotaToday(): int
+{
+    if (!is_readable(QUOTA_FILE)) {
+        return 0;
+    }
+    $decoded = json_decode((string) @file_get_contents(QUOTA_FILE), true);
+    if (!is_array($decoded)) {
+        return 0;
+    }
+    /* شمارندهٔ دیروز یعنی روز عوض شده و بودجه از نو شروع می‌شود. */
+    if ((string) ($decoded['day'] ?? '') !== tehranToday()) {
+        return 0;
+    }
+
+    return (int) ($decoded['count'] ?? 0);
+}
+
+function countUpstreamCall(): void
+{
+    @file_put_contents(
+        QUOTA_FILE,
+        json_encode(['day' => tehranToday(), 'count' => quotaToday() + 1]),
+        LOCK_EX
+    );
+}
+
+function effectiveTtl(): int
+{
+    return quotaToday() >= QUOTA_SOFT_LIMIT
+        ? max(TTL_THROTTLED, marketTtl())
+        : marketTtl();
+}
 
 /* نمادهای بورس کالا. قیمت‌ها به ریال‌اند. */
 const IME_MAP = [
@@ -86,7 +169,12 @@ const ASSET_MAP = [
 ];
 
 header('Content-Type: application/json; charset=utf-8');
-header('Cache-Control: public, max-age=60');
+
+/* هدر با TTL واقعی هم‌گام است. اگر max-age ثابت می‌ماند، کش مرورگر و
+   CDN داده را کهنه‌تر از چیزی که سرور دارد سرو می‌کرد و کم‌کردن TTL
+   هیچ اثری برای کاربر نداشت. */
+$ttl = effectiveTtl();
+header('Cache-Control: public, max-age=' . $ttl);
 
 $cacheDir  = __DIR__ . '/cache';
 $cacheFile = $cacheDir . '/rates.json';
@@ -106,7 +194,7 @@ if (is_readable($cacheFile)) {
         if (is_array($decoded) && !empty($decoded['assets'])) {
             $cached = $decoded;
             $age = time() - (int) ($decoded['fetched_unix'] ?? 0);
-            if ($age >= 0 && $age < CACHE_TTL) {
+            if ($age >= 0 && $age < $ttl) {
                 echo $raw;
                 exit;
             }
@@ -301,6 +389,7 @@ if ($lock === false) {
     serveStale($cached, 'refresh_in_progress');
 }
 
+countUpstreamCall();
 $upstream = upstreamGet(UPSTREAM_URL . '?key=' . urlencode($key));
 $body     = $upstream['body'];
 
@@ -424,7 +513,11 @@ if ($imeRows === null) {
     [$imeBlockedUntil] = backoffUntil($key);
     $imeResult = $imeBlockedUntil > time()
         ? ['body' => false, 'code' => 0, 'effective' => '', 'hops' => 0, 'error' => 'backoff']
-        : upstreamGet(IME_URL . '?key=' . urlencode($key));
+        : (static function () use ($key) {
+            countUpstreamCall();
+
+            return upstreamGet(IME_URL . '?key=' . urlencode($key));
+        })();
     $imeBody   = $imeResult['body'];
     $imeCode   = $imeResult['code'];
 

@@ -177,6 +177,10 @@
     var path = "/price/"; setSchema([{ "@type": "WebPage", "@id": ORIGIN + path + "#page", name: "قیمت لحظه ای دارایی‌ها", url: ORIGIN + path, inLanguage: "fa-IR" }, breadcrumb([{ name: "تبدکس", path: "/" }, { name: "قیمت‌ها", path: path }]), { "@type": "ItemList", name: "دسته‌بندی بازارهای تبدکس", itemListElement: CATEGORY_ORDER.map(function (id, index) { return { "@type": "ListItem", position: index + 1, name: CATEGORIES[id].name, url: ORIGIN + categoryUrl(id) }; }) }]);
   }
 
+  // آخرین تابع ترسیم ردیف‌ها؛ لیسنر جستجو از طریق آن همیشه به لیست
+  // تازه دسترسی دارد بدون اینکه دوباره بسته شود.
+  var searchPaint = null;
+
   function categoryFromPath() { var parts = location.pathname.split("/").filter(Boolean); return groupFromSlug(parts[1] || ""); }
   function assetSlugFromPath() { var parts = location.pathname.split("/").filter(Boolean); return parts[2] || ""; }
   function renderCategory() {
@@ -185,8 +189,16 @@
     text(document.getElementById("category-crumb"), category.name); text(document.getElementById("category-eyebrow"), "بازار " + category.name); text(document.getElementById("category-title"), "قیمت لحظه ای " + category.name); text(document.getElementById("category-description"), category.description + ". نرخ هر دارایی با واحد اصلی بازار آن نمایش داده می‌شود.");
     var heroIcon = document.getElementById("category-hero-icon"); if (heroIcon) { heroIcon.classList.toggle("is-full-bleed", group === "gold" || group === "commodity"); heroIcon.replaceChildren(); var img = document.createElement("img"); img.src = category.icon; img.alt = ""; heroIcon.appendChild(img); }
     var list = availableAssets(group); var input = document.getElementById("market-search");
+    // ورودی جستجو بین رندرها باقی می‌ماند، پس لیسنر باید یک‌بار بسته
+    // شود وگرنه هر تازه‌سازی یکی روی قبلی‌ها سوار می‌کرد.
     function paintRows(query) { var rows = document.getElementById("market-rows"); rows.replaceChildren(); var normalized = String(query || "").trim().toLowerCase(); var filtered = list.filter(function (asset) { return !normalized || [asset.name, asset.englishName, asset.code, asset.id].join(" ").toLowerCase().indexOf(normalized) >= 0; }); if (!filtered.length) { var empty = document.createElement("div"); empty.className = "empty-state"; empty.textContent = "دارایی‌ای با این عبارت پیدا نشد."; rows.appendChild(empty); return; } filtered.forEach(function (asset) { var link = document.createElement("a"); link.className = "market-row"; link.href = assetUrl(asset); var identity = document.createElement("span"); identity.className = "market-row-identity"; identity.appendChild(createIcon(asset, "market-row-icon")); var label = document.createElement("span"); label.className = "market-row-label"; var strong = document.createElement("strong"); strong.textContent = asset.name; var small = document.createElement("small"); small.textContent = asset.code || ""; label.append(strong, small); identity.appendChild(label); var price = document.createElement("span"); price.className = "market-row-price"; price.textContent = formattedPrice(asset); var change = document.createElement("span"); change.className = "market-row-change " + changeClass(asset.change); change.textContent = formatChange(asset.change); link.append(identity, price, change); rows.appendChild(link); }); }
-    paintRows(""); if (input) input.addEventListener("input", function () { paintRows(input.value); });
+    searchPaint = paintRows;
+    if (input && !input.dataset.searchBound) {
+      input.dataset.searchBound = "1";
+      input.addEventListener("input", function () { if (searchPaint) searchPaint(input.value); });
+    }
+    // عبارتی که کاربر تایپ کرده نباید با تازه‌سازی پاک شود.
+    paintRows(input ? input.value : "");
     setSchema([{ "@type": "CollectionPage", "@id": ORIGIN + path + "#page", name: "قیمت لحظه ای " + category.name, description: description, url: ORIGIN + path, inLanguage: "fa-IR" }, breadcrumb([{ name: "تبدکس", path: "/" }, { name: "قیمت‌ها", path: "/price/" }, { name: category.name, path: path }]), { "@type": "ItemList", name: "فهرست قیمت " + category.name, numberOfItems: list.length, itemListElement: list.map(function (asset, index) { return { "@type": "ListItem", position: index + 1, name: asset.name, url: ORIGIN + assetUrl(asset) }; }) }]);
   }
 
@@ -217,11 +229,50 @@
   }
 
   function renderNotFound(message) {
-    document.title = "صفحه قیمت پیدا نشد"; setMeta("name", "robots", "noindex, follow"); var main = document.getElementById("price-main"); if (main) { var box = document.createElement("div"); box.className = "empty-state"; box.textContent = message; main.appendChild(box); }
+    document.title = "صفحه قیمت پیدا نشد"; setMeta("name", "robots", "noindex, follow"); var main = document.getElementById("price-main"); if (!main) return;
+    // با تازه‌سازی دوره‌ای این تابع می‌تواند چند بار صدا زده شود؛ بدون
+    // این، هر بار یک کادر خطای دیگر زیر قبلی‌ها اضافه می‌شد.
+    var box = main.querySelector(".empty-state[data-not-found]");
+    if (!box) { box = document.createElement("div"); box.className = "empty-state"; box.setAttribute("data-not-found", ""); main.appendChild(box); }
+    box.textContent = message;
   }
   function start() {
     var mode = document.body.getAttribute("data-price-page"); if (mode === "hub") renderCategoryCards();
-    loadAll().then(function () { if (mode === "hub") renderHub(); else if (mode === "category") renderCategory(); else if (mode === "asset") renderAsset(); });
+    function render() { if (mode === "hub") renderHub(); else if (mode === "category") renderCategory(); else if (mode === "asset") renderAsset(); }
+    loadAll().then(render);
+
+    /* ── تازه‌سازی دوره‌ای ─────────────────────────────────────────
+       صفحهٔ قیمت دقیقاً همان‌جایی است که کاربر انتظار عدد لحظه‌ای
+       دارد، ولی تا پیش از این فقط یک‌بار موقع لود داده می‌گرفت.
+       تبِ پنهان و صفحهٔ رهاشده درخواستی نمی‌سازند. */
+      /* محیط تست مرورگر کامل نیست؛ بدون این بررسی، بارگذاریِ فایل
+       همان‌جا می‌شکست. */
+    if (typeof window.setInterval === "function" && typeof window.addEventListener === "function") {
+    var REFRESH_INTERVAL = 60000;
+      var IDLE_TIMEOUT = 15 * 60000;
+      var lastRefresh = Date.now();
+      var lastActivity = Date.now();
+
+      function markActivity() { lastActivity = Date.now(); }
+      ["pointerdown", "keydown", "focus"].forEach(function (name) {
+        window.addEventListener(name, markActivity, true);
+      });
+
+      function maybeRefresh() {
+        if (document.visibilityState !== "visible") return;
+        if (Date.now() - lastActivity > IDLE_TIMEOUT) return;
+        if (Date.now() - lastRefresh < REFRESH_INTERVAL) return;
+        lastRefresh = Date.now();
+        loadAll().then(render);
+      }
+
+      window.setInterval(maybeRefresh, REFRESH_INTERVAL);
+      document.addEventListener("visibilitychange", function () {
+        if (document.visibilityState !== "visible") return;
+        markActivity();
+        maybeRefresh();
+      });
+    }
   }
   start();
 }());
