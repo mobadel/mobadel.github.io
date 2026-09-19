@@ -112,6 +112,10 @@ assert.doesNotMatch(homeStyles, /\.home-market-price \{ grid-column: 2; grid-row
 assert.match(homeStyles, /\.home-market-identity \{ grid-row: 1 \/ 3;/, "دارایی باید در موبایل دو ردیف جدول را پوشش دهد");
 assert.match(homeStyles, /\.home-market-price \{ grid-column: 2; grid-row: 1;/, "قیمت باید در ردیف اول ستون دوم موبایل باشد");
 assert.match(homeStyles, /\.home-market-change \{ grid-column: 2; grid-row: 2;/, "تغییرات باید زیر قیمت در موبایل قرار بگیرد");
+// درصد تغییر در دسکتاپ بولد نبود و کنار همان ستون در صفحه‌های دارایی
+// لاغر به نظر می‌رسید. وزن باید در هر دو جدول یکی بماند.
+assert.match(homeStyles, /\.home-market-change \{ direction: ltr; font-size: 14px; font-weight: 700; \}/, "درصد تغییر هوم‌پیج باید مثل جدول دارایی‌ها بولد باشد");
+assert.match(styles, /\.market-row-change\{[^}]*font-weight:700/, "درصد تغییر جدول دارایی‌ها مرجع وزن هوم‌پیج است");
 
 for (const [name, html] of [["hub", hub], ["category", category], ["asset", asset]]) {
   assert.match(html, /class="breadcrumbs"/, `${name}: بردکرامب لازم است`);
