@@ -207,6 +207,40 @@ jobs:
           curl --fail --silent --show-error --max-time 25 \
             -H "X-Tabdex-Internal-Key: $HISTORY_CAPTURE_TOKEN" \
             'https://tabdex.ir/api/history.php?capture=1'
+
+      # «دیپلوی موفق» سه بار پشت سر هم به معنی «منتشر شد» نبود: فایل
+      # بی‌صدا جا می‌ماند و هیچ‌جا معلوم نمی‌شد. تنها تأیید واقعی این
+      # است که از بیرون نگاه کنیم و ببینیم سرور همان چیزی را می‌دهد که
+      # فرستادیم.
+      #
+      # فهرست عمداً کوتاه است: فایل‌های دست‌نویسی که کل سایت به آن‌ها
+      # وابسته است. صفحه‌های تولیدی از همین قالب‌ها می‌آیند، پس اگر
+      # این‌ها درست باشند بقیه هم درست‌اند.
+      - name: تأیید انتشار روی سرور
+        if: github.event_name != 'schedule'
+        shell: bash
+        run: |
+          set -uo pipefail
+          mismatch=0
+          for file in index.html convert/index.html assets/styles.css assets/app.js assets/home.js assets/price.js; do
+            [ -f "_site/$file" ] || continue
+            expected=$(md5sum "_site/$file" | cut -d' ' -f1)
+            # کش‌شکن تا پاسخِ کش‌شدهٔ واسطه‌ها تأیید را الکی سبز نکند.
+            actual=$(curl -fsS --max-time 25 -H 'Cache-Control: no-cache' \
+              "https://tabdex.ir/$file?deploy=$GITHUB_SHA" | md5sum | cut -d' ' -f1) || actual='unreachable'
+            if [ "$expected" = "$actual" ]; then
+              echo "  ✓ $file"
+            else
+              echo "::error::$file روی سرور با نسخهٔ این دیپلوی یکی نیست (انتظار $expected، دریافت $actual)."
+              mismatch=1
+            fi
+          done
+          if [ "$mismatch" -ne 0 ]; then
+            echo "::error::انتشار ناقص بود. لاگ گام Deploy site را ببینید."
+            exit 1
+          fi
+          echo "همهٔ فایل‌های کلیدی روی سرور با این دیپلوی یکی هستند."
+
   capture-market-history:
     if: github.event_name == 'schedule'
     name: Capture market chart snapshots
