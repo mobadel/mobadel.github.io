@@ -33,7 +33,10 @@
     { id: "gold18", name: "طلای ۱۸ عیار", code: "هر گرم", url: "/price/gold/gold18/", icon: "/assets/gold-18k.svg", source: "proxy" },
     { id: "emami", name: "سکه امامی", code: "هر عدد", url: "/price/coin/emami/", icon: "/assets/coin-emami.webp?v=20260825-2", source: "proxy" },
     { id: "btc", name: "بیت کوین", code: "BTC", url: "/price/crypto/btc/", icon: "/assets/crypto-icons/btc.svg", source: "usdt" },
-    { id: "eur", name: "یورو", code: "EUR", url: "/price/currency/eur/", icon: "/assets/flags/eu.svg", source: "proxy" }
+    { id: "eur", name: "یورو", code: "EUR", url: "/price/currency/eur/", icon: "/assets/flags/eu.svg", source: "proxy" },
+    // نفت برنت هم از همان پراکسی می‌آید؛ قیمتش دلاری است ولی مثل بقیهٔ
+    // ردیف‌های این جدول تومانی نشان داده می‌شود.
+    { id: "brent", name: "نفت برنت", code: "هر بشکه", url: "/price/energy/brent/", icon: "/assets/crude-oil.svg", source: "proxy" }
   ];
 
   function getJson(url) {
