@@ -20,6 +20,9 @@ const homeScript = read("assets/home.js");
 const dateScript = read("assets/date.js");
 const btcChartScript = read("assets/btc-chart.js");
 const marketHistoryApi = read("api/history.php");
+// منطق ساعت بازار و نوشتن نقطه مشترک شد تا rates.php هم بتواند ثبت
+// کند؛ کرون GitHub در عمل هر دو تا پنج ساعت یک‌بار اجرا می‌شد.
+const marketHistoryStore = read("api/market-history.php");
 const marketHistory = JSON.parse(read("data/market-history.json"));
 
 // فایل جاوااسکریپت باید مستقل و از نظر نحوی معتبر باشد.
@@ -85,10 +88,15 @@ assert.equal(aggregated[1].price, 40, "روز بعد باید نقطهٔ خود�
 assert.ok(aggregated[0].time < aggregated[1].time, "خروجی باید بر حسب زمان مرتب باشد");
 assert.ok(Object.keys(marketHistory.assets).length === 11, "تاریخچهٔ بازار باید یازده دارایی را داشته باشد");
 assert.match(marketHistoryApi, /HISTORY_CAPTURE_TOKEN/, "ثبت خودکار تاریخچه باید با کلید مستقل محافظت شود");
-assert.match(marketHistoryApi, /OFFICIAL_HOLIDAYS_1405[\s\S]*2026-08-30[\s\S]*2027-03-20/, "تعطیلات رسمی ۱۴۰۵ باید ثبت اسنپ‌شات را متوقف کنند");
-assert.match(marketHistoryApi, /\$hour >= 12 && \$hour < 18/, "ساعت‌های بازار فلزات باید رعایت شود");
-assert.match(marketHistoryApi, /\$hour >= 11 && \$hour < 20/, "ساعت‌های بازار ارز، طلا و سکه باید رعایت شود");
-assert.match(marketHistoryApi, /foreach \(\$rates\['assets'\][\s\S]*marketIsOpen/, "فیلتر باید پیش از نوشتن هر نقطه اعمال شود");
+assert.match(marketHistoryStore, /OFFICIAL_HOLIDAYS_1405[\s\S]*2026-08-30[\s\S]*2027-03-20/, "تعطیلات رسمی ۱۴۰۵ باید ثبت اسنپ‌شات را متوقف کنند");
+assert.match(marketHistoryStore, /\$hour >= 12 && \$hour < 18/, "ساعت‌های بازار فلزات باید رعایت شود");
+assert.match(marketHistoryStore, /\$hour >= 11 && \$hour < 20/, "ساعت‌های بازار ارز، طلا و سکه باید رعایت شود");
+assert.match(marketHistoryStore, /foreach \(\$assets as [\s\S]*marketIsOpen/, "فیلتر باید پیش از نوشتن هر نقطه اعمال شود");
+// ثبت باید به کرون وابسته نباشد، وگرنه نمودار ۲۴ ساعته روزی یکی دو
+// نقطه می‌گیرد و ساعت‌های شلوغ بازار در آن نیستند.
+assert.match(ratesApi, /recordHistoryPoints\(\$assets, \$result\['fetched_unix'\]\)/, "نرخِ تازه باید همان لحظه نقطهٔ نمودار را هم ثبت کند");
+assert.match(marketHistoryStore, /HISTORY_BUCKET = 300/, "نقطه‌ها باید در سطل پنج‌دقیقه‌ای بنشینند تا تماس دقیقه‌ای حجم فایل را بالا نبرد");
+assert.match(marketHistoryApi, /require __DIR__ \. '\/market-history\.php'/, "history.php باید همان منطق مشترک را استفاده کند");
 assert.match(btcChartScript, /stage\.addEventListener\("pointermove"/, "هاور نمودار باید اطلاعات نقطه را نمایش دهد");
 assert.match(btcChartScript, /stage\.addEventListener\("pointerdown"/, "لمس نمودار در موبایل باید اطلاعات نقطه را نمایش دهد");
 assert.match(btcChartScript, /stage\.addEventListener\("pointerup"[\s\S]*event\.pointerType !== "mouse"[\s\S]*hideTooltip/, "هاور لمسی باید با پایان لمس پاک شود");
