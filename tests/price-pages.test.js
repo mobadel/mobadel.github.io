@@ -230,7 +230,10 @@ assert.match(htaccess, /\^\(\[a-z0-9\]\+\)-to-\(\[a-z0-9\]\+\)\/\?\$ \/convert\/
 assert.match(htaccess, /\^\(\?:convert\/\)\?ton-to-irt\/\?\$ \/convert\/gram-to-irt\/ \[R=301,L,NE\]/, "TON به تومان باید به GRAM به تومان منتقل شود");
 assert.match(htaccess, /\^\(\?:convert\/\)\?irt-to-ton\/\?\$ \/convert\/irt-to-gram\/ \[R=301,L,NE\]/, "تومان به TON باید به تومان به GRAM منتقل شود");
 assert.match(htaccess, /\^convert\/\[a-z0-9\]\+-to-\[a-z0-9\]\+\/\?\$ convert\/index\.html/, "مسیرهای جدید مبدل باید بازنویسی شوند");
-assert.match(deploy, /assets data scripts api price convert _site\//, "پوشه‌های price و convert باید منتشر شوند");
+assert.match(deploy, /cp -R assets data api price convert _site\//, "پوشه‌های price و convert باید منتشر شوند");
+// scripts نباید منتشر شود: هیچ صفحه‌ای به آن ارجاع نمی‌دهد و روی سرور
+// فایل‌های .php آن اجرا و .py آن به‌صورت متن سرو می‌شدند.
+assert.doesNotMatch(deploy, /cp -R[^\n]*\bscripts\b/, "پوشهٔ scripts نباید روی سرور منتشر شود");
 
 // صفحات قیمت باید index/follow باشند و مولد سایت‌مپ همهٔ دسته‌ها، تمام
 // دارایی‌های غیرکریپتو و دقیقاً ۵۰ رمزارز منتخب را ثبت کند.
