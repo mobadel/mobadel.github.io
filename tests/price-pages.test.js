@@ -107,6 +107,9 @@ assert.match(btcChartScript, /svg\.removeAttribute\("hidden"\)/, "پس از در
 
 for (const [name, html] of [["home", home], ["convert", converter], ["price", hub], ["category", category], ["asset", asset]]) {
   assert.match(html, /\/assets\/date\.js\?v=20260829-1/, `${name}: تاریخ شمسی باید در هدر همه صفحات فعال باشد`);
+  // فوتر تنها راه رسیدن به دسته‌ها از صفحه‌های عمیق است. هر دستهٔ تازه‌ای
+  // که اینجا جا بیفتد، از دید کاربر و خزنده عملاً وجود ندارد.
+  assert.match(html, /<a href="\/price\/commodity\/">قیمت فلزات<\/a><a href="\/price\/energy\/">قیمت انرژی<\/a>/, `${name}: فوتر باید دستهٔ انرژی را بعد از فلزات داشته باشد`);
 }
 assert.match(dateScript, /timeZone: TIME_ZONE/, "تاریخ باید بر اساس منطقه زمانی تهران محاسبه شود");
 assert.match(dateScript, /weekday: "long", day: "numeric", month: "long", year: "numeric"/, "خروجی تاریخ باید شامل روز هفته، روز، ماه و سال باشد");
