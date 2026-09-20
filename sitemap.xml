@@ -2,1142 +2,1177 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://tabdex.ir/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>1.0</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/price/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/convert/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/price/currency/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/price/gold/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/price/coin/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/price/commodity/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://tabdex.ir/price/energy/</loc>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/price/crypto/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/price/currency/usd/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/price/currency/eur/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/price/currency/gbp/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/price/currency/chf/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/price/currency/aed/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/price/currency/try/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/price/currency/jpy/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/price/currency/cny/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/price/currency/aud/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/price/currency/cad/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/price/currency/rub/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/price/currency/sek/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/price/currency/inr/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/price/currency/pkr/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/price/currency/afn/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/price/currency/myr/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/price/currency/thb/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/price/currency/sar/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/price/currency/qar/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/price/currency/kwd/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/price/currency/bhd/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/price/currency/omr/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/price/currency/iqd/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/price/currency/syp/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/price/currency/azn/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/price/currency/amd/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/price/currency/gel/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/price/gold/gold18/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/price/gold/gold24/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/price/gold/melted/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/price/gold/ounce/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/price/coin/emami/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/price/coin/baharazadi/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/price/coin/nim/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/price/coin/rob/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/price/coin/gerami/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/price/commodity/silver/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/price/commodity/copper/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://tabdex.ir/price/energy/brent/</loc>
+    <lastmod>2026-09-20</lastmod>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://tabdex.ir/price/energy/gasoline/</loc>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/price/crypto/btc/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/price/crypto/usdt/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/price/crypto/eth/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/price/crypto/usdc/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/price/crypto/xrp/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/price/crypto/bnb/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/price/crypto/sol/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/price/crypto/doge/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/price/crypto/trx/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/price/crypto/ada/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/price/crypto/link/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/price/crypto/avax/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/price/crypto/dot/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/price/crypto/ltc/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/price/crypto/bch/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/price/crypto/shib/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/price/crypto/dai/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/price/crypto/near/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/price/crypto/uni/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/price/crypto/atom/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/price/crypto/etc/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/price/crypto/xlm/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/price/crypto/fil/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/price/crypto/apt/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/price/crypto/arb/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/price/crypto/op/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/price/crypto/inj/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/price/crypto/imx/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/price/crypto/hbar/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/price/crypto/algo/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/price/crypto/grt/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/price/crypto/aave/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/price/crypto/render/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/price/crypto/qnt/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/price/crypto/egld/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/price/crypto/sand/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/price/crypto/mana/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/price/crypto/xtz/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/price/crypto/chz/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/price/crypto/ena/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/price/crypto/jup/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/price/crypto/sui/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/price/crypto/pepe/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/price/crypto/wld/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/price/crypto/pyth/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/price/crypto/fet/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/price/crypto/tao/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/price/crypto/hype/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/price/crypto/pol/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/price/crypto/cake/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/price/crypto/api3/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/price/crypto/at/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/price/crypto/ath/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/price/crypto/bard/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/price/crypto/coti/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/price/crypto/edu/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/price/crypto/eigen/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/price/crypto/esp/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/price/crypto/glm/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/price/crypto/la/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/price/crypto/me/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/price/crypto/met/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/price/crypto/one/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/price/crypto/opg/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/price/crypto/orca/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/price/crypto/re/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/price/crypto/safe/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/price/crypto/turbo/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/price/crypto/x/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/convert/usdt-to-irt/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/convert/irt-to-usdt/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/convert/btc-to-irt/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/convert/irt-to-btc/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/convert/eth-to-irt/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/convert/irt-to-eth/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/convert/usdc-to-irt/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/convert/irt-to-usdc/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/convert/xrp-to-irt/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/convert/irt-to-xrp/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/convert/doge-to-irt/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/convert/irt-to-doge/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/convert/trx-to-irt/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/convert/irt-to-trx/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/convert/sol-to-irt/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/convert/irt-to-sol/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/convert/ada-to-irt/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/convert/irt-to-ada/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/convert/shib-to-irt/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/convert/irt-to-shib/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/convert/gram-to-irt/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/convert/irt-to-gram/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/convert/gold18-to-irt/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/convert/irt-to-gold18/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/convert/gold24-to-irt/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/convert/irt-to-gold24/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/convert/melted-to-irt/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/convert/irt-to-melted/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/convert/ounce-to-irt/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/convert/irt-to-ounce/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/convert/emami-to-irt/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/convert/irt-to-emami/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/convert/baharazadi-to-irt/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/convert/irt-to-baharazadi/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/convert/nim-to-irt/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/convert/irt-to-nim/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/convert/rob-to-irt/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/convert/irt-to-rob/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/convert/gerami-to-irt/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/convert/irt-to-gerami/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/convert/silver-to-irt/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/convert/irt-to-silver/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/convert/copper-to-irt/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/convert/irt-to-copper/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://tabdex.ir/convert/brent-to-irt/</loc>
+    <lastmod>2026-09-20</lastmod>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://tabdex.ir/convert/irt-to-brent/</loc>
+    <lastmod>2026-09-20</lastmod>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://tabdex.ir/convert/gasoline-to-irt/</loc>
+    <lastmod>2026-09-20</lastmod>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://tabdex.ir/convert/irt-to-gasoline/</loc>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/convert/usd-to-irt/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/convert/irt-to-usd/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/convert/eur-to-irt/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/convert/irt-to-eur/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/convert/gbp-to-irt/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/convert/irt-to-gbp/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/convert/aed-to-irt/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/convert/irt-to-aed/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/convert/try-to-irt/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/convert/irt-to-try/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/convert/chf-to-irt/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/convert/irt-to-chf/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/convert/cad-to-irt/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/convert/irt-to-cad/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/convert/aud-to-irt/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/convert/irt-to-aud/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/convert/jpy-to-irt/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/convert/irt-to-jpy/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/convert/cny-to-irt/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/convert/irt-to-cny/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/convert/rub-to-irt/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/convert/irt-to-rub/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/convert/sek-to-irt/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/convert/irt-to-sek/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/convert/inr-to-irt/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/convert/irt-to-inr/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/convert/pkr-to-irt/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/convert/irt-to-pkr/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/convert/afn-to-irt/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/convert/irt-to-afn/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/convert/myr-to-irt/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/convert/irt-to-myr/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/convert/thb-to-irt/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/convert/irt-to-thb/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/convert/sar-to-irt/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/convert/irt-to-sar/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/convert/qar-to-irt/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/convert/irt-to-qar/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/convert/kwd-to-irt/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/convert/irt-to-kwd/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/convert/bhd-to-irt/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/convert/irt-to-bhd/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/convert/omr-to-irt/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/convert/irt-to-omr/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/convert/iqd-to-irt/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/convert/irt-to-iqd/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/convert/syp-to-irt/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/convert/irt-to-syp/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/convert/azn-to-irt/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/convert/irt-to-azn/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/convert/amd-to-irt/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/convert/irt-to-amd/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/convert/gel-to-irt/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/convert/irt-to-gel/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/convert/btc-to-usdt/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/convert/usdt-to-btc/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/convert/eth-to-usdt/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/convert/usdt-to-eth/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/convert/gold18-to-usd/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/convert/usd-to-gold18/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/convert/ounce-to-gold18/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/convert/gold18-to-ounce/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/convert/eur-to-usd/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/convert/usd-to-eur/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/convert/emami-to-usd/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/convert/gold18-to-eur/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/convert/cake-to-irt/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/convert/hype-to-irt/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tabdex.ir/convert/safe-to-irt/</loc>
-    <lastmod>2026-09-19</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <priority>0.8</priority>
   </url>
 </urlset>

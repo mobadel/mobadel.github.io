@@ -54,6 +54,12 @@
     { id: "silver", code: "بورس کالا", name: "نقره ۹۹۹", englishName: "Silver 999",     decimals: 4, group: "commodity", unit: "gram",     localIcon: "/assets/silver.svg" },
     { id: "copper", code: "بورس کالا", name: "مس",       englishName: "Copper Cathode", decimals: 4, group: "commodity", unit: "kilogram", localIcon: "/assets/copper.svg" },
 
+    /* انرژی در بازار آتی آمریکا معامله می‌شود و قیمتش دلاری است؛ مثل
+       انس طلا با نرخ دلار به تومان می‌آید. «بنزین آمریکا» عمداً نام
+       کامل‌تری دارد تا با بنزین جایگاه‌های داخلی اشتباه نشود. */
+    { id: "brent",    code: "BRENT", name: "نفت برنت",    englishName: "Brent Crude",   decimals: 4, group: "energy", unit: "barrel", localIcon: "/assets/crude-oil.svg" },
+    { id: "gasoline", code: "RBOB",  name: "بنزین آمریکا", englishName: "RBOB Gasoline", decimals: 4, group: "energy", unit: "gallon", localIcon: "/assets/gasoline.svg" },
+
     // ارز فیات — این‌ها نماد دارند و نمادشان معنادار است.
     { id: "usd", code: "USD", name: "دلار",              englishName: "US Dollar",        decimals: 2, group: "fiat", unit: null, localIcon: "/assets/flags/us.svg" },
     { id: "eur", code: "EUR", name: "یورو",              englishName: "Euro",             decimals: 2, group: "fiat", unit: null, localIcon: "/assets/flags/eu.svg" },
@@ -86,7 +92,7 @@
 
   // برچسب واحد: طلا به گرم است و سکه به عدد. بدون این، عددی که کاربر
   // وارد می‌کند مبهم است.
-  var UNIT_LABELS = { gram: "گرم", piece: "عدد", mesghal: "مثقال", ounce: "انس", kilogram: "کیلو" };
+  var UNIT_LABELS = { gram: "گرم", piece: "عدد", mesghal: "مثقال", ounce: "انس", kilogram: "کیلو", barrel: "بشکه", gallon: "گالن" };
 
   /* ترتیب فهرست دارایی‌ها. بدون این، مرتب‌سازی الفبایی بود و مثلاً دلار
      ته فهرست ارزها می‌افتاد در حالی که پرکاربردترین است. هر چیزی که
@@ -396,7 +402,10 @@
   // همیشه در دسترس است.
   function isProxyAsset(id) {
     var group = groupOf(id);
-    return group === "gold" || group === "coin" || (group === "fiat" && id !== "irt");
+    // نقره و مس و انرژی هم از همین پراکسی می‌آیند؛ نبودنشان در این
+    // فهرست یعنی نوار وضعیت برای آن جفت‌ها منبع اشتباه را گزارش می‌کرد.
+    return group === "gold" || group === "coin" || group === "commodity" || group === "energy"
+      || (group === "fiat" && id !== "irt");
   }
 
   /* نوار وضعیت باید دربارهٔ همین جفت راست بگوید، نه دربارهٔ کل سایت.
@@ -802,6 +811,7 @@
     crypto: ["crypto"],
     metal: ["gold", "coin"],
     commodity: ["commodity"],
+    energy: ["energy"],
     fiat: ["fiat"]
   };
 

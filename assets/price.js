@@ -7,15 +7,16 @@
     gold: { name: "طلا", singular: "طلا", description: "قیمت طلای ۱۸ و ۲۴ عیار، طلای آب‌شده و انس جهانی", icon: "/assets/gold-18k.svg" },
     coin: { name: "سکه", singular: "سکه", description: "قیمت لحظه ای انواع سکه در بازار ایران", icon: "/assets/coin-emami.webp?v=20260825-2" },
     commodity: { name: "فلزات", singular: "فلز", description: "قیمت لحظه ای نقره و مس بر پایه داده‌های بورس کالا", icon: "/assets/silver.svg" },
+    energy: { name: "انرژی", singular: "حامل انرژی", description: "قیمت لحظه ای نفت برنت و بنزین در بازارهای جهانی", icon: "/assets/crude-oil.svg" },
     fiat: { name: "ارز", singular: "ارز", description: "قیمت لحظه ای دلار، یورو و دیگر ارزهای رایج به تومان", icon: "/assets/flags/us.svg" }
   };
-  var CATEGORY_ORDER = ["fiat", "gold", "coin", "commodity", "crypto"];
+  var CATEGORY_ORDER = ["fiat", "gold", "coin", "commodity", "energy", "crypto"];
   var GROUP_SLUGS = { fiat: "currency" };
   var SLUGS = { goldmelted: "melted", goldounce: "ounce", bahar: "baharazadi", halfcoin: "nim", quartercoin: "rob", gramcoin: "gerami" };
   var SLUG_TO_ID = {};
   Object.keys(SLUGS).forEach(function (id) { SLUG_TO_ID[SLUGS[id]] = id; });
-  var UNIT_LABELS = { gram: "گرم", piece: "عدد", mesghal: "مثقال", ounce: "انس", kilogram: "کیلو" };
-  var RANKED = ["btc", "usdt", "eth", "usdc", "xrp", "bnb", "sol", "doge", "trx", "ada", "gold18", "gold24", "goldmelted", "goldounce", "emami", "bahar", "halfcoin", "quartercoin", "gramcoin", "silver", "copper", "usd", "eur", "gbp", "aed", "try", "chf", "cad", "aud"];
+  var UNIT_LABELS = { gram: "گرم", piece: "عدد", mesghal: "مثقال", ounce: "انس", kilogram: "کیلو", barrel: "بشکه", gallon: "گالن" };
+  var RANKED = ["btc", "usdt", "eth", "usdc", "xrp", "bnb", "sol", "doge", "trx", "ada", "gold18", "gold24", "goldmelted", "goldounce", "emami", "bahar", "halfcoin", "quartercoin", "gramcoin", "silver", "copper", "brent", "gasoline", "usd", "eur", "gbp", "aed", "try", "chf", "cad", "aud"];
   var RANK = {};
   var cmcRanks = {};
   var USD_STABLECOINS = { usdt: true, usdc: true, dai: true, busd: true, usde: true, tusd: true, fdusd: true, usdd: true, pyusd: true, gusd: true, susd: true, frax: true };
@@ -33,6 +34,8 @@
     { id: "gramcoin", name: "سکه یک گرمی", englishName: "One Gram Coin", group: "coin", unit: "piece", icon: "/assets/coin-emami.webp?v=20260825-2" },
     { id: "silver", name: "نقره ۹۹۹", englishName: "Silver 999", code: "بورس کالا", group: "commodity", unit: "gram", icon: "/assets/silver.svg" },
     { id: "copper", name: "مس", englishName: "Copper Cathode", code: "بورس کالا", group: "commodity", unit: "kilogram", icon: "/assets/copper.svg" },
+    { id: "brent", name: "نفت برنت", englishName: "Brent Crude", code: "BRENT", group: "energy", unit: "barrel", icon: "/assets/crude-oil.svg" },
+    { id: "gasoline", name: "بنزین آمریکا", englishName: "RBOB Gasoline", code: "RBOB", group: "energy", unit: "gallon", icon: "/assets/gasoline.svg" },
     { id: "usd", name: "دلار", englishName: "US Dollar", code: "USD", group: "fiat", icon: "/assets/flags/us.svg" },
     { id: "eur", name: "یورو", englishName: "Euro", code: "EUR", group: "fiat", icon: "/assets/flags/eu.svg" },
     { id: "gbp", name: "پوند", englishName: "British Pound", code: "GBP", group: "fiat", icon: "/assets/flags/gb.svg" },
@@ -168,7 +171,9 @@
     return loadJson("/api/rates.php?t=" + Date.now(), 9000).then(function (payload) {
       proxyCache = { fetchedUnix: Number(payload && payload.fetched_unix) || 0, ttl: Number(payload && payload.ttl) || 0 };
       var rows = payload && payload.assets || {}; var at = payload.updated ? new Date(payload.updated) : new Date(); if (!Number.isFinite(at.getTime())) at = new Date();
-      Object.keys(rows).forEach(function (id) { if (!assets[id]) return; var row = rows[id]; var usd = Number(row.usd); var dollarPrimary = id === "goldounce" && Number.isFinite(usd) && usd > 0; assets[id].price = dollarPrimary ? usd : Number(row.toman); assets[id].priceCurrency = dollarPrimary ? "USD" : "IRT"; assets[id].tomanPrice = dollarPrimary ? Number(row.toman) : null; assets[id].tomanChange = dollarPrimary ? Number(row.toman_change) : null; assets[id].change = Number(row.change); assets[id].source = dollarPrimary ? "بازار جهانی طلا" : id === "silver" || id === "copper" ? "بورس کالا" : "بازار ایران"; assets[id].updatedAt = at; });
+      Object.keys(rows).forEach(function (id) { if (!assets[id]) return; var row = rows[id]; var usd = Number(row.usd); // انرژی هم مثل انس طلا دلاری معامله می‌شود، پس عدد اصلی دلار است
+        // و تومان زیرش می‌آید.
+        var dollarPrimary = (id === "goldounce" || assets[id].group === "energy") && Number.isFinite(usd) && usd > 0; assets[id].price = dollarPrimary ? usd : Number(row.toman); assets[id].priceCurrency = dollarPrimary ? "USD" : "IRT"; assets[id].tomanPrice = dollarPrimary ? Number(row.toman) : null; assets[id].tomanChange = dollarPrimary ? Number(row.toman_change) : null; assets[id].change = Number(row.change); assets[id].source = dollarPrimary ? "بازار جهانی طلا" : assets[id].group === "energy" ? "بازار جهانی انرژی" : id === "silver" || id === "copper" ? "بورس کالا" : "بازار ایران"; assets[id].updatedAt = at; });
       if (!latestUpdate || at > latestUpdate) latestUpdate = at;
     });
   }

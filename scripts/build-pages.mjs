@@ -47,6 +47,9 @@ const ASSETS = {
   silver: { slug: "silver", name: "نقره ۹۹۹", unit: "گرم" },
   copper: { slug: "copper", name: "مس",      unit: "کیلو" },
 
+  brent:    { slug: "brent",    name: "نفت برنت",     unit: "بشکه" },
+  gasoline: { slug: "gasoline", name: "بنزین آمریکا", unit: "گالن" },
+
   emami:       { slug: "emami",      name: "سکه امامی",      unit: "عدد" },
   bahar:       { slug: "baharazadi", name: "سکه بهار آزادی", unit: "عدد" },
   halfcoin:    { slug: "nim",        name: "نیم سکه",        unit: "عدد" },
@@ -88,6 +91,7 @@ const WITH_TOMAN = [
   "gold18", "gold24", "goldmelted", "goldounce",
   "emami", "bahar", "halfcoin", "quartercoin", "gramcoin",
   "silver", "copper",
+  "brent", "gasoline",
   "usd", "eur", "gbp", "aed", "try", "chf", "cad", "aud", "jpy", "cny",
   "rub", "sek", "inr", "pkr", "afn", "myr", "thb", "sar", "qar", "kwd",
   "bhd", "omr", "iqd", "syp", "azn", "amd", "gel"
@@ -100,7 +104,8 @@ const PRICE_GROUPS = {
   currency: ["usd", "eur", "gbp", "chf", "aed", "try", "jpy", "cny", "aud", "cad", "rub", "sek", "inr", "pkr", "afn", "myr", "thb", "sar", "qar", "kwd", "bhd", "omr", "iqd", "syp", "azn", "amd", "gel"],
   gold: ["gold18", "gold24", "melted", "ounce"],
   coin: ["emami", "baharazadi", "nim", "rob", "gerami"],
-  commodity: ["silver", "copper"]
+  commodity: ["silver", "copper"],
+  energy: ["brent", "gasoline"]
 };
 /* نام و توضیح هر دسته باید با CATEGORIES در assets/price.js یکی بماند،
    وگرنه عنوان سرورساخته با چیزی که جاوااسکریپت بعداً می‌نویسد فرق می‌کند.
@@ -110,6 +115,7 @@ const PRICE_CATEGORIES = {
   gold:      { name: "طلا" },
   coin:      { name: "سکه" },
   commodity: { name: "فلزات" },
+  energy:    { name: "انرژی" },
   currency:  { name: "ارز" }
 };
 
