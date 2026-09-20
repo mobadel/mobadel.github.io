@@ -356,6 +356,39 @@ function redactKey(string $text): string
     return (string) preg_replace('/([?&]key=)[^&\s]*/i', '$1***', $text);
 }
 
+/* ── مسطح‌کردن پاسخ بالادست ──────────────────────────────────────
+   BrsApi سه شکل مختلف برمی‌گرداند و کدام‌یک را می‌دهد جایی مستند نیست:
+   گاهی لیست تخت، گاهی زیر کلید data، و گاهی بخش‌بندی‌شده — مثل
+   Commodity که ردیف‌هایش زیر metal_precious، metal_base و energy
+   نشسته‌اند. همین یکی باعث شد دستهٔ انرژی خالی منتشر شود: حلقه روی
+   آرایه‌ها می‌رفت و هیچ نمادی پیدا نمی‌کرد.
+
+   این تابع هر سه شکل را می‌پذیرد و فقط ردیف‌های نمادداری را برمی‌گرداند. */
+function flattenSymbolRows(array $payload): array
+{
+    if (is_array($payload['data'] ?? null)) {
+        $payload = $payload['data'];
+    }
+
+    $rows = [];
+    foreach ($payload as $item) {
+        if (!is_array($item)) {
+            continue;
+        }
+        if (isset($item['symbol'])) {
+            $rows[] = $item;
+            continue;
+        }
+        foreach ($item as $child) {
+            if (is_array($child) && isset($child['symbol'])) {
+                $rows[] = $child;
+            }
+        }
+    }
+
+    return $rows;
+}
+
 /* شرحی که بشود با آن عیب را تشخیص داد، نه فقط یک عدد. */
 function upstreamReason(array $res): string
 {
@@ -629,8 +662,8 @@ if ($energyRows === null) {
     if ($energyResult['body'] !== false && $energyResult['code'] === 200) {
         $energyPayload = json_decode((string) $energyResult['body'], true);
         if (is_array($energyPayload)) {
-            // پاسخ ممکن است تخت باشد یا زیر کلید data؛ هر دو را می‌پذیریم.
-            $energyRows = is_array($energyPayload['data'] ?? null) ? $energyPayload['data'] : $energyPayload;
+            // پاسخ Commodity بخش‌بندی‌شده است؛ مسطح‌سازی هر سه شکل را می‌پذیرد.
+            $energyRows = flattenSymbolRows($energyPayload);
             $energyEncoded = json_encode(
                 ['fetched_unix' => time(), 'data' => $energyRows],
                 JSON_UNESCAPED_UNICODE

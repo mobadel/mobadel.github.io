@@ -150,6 +150,10 @@ assert.match(ratesApi, /'BRENT'\s*=>\s*\['id' => 'brent'/, "نفت برنت با
 assert.match(ratesApi, /'RBOB'\s*=>\s*\['id' => 'gasoline'/, "بنزین باید از Commodity نگاشت شود");
 assert.match(ratesApi, /ENERGY_TTL_OPEN\s*=\s*600/, "در ساعات باز بازار انرژی هر ده دقیقه کافی است");
 assert.match(ratesApi, /ENERGY_TTL_CLOSED\s*=\s*3600/, "بازار بستهٔ انرژی نباید سهمیه مصرف کند");
+// پاسخ Commodity بخش‌بندی‌شده است (metal_precious، metal_base، energy) و
+// نه تخت. یک‌بار همین باعث شد دستهٔ انرژی خالی منتشر شود.
+assert.match(ratesApi, /function flattenSymbolRows/, "پاسخ بالادست باید پیش از نگاشت مسطح شود");
+assert.match(ratesApi, /\$energyRows = flattenSymbolRows\(\$energyPayload\)/, "انرژی باید از مسیر مسطح‌سازی بخواند، نه مستقیم از payload");
 assert.match(marketHistoryStore, /America\/New_York/, "تقویم انرژی باید به وقت نیویورک حساب شود تا ساعت تابستانی خودکار بماند");
 assert.match(script, /name: "بنزین آمریکا"/, "بنزین باید با نام کامل نمایش داده شود تا با بنزین داخلی اشتباه نشود");
 assert.doesNotMatch(script, /FEATURED|featured-assets|updated-label/, "منطق سکشن پرکاربرد باید کامل حذف شود");
