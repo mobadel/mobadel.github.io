@@ -113,6 +113,26 @@ function effectiveTtl(): int
         : marketTtl();
 }
 
+/* ── انرژی ────────────────────────────────────────────────────────
+   نفت و فرآورده‌هایش از اندپوینت Commodity می‌آیند، نه Gold_Currency.
+   قیمت‌ها دلاری‌اند و مثل انس طلا با نرخ دلار به تومان تبدیل می‌شوند.
+
+   بازارشان بازار آتی آمریکاست، پس ساعت کاری‌اش هیچ ربطی به بازار
+   ایران ندارد: تقریباً شبانه‌روز باز است و فقط آخر هفتهٔ غربی و یک
+   وقفهٔ روزانه تعطیل می‌شود. جزئیاتش در market-history.php. */
+const COMMODITY_URL = 'https://api.brsapi.ir/Market/Commodity.php';
+
+/* بازار باز ده دقیقه، بسته یک ساعت. نفت آن‌قدر پرنوسان نیست که ارزش
+   تازه‌سازی دقیقه‌ای داشته باشد، و سهمیه هم باید برای نرخ‌های ایرانی
+   بماند که کاربر لحظه‌ای دنبالشان است. */
+const ENERGY_TTL_OPEN   = 600;
+const ENERGY_TTL_CLOSED = 3600;
+
+const ENERGY_MAP = [
+    'BRENT' => ['id' => 'brent',    'group' => 'energy', 'unit' => 'barrel'],
+    'RBOB'  => ['id' => 'gasoline', 'group' => 'energy', 'unit' => 'gallon'],
+];
+
 /* نمادهای بورس کالا. قیمت‌ها به ریال‌اند. */
 const IME_MAP = [
     'SilverBar'  => ['id' => 'silver', 'group' => 'commodity', 'unit' => 'gram'],
@@ -565,6 +585,95 @@ if (is_array($imeRows)) {
             'change' => (float) ($row['plp'] ?? 0),
             // تاریخ آخرین معامله، چون بورس کالا فقط شنبه تا چهارشنبه باز است
             'traded' => (string) ($row['date_update'] ?? ''),
+        ];
+    }
+}
+
+/* ── انرژی: نفت برنت و بنزین ─────────────────────────────────────
+   کش مستقل، چون عمرش با نرخ‌های ایرانی فرق دارد: بازار آتی آمریکا
+   شبانه‌روز باز است ولی آن‌قدر پرنوسان نیست که ارزش تازه‌سازی دقیقه‌ای
+   داشته باشد. وقتی هم بسته است اصلاً ارزش پرسیدن ندارد.
+
+   مثل بورس کالا، شکست این بخش نباید بقیهٔ نرخ‌ها را از بین ببرد. */
+$energyCacheFile = $cacheDir . '/energy.json';
+$energyRows      = null;
+$energyDecoded   = null;
+
+require_once __DIR__ . '/market-history.php';
+$energyTtl = energyMarketIsOpen(time()) ? ENERGY_TTL_OPEN : ENERGY_TTL_CLOSED;
+
+if (is_readable($energyCacheFile)) {
+    $energyRaw = @file_get_contents($energyCacheFile);
+    if ($energyRaw !== false) {
+        $energyDecoded = json_decode($energyRaw, true);
+        if (is_array($energyDecoded) && isset($energyDecoded['data'])) {
+            $energyAge = time() - (int) ($energyDecoded['fetched_unix'] ?? 0);
+            if ($energyAge >= 0 && $energyAge < $energyTtl) {
+                $energyRows = $energyDecoded['data'];
+            }
+        }
+    }
+}
+
+if ($energyRows === null) {
+    /* همان کلید و همان سهمیه، پس همان عقب‌نشینی. */
+    [$energyBlockedUntil] = backoffUntil($key);
+    $energyResult = $energyBlockedUntil > time()
+        ? ['body' => false, 'code' => 0, 'effective' => '', 'hops' => 0, 'error' => 'backoff']
+        : (static function () use ($key) {
+            countUpstreamCall();
+
+            return upstreamGet(COMMODITY_URL . '?key=' . urlencode($key));
+        })();
+
+    if ($energyResult['body'] !== false && $energyResult['code'] === 200) {
+        $energyPayload = json_decode((string) $energyResult['body'], true);
+        if (is_array($energyPayload)) {
+            // پاسخ ممکن است تخت باشد یا زیر کلید data؛ هر دو را می‌پذیریم.
+            $energyRows = is_array($energyPayload['data'] ?? null) ? $energyPayload['data'] : $energyPayload;
+            $energyEncoded = json_encode(
+                ['fetched_unix' => time(), 'data' => $energyRows],
+                JSON_UNESCAPED_UNICODE
+            );
+            $energyTemp = $energyCacheFile . '.' . getmypid() . '.tmp';
+            if (@file_put_contents($energyTemp, $energyEncoded) !== false) {
+                @rename($energyTemp, $energyCacheFile);
+            }
+        }
+    }
+
+    // اگر تازه‌سازی نشد، کش قدیمی بهتر از هیچ است.
+    if ($energyRows === null && is_array($energyDecoded) && isset($energyDecoded['data'])) {
+        $energyRows = $energyDecoded['data'];
+    }
+}
+
+if (is_array($energyRows)) {
+    foreach ($energyRows as $row) {
+        if (!is_array($row) || !isset($row['symbol'])) {
+            continue;
+        }
+        $symbol = (string) $row['symbol'];
+        if (!isset(ENERGY_MAP[$symbol])) {
+            continue;
+        }
+        $usdPrice = (float) ($row['price'] ?? 0);
+        // بدون نرخ دلار نمی‌شود تومانی داد، و عدد دلاری در گراف تومانی
+        // هزاران برابر غلط می‌شد. پس قلم را می‌اندازیم بیرون.
+        if ($usdPrice <= 0 || $usdToman <= 0) {
+            continue;
+        }
+        $meta = ENERGY_MAP[$symbol];
+        $rowChange = (float) ($row['change_percent'] ?? 0);
+        $assets[$meta['id']] = [
+            'toman'  => $usdPrice * $usdToman,
+            'usd'    => $usdPrice,
+            'group'  => $meta['group'],
+            'unit'   => $meta['unit'],
+            'name'   => (string) ($row['name'] ?? $meta['id']),
+            'change' => $rowChange,
+            // تغییر تومانی، مثل انس طلا، تغییر دلار را هم در خود دارد.
+            'toman_change' => ((1 + $rowChange / 100) * (1 + $usdChange / 100) - 1) * 100,
         ];
     }
 }

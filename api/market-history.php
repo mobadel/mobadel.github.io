@@ -48,7 +48,30 @@ function historyWriteJson(string $path, array $payload): bool {
    عمداً به ساعت کاری نگاه نمی‌کند: دادهٔ بلندمدت یک بستهٔ روزانه با
    تایم‌استمپ ۰۳:۳۰ تهران است و معیار ساعتی هر ۳۸۰۰ نقطهٔ تاریخی را
    دور می‌ریخت. */
+/* ── بازار آتی انرژی ──────────────────────────────────────────────
+   نفت برنت و بنزین در بازار آتی آمریکا معامله می‌شوند، نه ایران. پس
+   تقویمشان هم آمریکایی است: از یکشنبه ۱۸:۰۰ تا جمعه ۱۷:۰۰ به وقت
+   نیویورک باز است، با یک وقفهٔ یک‌ساعته هر روز بین ۱۷ و ۱۸.
+
+   عمداً به وقت نیویورک حساب می‌شود و نه با اختلاف ثابت از تهران، چون
+   آمریکا ساعت تابستانی دارد و ایران ندارد؛ با عدد ثابت، سال دو بار
+   یک ساعت اشتباه می‌شد. */
+function energyMarketIsOpen(int $time): bool {
+    $newYork = (new DateTimeImmutable('@' . $time))->setTimezone(new DateTimeZone('America/New_York'));
+    $weekday = (int) $newYork->format('N'); // دوشنبه=۱ … جمعه=۵، شنبه=۶، یکشنبه=۷
+    $minutes = (int) $newYork->format('G') * 60 + (int) $newYork->format('i');
+    $close   = 17 * 60;
+    $open    = 18 * 60;
+
+    if ($weekday === 6) return false;                  // شنبه تمام‌روز بسته
+    if ($weekday === 7) return $minutes >= $open;      // یکشنبه از ۱۸:۰۰ باز می‌شود
+    if ($weekday === 5) return $minutes < $close;      // جمعه ۱۷:۰۰ می‌بندد
+    return $minutes < $close || $minutes >= $open;     // بقیهٔ روزها با وقفهٔ ۱۷ تا ۱۸
+}
+
 function marketDayIsOpen(string $group, int $time): bool {
+    // انرژی تقویم خودش را دارد؛ روز و ساعتش از هم جدا نیست.
+    if ($group === 'energy') return energyMarketIsOpen($time);
     if (!in_array($group, ['fiat', 'gold', 'coin', 'commodity'], true)) return true;
     $tehran = (new DateTimeImmutable('@' . $time))->setTimezone(new DateTimeZone('Asia/Tehran'));
     if (in_array($tehran->format('Y-m-d'), OFFICIAL_HOLIDAYS_1405, true)) return false;
@@ -58,6 +81,7 @@ function marketDayIsOpen(string $group, int $time): bool {
 }
 
 function marketIsOpen(string $group, int $time): bool {
+    if ($group === 'energy') return energyMarketIsOpen($time);
     if (!marketDayIsOpen($group, $time)) return false;
     if (!in_array($group, ['fiat', 'gold', 'coin', 'commodity'], true)) return true;
     $tehran = (new DateTimeImmutable('@' . $time))->setTimezone(new DateTimeZone('Asia/Tehran'));

@@ -138,7 +138,17 @@ assert.match(hub, /<h1>قیمت لحظه‌ای<\/h1>/, "عنوان صفحه ا�
 assert.match(converter, /<p class="eyebrow">مبدل قیمت<\/p>/, "صفحه convert باید برچسب مبدل قیمت داشته باشد");
 assert.doesNotMatch(hub, /دارایی‌های پرکاربرد|featured-assets|updated-label|market-overview/, "هاب قیمت فقط باید دسته‌بندی‌ها را نشان دهد");
 assert.match(script, /className = "category-card-details"/, "نام و تعداد هر دسته باید در یک ستون جمع‌وجور باشند");
-assert.match(script, /CATEGORY_ORDER = \["fiat", "gold", "coin", "commodity", "crypto"\]/, "ترتیب هاب باید ارز، طلا، سکه، فلزات و ارز دیجیتال باشد");
+assert.match(script, /CATEGORY_ORDER = \["fiat", "gold", "coin", "commodity", "energy", "crypto"\]/, "ترتیب هاب باید ارز، طلا، سکه، فلزات، انرژی و ارز دیجیتال باشد");
+
+// دستهٔ انرژی از اندپوینت Commodity می‌آید و بازارش آمریکایی است، نه
+// ایرانی؛ اگر هر کدام از این‌ها بیفتد یا نرخ غلط می‌شود یا سهمیه هدر
+// می‌رود.
+assert.match(ratesApi, /'BRENT'\s*=>\s*\['id' => 'brent'/, "نفت برنت باید از Commodity نگاشت شود");
+assert.match(ratesApi, /'RBOB'\s*=>\s*\['id' => 'gasoline'/, "بنزین باید از Commodity نگاشت شود");
+assert.match(ratesApi, /ENERGY_TTL_OPEN\s*=\s*600/, "در ساعات باز بازار انرژی هر ده دقیقه کافی است");
+assert.match(ratesApi, /ENERGY_TTL_CLOSED\s*=\s*3600/, "بازار بستهٔ انرژی نباید سهمیه مصرف کند");
+assert.match(marketHistoryStore, /America\/New_York/, "تقویم انرژی باید به وقت نیویورک حساب شود تا ساعت تابستانی خودکار بماند");
+assert.match(script, /name: "بنزین آمریکا"/, "بنزین باید با نام کامل نمایش داده شود تا با بنزین داخلی اشتباه نشود");
 assert.doesNotMatch(script, /FEATURED|featured-assets|updated-label/, "منطق سکشن پرکاربرد باید کامل حذف شود");
 assert.match(script, /small\.textContent = asset\.code \|\| ""/, "زیرعنوان ردیف‌های بازار باید فقط نماد دارایی باشد");
 assert.doesNotMatch(script, /small\.textContent = asset\.group === "crypto" \? asset\.englishName/, "نام انگلیسی رمزارز نباید در فهرست دسته نمایش داده شود");
