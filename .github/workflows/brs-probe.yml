@@ -1,0 +1,24 @@
+name: BrsApi probe
+
+# فقط دستی اجرا می‌شود. هیچ زمان‌بندی‌ای ندارد و به سایت دست نمی‌زند؛
+# صرفاً می‌پرسد «با کلید رایگان فعلی چه داده‌ای در دسترس است که هنوز
+# استفاده نمی‌کنیم» و جواب را در لاگ می‌ریزد.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    environment: production
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: کاوش سرویس‌های BrsApi
+        shell: bash
+        env:
+          BRSAPI_KEY: ${{ secrets.BRSAPI_KEY }}
+        run: php tools/brs-probe.php

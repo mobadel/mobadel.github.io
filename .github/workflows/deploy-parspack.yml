@@ -49,7 +49,11 @@ jobs:
           mkdir -p _site
           cp index.html robots.txt sitemap.xml _site/
           cp .htaccess _site/
-          cp -R assets data scripts api price convert _site/
+          # scripts بیرون ماند: هیچ صفحه‌ای به آن ارجاع نمی‌دهد و روی
+          # سرور فقط سطح حمله اضافه می‌کرد — از جمله فایل‌های .py که
+          # به‌صورت متن سرو می‌شدند. ابزارهای توسعه در tools/ هستند که
+          # اصلاً منتشر نمی‌شود.
+          cp -R assets data api price convert _site/
 
       # صفحه‌های ایستای جفت‌های پرجستجو و سایت‌مپ. بقیهٔ آدرس‌ها از راه
       # بازنویسی در .htaccess کار می‌کنند. sitemap.xml را بازنویسی
