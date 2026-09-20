@@ -52,7 +52,12 @@ function probe(string $label, string $url, string $key): ?array
         printf("  ✗ %-28s پاسخ JSON نبود (%s…)\n", $label, mb_substr(trim(preg_replace('/\s+/', ' ', (string) $body)), 0, 60));
         return null;
     }
-    printf("  ✓ %-28s در دسترس\n", $label);
+    printf("  ✓ %-28s در دسترس", $label);
+    /* شکل سطح بالا مهم است: کد تولیدی باید بداند ردیف‌ها تخت‌اند، زیر
+       کلید data هستند، یا مثل Gold_Currency بخش‌بندی شده‌اند. */
+    $keys = array_slice(array_keys($payload), 0, 8);
+    $isList = array_is_list($payload);
+    printf(" | %s | کلیدها: %s\n", $isList ? 'لیست تخت' : 'شیء', implode(', ', array_map('strval', $keys)));
     return $payload;
 }
 
@@ -68,6 +73,16 @@ function rowsOf(array $payload): array
     $walk($payload);
     return $rows;
 }
+
+/* مهم‌تر از همه: خروجی زندهٔ خودِ سایت. اگر نمادی آنجا نباشد، هر چه
+   بالادست بدهد بی‌فایده است. */
+echo "── خروجی زندهٔ tabdex.ir/api/rates.php ──\n";
+$live = @file_get_contents('https://tabdex.ir/api/rates.php');
+$liveAssets = is_string($live) ? (json_decode($live, true)['assets'] ?? []) : [];
+printf("  %d دارایی | brent: %s | gasoline: %s\n\n",
+    count($liveAssets),
+    isset($liveAssets['brent']) ? 'هست' : 'نیست',
+    isset($liveAssets['gasoline']) ? 'هست' : 'نیست');
 
 $used = array_merge(mappedSymbols('ASSET_MAP'), mappedSymbols('IME_MAP'));
 printf("نمادهایی که سایت الان استفاده می‌کند: %d\n\n", count($used));
