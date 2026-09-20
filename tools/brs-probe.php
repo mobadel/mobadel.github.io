@@ -106,5 +106,10 @@ foreach ($payloads as $label => $payload) {
         printf("   • %-16s %-34s %14s %s\n", $symbol, mb_substr($name, 0, 34), (string) $price, $unit);
         if (++$shown >= 40) { printf("   … و %d ردیف دیگر\n", count($rows) - $shown); break; }
     }
-    if ($shown === 0) echo "   (همهٔ ردیف‌ها را از قبل داریم)\n";
+    if ($shown === 0 && $rows !== []) echo "   (همهٔ ردیف‌ها را از قبل داریم)\n";
+    if ($rows === []) {
+        /* ۲۰۰ گرفتیم ولی هیچ ردیف آشنایی نبود. یعنی یا پاسخ خالی است یا
+           شکل دیگری دارد؛ ساختارش را نشان می‌دهیم تا معلوم شود کدام. */
+        echo "   ساختار پاسخ: " . mb_substr(preg_replace('/\s+/', ' ', json_encode($payload, JSON_UNESCAPED_UNICODE)), 0, 400) . "\n";
+    }
 }
