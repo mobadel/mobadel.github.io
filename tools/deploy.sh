@@ -14,13 +14,23 @@
 #   export FTP_SERVER=... FTP_USERNAME=... FTP_PASSWORD=... FTP_DIRECTORY=/public_html
 #   bash tools/deploy.sh
 #
-# با --dry-run فقط می‌سازد و فهرست را نشان می‌دهد، چیزی آپلود نمی‌کند.
+# حالت‌ها:
+#   (بدون گزینه)  دیپلوی کامل — همهٔ صفحه‌ها را می‌سازد و آپلود می‌کند
+#   --quick       فقط api/ و assets/ و HTMLهای دست‌نویس؛ چند ثانیه
+#   --dry-run     فقط می‌سازد و فهرست را نشان می‌دهد، آپلود نمی‌کند
 
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
 DRY_RUN=no
-[ "${1:-}" = "--dry-run" ] && DRY_RUN=yes
+QUICK=no
+case "${1:-}" in
+  --dry-run) DRY_RUN=yes ;;
+  # فقط فایل‌های دست‌نویس و API. صفحه‌های تولیدی دست نمی‌خورند، پس وقتی
+  # تغییر در کد است و نه در فهرست دارایی‌ها، چند ثانیه طول می‌کشد به‌جای
+  # چند دقیقه.
+  --quick)   QUICK=yes ;;
+esac
 
 need() {
   [ -n "${!1:-}" ] || { echo "متغیر $1 تعریف نشده." >&2; exit 1; }
@@ -34,8 +44,12 @@ cp .htaccess _site/
 # scripts عمداً کپی نمی‌شود؛ روی سرور فقط سطح حمله اضافه می‌کرد.
 cp -R assets data api price convert _site/
 
-echo "▸ ساخت صفحه‌های جفت‌ها و قیمت"
-node scripts/build-pages.mjs
+if [ "$QUICK" = "yes" ]; then
+  echo "▸ حالت سریع: مولد صفحه‌ها اجرا نمی‌شود"
+else
+  echo "▸ ساخت صفحه‌های جفت‌ها و قیمت"
+  node scripts/build-pages.mjs
+fi
 
 if [ -n "${BRSAPI_KEY:-}" ]; then
   echo "▸ نوشتن config.php"
@@ -68,9 +82,12 @@ echo "▸ آپلود با lftp"
   echo 'set ftp:ssl-auth TLS'
   # گواهی FTPS پارس‌پک زنجیرهٔ کامل ندارد.
   echo 'set ssl:verify-certificate no'
-  echo "mirror --reverse --verbose --parallel=4 --ignore-time _site/ \"$FTP_DIRECTORY\""
+  if [ "$QUICK" != "yes" ]; then
+    echo "mirror --reverse --verbose --parallel=4 --ignore-time _site/ \"$FTP_DIRECTORY\""
+  fi
   # mirror فقط اندازه را می‌بیند، پس تغییر هم‌اندازه بی‌صدا جا می‌ماند.
-  # فایل‌های دست‌نویس بی‌قیدوشرط هم فرستاده می‌شوند.
+  # فایل‌های دست‌نویس بی‌قیدوشرط هم فرستاده می‌شوند — و در حالت سریع
+  # تنها چیزی هستند که فرستاده می‌شوند.
   for file in index.html convert/index.html assets/*.js assets/*.css api/*.php; do
     [ -f "_site/$file" ] || continue
     directory=$(dirname "$file")
