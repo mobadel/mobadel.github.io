@@ -34,9 +34,9 @@
     { id: "emami", name: "سکه امامی", code: "هر عدد", url: "/price/coin/emami/", icon: "/assets/coin-emami.webp?v=20260825-2", source: "proxy" },
     { id: "btc", name: "بیت کوین", code: "BTC", url: "/price/crypto/btc/", icon: "/assets/crypto-icons/btc.svg", source: "usdt" },
     { id: "eur", name: "یورو", code: "EUR", url: "/price/currency/eur/", icon: "/assets/flags/eu.svg", source: "proxy" },
-    // نفت برنت هم از همان پراکسی می‌آید؛ قیمتش دلاری است ولی مثل بقیهٔ
-    // ردیف‌های این جدول تومانی نشان داده می‌شود.
-    { id: "brent", name: "نفت برنت", code: "هر بشکه", url: "/price/energy/brent/", icon: "/assets/crude-oil.svg", source: "proxy" }
+    // نفت برنت هم از همان پراکسی می‌آید، ولی بازارش دلاری است و قیمتش
+    // هم دلاری نشان داده می‌شود؛ تغییرش هم تغییر دلاری است.
+    { id: "brent", name: "نفت برنت", code: "هر بشکه", url: "/price/energy/brent/", icon: "/assets/crude-oil.svg", source: "proxy", currency: "usd" }
   ];
 
   function getJson(url) {
@@ -61,7 +61,9 @@
       var price = NaN; var change = NaN; var unit = "تومان";
       if (definition.source === "proxy") {
         var proxyRow = proxy && proxy.assets && proxy.assets[definition.id];
-        price = Number(proxyRow && proxyRow.toman); change = Number(proxyRow && proxyRow.change);
+        var inUsd = definition.currency === "usd";
+        price = Number(proxyRow && (inUsd ? proxyRow.usd : proxyRow.toman)); change = Number(proxyRow && proxyRow.change);
+        if (inUsd) unit = "دلار";
       } else if (definition.source === "toman") {
         var tomanRow = stats && stats.stats && stats.stats[definition.id + "-rls"];
         price = Number(tomanRow && tomanRow.latest) / 10; change = Number(tomanRow && tomanRow.dayChange);
@@ -79,7 +81,7 @@
       var small = document.createElement("small"); small.textContent = definition.code;
       label.append(strong, small); identity.append(icon, label);
       var priceCell = document.createElement("span"); priceCell.className = "home-market-price";
-      priceCell.textContent = Number.isFinite(price) && price > 0 ? number(price, price < 1 ? 6 : 0) + " " + unit : "ناموجود";
+      priceCell.textContent = Number.isFinite(price) && price > 0 ? number(price, price < 1 ? 6 : unit === "دلار" ? 2 : 0) + " " + unit : "ناموجود";
       var changeCell = document.createElement("span"); changeCell.className = "home-market-change " + (change > 0 ? "positive" : change < 0 ? "negative" : "neutral"); changeCell.textContent = changeText(change);
       link.append(identity, priceCell, changeCell); rows.appendChild(link);
     });
