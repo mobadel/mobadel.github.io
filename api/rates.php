@@ -682,7 +682,9 @@ if ($energyRows === null) {
 }
 
 if (is_array($energyRows)) {
-    foreach ($energyRows as $row) {
+    // کشی که نسخهٔ قبلی نوشته هنوز بخش‌بندی‌شده است؛ مسطح‌سازی روی ردیف
+    // تخت بی‌اثر است، پس کش قدیم و جدید هر دو درست خوانده می‌شوند.
+    foreach (flattenSymbolRows($energyRows) as $row) {
         if (!is_array($row) || !isset($row['symbol'])) {
             continue;
         }

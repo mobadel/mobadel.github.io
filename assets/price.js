@@ -81,7 +81,7 @@
   function rank(asset) { if (asset.group === "crypto") return Number.isFinite(cmcRanks[asset.id]) ? cmcRanks[asset.id] : 999999; return RANK[asset.id] == null ? RANKED.length : RANK[asset.id]; }
   function compareAssets(a, b) { return rank(a) - rank(b) || a.name.localeCompare(b.name, "fa"); }
   function formatNumber(value, digits) { return new Intl.NumberFormat("fa-IR", { maximumFractionDigits: digits == null ? 0 : digits }).format(value); }
-  function formatPrice(value, asset) { return Number.isFinite(value) ? formatNumber(value, asset && asset.group === "crypto" && value >= 1 ? 2 : value < 1 ? 6 : 0) : "ناموجود"; }
+  function formatPrice(value, asset) { return Number.isFinite(value) ? formatNumber(value, asset && (asset.group === "crypto" || asset.priceCurrency === "USD") && value >= 1 ? 2 : value < 1 ? 6 : 0) : "ناموجود"; }
   function priceLabel(asset) { return asset.priceCurrency === "USDT" ? "تتر" : asset.priceCurrency === "USD" ? "دلار" : "تومان"; }
   function formattedPrice(asset) { return formatPrice(asset.price, asset) + " " + priceLabel(asset); }
   function formatChange(value) { if (!Number.isFinite(value)) return "—"; var sign = value > 0 ? "+" : ""; return sign + formatNumber(value, 2) + "٪"; }
