@@ -6,6 +6,9 @@ DirectoryIndex index.html
 <IfModule mod_rewrite.c>
   RewriteEngine On
 
+  # کش پراکسی و لاگ کرون هاست فقط برای خود PHP است، نه برای مرورگر.
+  RewriteRule ^api/cache(?:/|$) - [F,L]
+
   # مسیر قدیمی ارزها به currency منتقل می‌شود؛ صفحه قیمت تومان عمداً حذف شده است.
   RewriteRule ^price/(?:fiat|currency)/irt/?$ - [R=410,L]
   RewriteRule ^price/fiat/?$ /price/currency/ [R=301,L,NE]
