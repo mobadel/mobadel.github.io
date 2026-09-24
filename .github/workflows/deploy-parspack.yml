@@ -4,17 +4,18 @@ on:
   push:
     branches:
       - main
+    # تغییر در مستندات و ابزار و تست‌ها چیزی روی سرور عوض نمی‌کند؛
+    # دیپلوی کامل برایشان فقط دقیقه‌های Actions را می‌سوزاند.
+    paths-ignore:
+      - 'docs/**'
+      - 'tests/**'
+      - 'tools/**'
+      - '**.md'
   workflow_dispatch:
-  schedule:
-    # تور ایمنیِ ثبت نمودار، نه مسیر اصلی. این کامنت قبلاً می‌گفت
-    # «حداقل هر پنج دقیقه»، ولی واقعیت چیز دیگری بود: GitHub کرون‌های
-    # پرتکرار را throttle می‌کند و در عمل هر دو تا پنج ساعت یک‌بار اجرا
-    # می‌شد، آن هم در ساعتی دلخواه که اغلب بیرون از پنجرهٔ بازار بود.
-    # نمودار ۲۴ ساعته با همین روزی یکی دو نقطه پر می‌شد.
-    #
-    # حالا rates.php هر بار که کشش را تازه می‌کند خودش نقطه ثبت می‌کند.
-    # این کرون فقط برای ساعت‌هایی می‌ماند که سایت هیچ بازدیدی ندارد.
-    - cron: '*/5 * * * *'
+  # کرون پنج‌دقیقه‌ای اینجا بود و به‌تنهایی کل سهمیهٔ ۲۰۰۰ دقیقه‌ای پلن
+  # رایگان را می‌خورد: هر اجرا دو جاب، و هر جاب دست‌کم یک دقیقه حساب
+  # می‌شود. ثبت نقطهٔ نمودار حالا با کرون خود هاست (DirectAdmin) است که
+  # واقعاً هر پنج دقیقه اجرا می‌شود و هزینه‌ای از Actions ندارد.
 
 permissions:
   contents: read
@@ -126,7 +127,6 @@ jobs:
       # را بی‌صدا رد می‌کند. گیت دقیقاً می‌داند چه چیزی عوض شده؛ همان
       # فهرست مبنای آپلود اجباری در گام بعد است.
       - name: فهرست فایل‌های تغییرکردهٔ این پوش
-        if: github.event_name != 'schedule'
         shell: bash
         env:
           PUSH_BEFORE: ${{ github.event.before }}
@@ -146,7 +146,6 @@ jobs:
           cat changed-files.txt
 
       - name: Deploy site
-        if: github.event_name != 'schedule'
         timeout-minutes: 18
         shell: bash
         env:
@@ -228,7 +227,6 @@ jobs:
       # وابسته است. صفحه‌های تولیدی از همین قالب‌ها می‌آیند، پس اگر
       # این‌ها درست باشند بقیه هم درست‌اند.
       - name: تأیید انتشار روی سرور
-        if: github.event_name != 'schedule'
         shell: bash
         run: |
           set -uo pipefail
@@ -251,19 +249,3 @@ jobs:
             exit 1
           fi
           echo "همهٔ فایل‌های کلیدی روی سرور با این دیپلوی یکی هستند."
-
-  capture-market-history:
-    if: github.event_name == 'schedule'
-    name: Capture market chart snapshots
-    runs-on: ubuntu-latest
-    steps:
-      - name: ثبت اسنپ‌شات نمودارهای بازار
-        shell: bash
-        env:
-          HISTORY_CAPTURE_TOKEN: ${{ secrets.HISTORY_CAPTURE_TOKEN }}
-        run: |
-          set -euo pipefail
-          curl --fail --silent --show-error --max-time 25 'https://tabdex.ir/api/rates.php' > /dev/null
-          curl --fail --silent --show-error --max-time 25 \
-            -H "X-Tabdex-Internal-Key: $HISTORY_CAPTURE_TOKEN" \
-            'https://tabdex.ir/api/history.php?capture=1'

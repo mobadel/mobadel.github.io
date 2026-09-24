@@ -144,7 +144,9 @@ const EXTRA_PAIRS = [
   ["gold18", "usd"], ["usd", "gold18"],
   ["goldounce", "gold18"], ["gold18", "goldounce"],
   ["eur", "usd"], ["usd", "eur"],
-  ["emami", "usd"], ["gold18", "eur"]
+  ["emami", "usd"], ["gold18", "eur"],
+  // انرژی در بازار دلاری معامله می‌شود؛ تبدیل به دلار جفت اصلی آن است.
+  ["brent", "usd"], ["gasoline", "usd"]
 ];
 
 function buildPairs() {

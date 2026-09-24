@@ -2,11 +2,13 @@ name: Checks
 
 # api/rates.php روی سرور اجرا می‌شود و خطای نحوی در آن یعنی ۵۰۰ شدن
 # کل اندپوینت نرخ. تا پیش از این هیچ‌جا بررسی نمی‌شد.
+# فقط روی PR: قبلاً هر پوش به هر برنچ هم اجرا می‌شد و هر PR دوبار
+# دقیقه مصرف می‌کرد. مستندات هم چیزی برای بررسی ندارند.
 on:
-  push:
-    branches-ignore:
-      - main
   pull_request:
+    paths-ignore:
+      - 'docs/**'
+      - '**.md'
 
 permissions:
   contents: read

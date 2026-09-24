@@ -229,8 +229,8 @@ assert.match(styles, /@media\(max-width:600px\)[\s\S]*\.brand-mark,\.brand-mark 
 assert.doesNotMatch(script, /cdn\.nobitex\.ir/, "آیکون‌ها نباید از CDN نوبیتکس خوانده شوند");
 assert.match(styles, /@media\(max-width:600px\)/, "نمای موبایل لازم است");
 assert.match(styles, /\.category-card-icon\{[^}]*border-radius:50%/, "آیکون دسته‌ها باید گرد باشد");
-assert.match(script, /heroIcon\.classList\.toggle\("is-full-bleed", group === "gold" \|\| group === "commodity"\)/, "آیکون بزرگ دسته طلا و فلزات باید تمام دایره را پر کند");
-assert.match(script, /icon\.classList\.toggle\("is-full-bleed", asset\.group === "gold" \|\| asset\.group === "commodity"\)/, "آیکون صفحه تکی طلا و فلزات باید تمام دایره را پر کند");
+assert.match(script, /heroIcon\.classList\.toggle\("is-full-bleed", group === "gold" \|\| group === "commodity" \|\| group === "energy"\)/, "آیکون بزرگ دسته طلا، فلزات و انرژی باید تمام دایره را پر کند");
+assert.match(script, /icon\.classList\.toggle\("is-full-bleed", asset\.group === "gold" \|\| asset\.group === "commodity" \|\| asset\.group === "energy"\)/, "آیکون صفحه تکی طلا، فلزات و انرژی باید تمام دایره را پر کند");
 assert.match(styles, /\.asset-main-icon\.is-full-bleed \.asset-main-icon-inner[^}]*width:100%;height:100%/, "ظرف داخلی آیکون full-bleed باید هم‌اندازه دایره باشد");
 
 assert.match(script, /GROUP_SLUGS = \{ fiat: "currency" \}/, "مسیر عمومی ارز باید currency باشد");
