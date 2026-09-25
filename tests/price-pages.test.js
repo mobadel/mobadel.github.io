@@ -299,4 +299,11 @@ assert.match(builder, /پایان بخش pair-content پیدا نشد/, "نبو�
 assert.match(converter, /<p id="pair-content-rate">[\s\S]*?<\/p>\s*<p>[\s\S]*?<\/p>\s*<\/section>/,
   "قالب مبدل باید جای تزریق متن اختصاصی را داشته باشد");
 
+// همهٔ صفحه‌های تولیدی از همین پنج قالب می‌آیند؛ قالبی که تگ گوگل را جا
+// بیندازد، کل صفحه‌های آن نوع را از آنالیتیکس بیرون می‌گذارد.
+for (const [name, html] of Object.entries({ home, converter, hub, category, asset })) {
+  assert.match(html, /<head>\s*<!-- Google tag \(gtag\.js\) -->\s*<script async src="https:\/\/www\.googletagmanager\.com\/gtag\/js\?id=G-QPX0JKFJV0"><\/script>/, `${name}: تگ گوگل باید اول head باشد`);
+  assert.match(html, /gtag\('config', 'G-QPX0JKFJV0'\);/, `${name}: gtag باید با شناسهٔ تبدکس پیکربندی شود`);
+}
+
 console.log("price page tests passed");
