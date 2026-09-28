@@ -22,27 +22,49 @@ const UPSTREAM_URL     = 'https://api.brsapi.ir/Market/Gold_Currency.php';
    تسویه می‌شود، نه لحظه‌ای. پس کش خیلی طولانی‌تری می‌گیرد.
 
    سهمیهٔ رایگان BrsApi روی همهٔ سرویس‌هایش روی‌هم ۱۵۰۰ درخواست در روز
-   است و این عدد از همان بودجه کم می‌کند. چون داده‌اش روزی یک‌بار عوض
-   می‌شود، ۱۵ دقیقه‌ای گرفتنش فقط سهمیه هدر می‌داد؛ با نیم‌ساعت حدود
-   ۴۸ درخواست می‌شود و جا برای تازه‌سازیِ یک‌دقیقه‌ای نرخ‌های لحظه‌ای
-   باز می‌کند. */
-const IME_CACHE_TTL = 1800;
-const IME_URL       = 'https://api.brsapi.ir/IME/Certificate.php';
+   است و این عدد از همان بودجه کم می‌کند.
+
+   نیم‌ساعتِ ثابت شبانه‌روز ۴۸ درخواست می‌برد، ولی بورس کالا فقط شنبه
+   تا چهارشنبه ۱۲ تا ۱۸ باز است. بیرون از آن پنجره گواهی سپرده اصلاً
+   تغییر نمی‌کند، پس پرسیدنش فقط بودجهٔ نرخ‌های لحظه‌ای را می‌خورد.
+   با پنجره‌آگاه شدن حدود ۱۵ درخواست می‌شود. */
+const IME_TTL_OPEN   = 1800;
+const IME_TTL_CLOSED = 21600;
+const IME_URL        = 'https://api.brsapi.ir/IME/Certificate.php';
+
+function imeTtl(): int
+{
+    $now = new DateTimeImmutable('now', new DateTimeZone('Asia/Tehran'));
+    /* شنبه=۶، یکشنبه=۷، دوشنبه=۱ … چهارشنبه=۳ */
+    $open = in_array((int) $now->format('N'), [6, 7, 1, 2, 3], true)
+        && (int) $now->format('G') >= 12
+        && (int) $now->format('G') < 18;
+
+    return $open ? IME_TTL_OPEN : IME_TTL_CLOSED;
+}
 
 /* ── عمر کش بر اساس ساعت بازار ───────────────────────────────────
    TTL ثابتِ ۳۰۰ ثانیه دو جا اشتباه بود: در ساعات بازار برای کاربر
    کند بود، و شب و جمعه که هیچ نرخی تکان نمی‌خورد سهمیه را الکی
    می‌سوزاند. حالا همان بودجه جایی خرج می‌شود که ارزش دارد.
 
+   زیر ۶۰ ثانیه رفتن بی‌فایده است: خود BrsApi زمان هر نرخ را با دقت
+   دقیقه می‌دهد ("time":"12:31")، پس تازه‌سازی سریع‌تر از منبع فقط
+   سهمیه می‌سوزاند بی‌آنکه عدد تازه‌ای بیاورد. بنابراین بودجه صرف
+   پهن‌تر کردن پنجرهٔ یک‌دقیقه‌ای می‌شود، نه کوتاه‌تر کردن دوره.
+
    حساب بدترین روز (شنبه تا پنجشنبه):
-     ۰۹:۰۰–۱۹:۰۰  ۶۰ ثانیه  → ۶۰۰ درخواست
-     ۰۷:۰۰–۰۹:۰۰ و ۱۹:۰۰–۲۳:۰۰  ۱۸۰ ثانیه → ۱۲۰
-     بقیهٔ ساعات  ۶۰۰ ثانیه → ۴۸
-   جمعاً ~۷۶۸ به‌علاوهٔ ~۴۸ تای بورس کالا ≈ ۸۱۶ از سقف ۱۵۰۰ رایگان.
-   این سقفِ نظری است؛ تازه‌سازی فقط وقتی رخ می‌دهد که درخواستی برسد. */
+     ۰۸:۰۰–۲۰:۰۰  ۶۰ ثانیه  → ۷۲۰ درخواست
+     ۰۷:۰۰–۰۸:۰۰ و ۲۰:۰۰–۲۳:۰۰  ۱۲۰ ثانیه → ۱۲۰
+     بقیهٔ ساعات  ۹۰۰ ثانیه → ۳۲
+   جمعاً ~۸۷۲، به‌علاوهٔ ~۱۵ بورس کالا و ~۹۰ انرژی ≈ ۹۷۷ از ۱۵۰۰.
+
+   حساب قبلی انرژی را جا انداخته بود و ~۸۱۶ می‌گفت در حالی که واقعیت
+   ~۹۵۰ بود؛ همین جا افتادن یک اندپوینت از بودجه، دو بار کلید را به
+   سقف رساند. هر اندپوینت تازه باید به این جمع اضافه شود. */
 const TTL_MARKET   = 60;
-const TTL_SHOULDER = 180;
-const TTL_CLOSED   = 600;
+const TTL_SHOULDER = 120;
+const TTL_CLOSED   = 900;
 
 function marketTtl(): int
 {
@@ -53,7 +75,7 @@ function marketTtl(): int
     if ($now->format('N') === '5') {
         return TTL_CLOSED;
     }
-    if ($hour >= 9 && $hour < 19) {
+    if ($hour >= 8 && $hour < 20) {
         return TTL_MARKET;
     }
     if ($hour >= 7 && $hour < 23) {
@@ -72,8 +94,25 @@ function marketTtl(): int
    شمارش به تاریخ تهران گره خورده و نه UTC، چون نیمه‌شب تهران مرزی
    است که خودمان با آن فکر می‌کنیم. */
 const QUOTA_FILE       = __DIR__ . '/cache/quota.json';
-const QUOTA_SOFT_LIMIT = 1200;
+
+/* دو مرحله، و مرحلهٔ دوم واقعاً متوقف می‌کند.
+
+   نسخهٔ قبلی فقط یک سقف نرم داشت که TTL را به ۳۰۰ می‌برد ولی همچنان
+   ادامه می‌داد — یعنی سقف مؤثرش ۱۲۰۰ + ۲۸۸ ≈ ۱۴۸۸ در برابر محدودیت
+   ۱۵۰۰ می‌شد. دوازده درخواست فاصله، ترمز نیست؛ لبهٔ پرتگاه است.
+
+   حالا از QUOTA_SOFT_LIMIT کند می‌شود و از QUOTA_HARD_LIMIT به بعد
+   هیچ تماسی با بالادست گرفته نمی‌شود و کش سرو می‌شود. قیمتِ کمی کهنه
+   بی‌نهایت بهتر از کلیدِ مسدود است: مسدودی با ریست روزانه باز نمی‌شود
+   و فقط پشتیبانی BrsApi رفعش می‌کند — دو بار این را دیدیم. */
+const QUOTA_SOFT_LIMIT = 1050;
+const QUOTA_HARD_LIMIT = 1300;
 const TTL_THROTTLED    = 300;
+
+function quotaExhausted(): bool
+{
+    return quotaToday() >= QUOTA_HARD_LIMIT;
+}
 
 function tehranToday(): string
 {
@@ -125,7 +164,7 @@ const COMMODITY_URL = 'https://api.brsapi.ir/Market/Commodity.php';
 /* بازار باز ده دقیقه، بسته یک ساعت. نفت آن‌قدر پرنوسان نیست که ارزش
    تازه‌سازی دقیقه‌ای داشته باشد، و سهمیه هم باید برای نرخ‌های ایرانی
    بماند که کاربر لحظه‌ای دنبالشان است. */
-const ENERGY_TTL_OPEN   = 600;
+const ENERGY_TTL_OPEN   = 900;
 const ENERGY_TTL_CLOSED = 3600;
 
 const ENERGY_MAP = [
@@ -414,6 +453,7 @@ function serveStale(?array $cached, string $reason): never
     if ($cached !== null) {
         $cached['stale']  = true;
         $cached['reason'] = $reason;
+        $cached['quota']  = ['used' => quotaToday(), 'limit' => QUOTA_HARD_LIMIT];
         echo json_encode($cached, JSON_UNESCAPED_UNICODE);
     } else {
         http_response_code(503);
@@ -421,6 +461,7 @@ function serveStale(?array $cached, string $reason): never
             'updated' => null,
             'stale'   => true,
             'reason'  => $reason,
+            'quota'   => ['used' => quotaToday(), 'limit' => QUOTA_HARD_LIMIT],
             'assets'  => new stdClass(),
         ], JSON_UNESCAPED_UNICODE);
     }
@@ -437,9 +478,20 @@ if ($blockedUntil > time()) {
     serveStale($cached, 'backoff ' . $blockedReason);
 }
 
+if (quotaExhausted()) {
+    serveStale($cached, 'quota_exhausted ' . quotaToday() . '/' . QUOTA_HARD_LIMIT);
+}
+
 $lock = acquireRefreshLock();
 if ($lock === false) {
     serveStale($cached, 'refresh_in_progress');
+}
+/* قفل ساخته نشد. با کشِ موجود، کهنه سرو کردن بهتر از تازه‌سازی بی‌قفل
+   است — بی‌قفل یعنی هر درخواستِ هم‌زمان جدا به بالادست می‌زند و همین
+   بود که بار اول سهمیه را سوزاند. اگر هنوز هیچ کشی نداریم چاره‌ای جز
+   ادامه نیست، وگرنه سایت هیچ‌وقت راه نمی‌افتد. */
+if ($lock === null && $cached !== null) {
+    serveStale($cached, 'refresh_lock_unavailable');
 }
 
 countUpstreamCall();
@@ -554,7 +606,7 @@ if (is_readable($imeCacheFile)) {
         $imeDecoded = json_decode($imeRaw, true);
         if (is_array($imeDecoded) && isset($imeDecoded['data'])) {
             $imeAge = time() - (int) ($imeDecoded['fetched_unix'] ?? 0);
-            if ($imeAge >= 0 && $imeAge < IME_CACHE_TTL) {
+            if ($imeAge >= 0 && $imeAge < imeTtl()) {
                 $imeRows = $imeDecoded['data'];
             }
         }
@@ -564,6 +616,7 @@ if (is_readable($imeCacheFile)) {
 if ($imeRows === null) {
     /* همان کلید و همان سهمیه؛ پس همان عقب‌نشینی. */
     [$imeBlockedUntil] = backoffUntil($key);
+    $imeBlockedUntil = quotaExhausted() ? PHP_INT_MAX : $imeBlockedUntil;
     $imeResult = $imeBlockedUntil > time()
         ? ['body' => false, 'code' => 0, 'effective' => '', 'hops' => 0, 'error' => 'backoff']
         : (static function () use ($key) {
@@ -651,6 +704,7 @@ if (is_readable($energyCacheFile)) {
 if ($energyRows === null) {
     /* همان کلید و همان سهمیه، پس همان عقب‌نشینی. */
     [$energyBlockedUntil] = backoffUntil($key);
+    $energyBlockedUntil = quotaExhausted() ? PHP_INT_MAX : $energyBlockedUntil;
     $energyResult = $energyBlockedUntil > time()
         ? ['body' => false, 'code' => 0, 'effective' => '', 'hops' => 0, 'error' => 'backoff']
         : (static function () use ($key) {
@@ -731,6 +785,10 @@ $result = [
     'source_updated' => $latest > 0 ? gmdate('c', $latest) : null,
     'fetched_unix'   => time(),
     'ttl'            => $ttl,
+    /* مصرف امروز در خودِ پاسخ می‌آید. پوشهٔ کش از راه وب بسته است و
+       وقتی کلید مسدود شد هیچ راهی نبود بفهمیم شمارنده کجاست — بدون
+       این عدد، علت فقط حدس می‌ماند. حساس نیست. */
+    'quota'          => ['used' => quotaToday(), 'limit' => QUOTA_HARD_LIMIT],
     'stale'          => false,
     'assets'         => $assets,
 ];
