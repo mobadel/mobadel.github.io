@@ -59,6 +59,9 @@ jobs:
       # صفحه‌های ایستای جفت‌های پرجستجو و سایت‌مپ. بقیهٔ آدرس‌ها از راه
       # بازنویسی در .htaccess کار می‌کنند. sitemap.xml را بازنویسی
       # می‌کند، پس باید بعد از کپی بالا اجرا شود.
+      - name: Capture public rates for initial HTML
+        run: node scripts/capture-seo-rates.mjs
+
       - name: ساخت صفحه‌های جفت‌ها
         shell: bash
         run: |
