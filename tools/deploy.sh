@@ -48,6 +48,7 @@ if [ "$QUICK" = "yes" ]; then
   echo "▸ حالت سریع: مولد صفحه‌ها اجرا نمی‌شود"
 else
   echo "▸ ساخت صفحه‌های جفت‌ها و قیمت"
+  node scripts/capture-seo-rates.mjs
   node scripts/build-pages.mjs
 fi
 

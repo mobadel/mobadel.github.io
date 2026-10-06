@@ -148,7 +148,7 @@ assert.match(script, /CATEGORY_ORDER = \["fiat", "gold", "coin", "commodity", "e
 // می‌رود.
 assert.match(ratesApi, /'BRENT'\s*=>\s*\['id' => 'brent'/, "نفت برنت باید از Commodity نگاشت شود");
 assert.match(ratesApi, /'RBOB'\s*=>\s*\['id' => 'gasoline'/, "بنزین باید از Commodity نگاشت شود");
-assert.match(ratesApi, /ENERGY_TTL_OPEN\s*=\s*600/, "در ساعات باز بازار انرژی هر ده دقیقه کافی است");
+assert.match(ratesApi, /ENERGY_TTL_OPEN\s*=\s*900/, "در ساعات باز بازار انرژی هر پانزده دقیقه کافی است");
 assert.match(ratesApi, /ENERGY_TTL_CLOSED\s*=\s*3600/, "بازار بستهٔ انرژی نباید سهمیه مصرف کند");
 // پاسخ Commodity بخش‌بندی‌شده است (metal_precious، metal_base، energy) و
 // نه تخت. یک‌بار همین باعث شد دستهٔ انرژی خالی منتشر شود.

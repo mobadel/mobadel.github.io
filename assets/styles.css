@@ -668,3 +668,5 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
   .home-market-change { grid-column: 2; grid-row: 2; justify-self: end; font-size: 13px; }
   .site-footer { width: min(100% - 24px,720px); }
 }
+
+.seo-content{margin:28px auto;padding:24px;max-width:1040px;border:1px solid var(--border);border-radius:20px;background:var(--surface,#fff);line-height:2}.seo-content h2{font-size:22px}.seo-content h3{font-size:18px}.seo-content a{color:#126345}.seo-content ul{display:flex;flex-wrap:wrap;gap:8px 28px;padding-inline-start:24px}.seo-content li{max-width:100%}.seo-content .saved-quote{font-size:14px;color:var(--muted,#52605a)}

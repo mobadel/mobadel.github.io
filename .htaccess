@@ -6,6 +6,9 @@ DirectoryIndex index.html
 <IfModule mod_rewrite.c>
   RewriteEngine On
 
+  RewriteCond %{HTTP_HOST} ^www\.tabdex\.ir$ [NC]
+  RewriteRule ^ https://tabdex.ir%{REQUEST_URI} [R=301,L,NE]
+
   # کش پراکسی و لاگ کرون هاست فقط برای خود PHP است، نه برای مرورگر.
   RewriteRule ^api/cache(?:/|$) - [F,L]
 

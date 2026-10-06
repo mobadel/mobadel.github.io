@@ -237,7 +237,9 @@
     return "";
   }
   function renderAsset() {
-    var group = categoryFromPath(); var id = idFromSlug(assetSlugFromPath()); var category = CATEGORIES[group]; var asset = assets[id]; if (!category || !asset || asset.group !== group || !Number.isFinite(asset.price)) return renderNotFound("قیمت این دارایی در دسترس نیست");
+    var group = categoryFromPath(); var id = idFromSlug(assetSlugFromPath()); var category = CATEGORIES[group]; var asset = assets[id]; if (!category || (asset && asset.group !== group)) return renderNotFound("این مسیر قیمت معتبر نیست");
+    if (!asset || !Number.isFinite(asset.price)) return renderUnavailable();
+    setMeta("name", "robots", "index, follow, max-image-preview:large");
     var path = assetUrl(asset); var title = "قیمت لحظه ای " + asset.name + " امروز " + todayLabel(); var description = descriptionFor(asset); setDocumentMeta(title, description, path);
     var categoryLink = document.getElementById("asset-category-link"); if (categoryLink) { categoryLink.href = categoryUrl(group); categoryLink.textContent = category.name; }
     text(document.getElementById("asset-crumb"), asset.name); text(document.getElementById("asset-title"), "قیمت " + asset.name); var english = document.getElementById("asset-english"); if (english) { var subtitle = assetSubtitle(asset); english.hidden = !subtitle; text(english, subtitle); }
@@ -250,6 +252,11 @@
     var converter = document.getElementById("asset-converter-link"); if (converter) { converter.href = "/convert/" + slugOf(asset.id) + (asset.group === "energy" ? "-to-usd/" : "-to-irt/"); converter.textContent = "مبدل قیمت " + asset.name + " "; var converterArrow = document.createElement("span"); converterArrow.className = "icon-chevron"; converterArrow.setAttribute("aria-hidden", "true"); converter.appendChild(converterArrow); }
     var measured = [{ "@type": "PropertyValue", name: "قیمت به " + priceLabel(asset), value: asset.price, unitText: priceLabel(asset) }, { "@type": "PropertyValue", name: "تغییر ۲۴ ساعته", value: Number.isFinite(asset.change) ? asset.change : null, unitText: "درصد" }]; if (Number.isFinite(asset.tomanPrice)) measured.push({ "@type": "PropertyValue", name: "قیمت تومانی", value: asset.tomanPrice, unitText: "تومان" }); var dataset = { "@type": "Dataset", name: "قیمت لحظه ای " + asset.name, description: description, url: ORIGIN + path, dateModified: (asset.updatedAt || latestUpdate || new Date()).toISOString(), variableMeasured: measured };
     setSchema([{ "@type": "WebPage", "@id": ORIGIN + path + "#page", name: title.replace(" | تبدکس", ""), description: description, url: ORIGIN + path, inLanguage: "fa-IR", about: { "@type": "Thing", name: asset.name, alternateName: asset.code || asset.englishName }, mainEntity: { "@id": ORIGIN + path + "#dataset" } }, breadcrumb([{ name: "تبدکس", path: "/" }, { name: "قیمت‌ها", path: "/price/" }, { name: category.name, path: categoryUrl(group) }, { name: asset.name, path: path }]), Object.assign({ "@id": ORIGIN + path + "#dataset" }, dataset)]);
+  }
+
+  function renderUnavailable() {
+    var freshness = document.getElementById("asset-freshness");
+    text(freshness, "دریافت نرخ تازه موقتاً ممکن نیست؛ نرخ ذخیره‌شده، اگر موجود باشد، نرخ لحظه‌ای نیست.");
   }
 
   function renderNotFound(message) {

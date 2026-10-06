@@ -160,7 +160,7 @@ function buildPairs() {
     pairs.push([from, to]);
   };
   for (const id of WITH_TOMAN) { add(id, "irt"); add("irt", id); }
-  for (const [from, to] of EXTRA_PAIRS) add(from, to);
+  for (const [from, to] of EXTRA_PAIRS) { add(from, to); add(to, from); }
   return pairs;
 }
 
@@ -260,8 +260,8 @@ function metaFor(from, to) {
     toName: to.name,
     fromSlug: from.slug,
     toSlug: to.slug,
-    title: `${heading} امروز ${date} | مبدل قیمت`,
-    description: `${heading} با قیمت لحظه ای امروز ${date}. مبدل نرخ ${from.name} به ${to.name}.`,
+    title: `${heading} | مبدل قیمت`,
+    description: `${heading} با نرخ مرجع بازار. مبدل نرخ ${from.name} به ${to.name}.`,
     path: `/convert/${from.slug}-to-${to.slug}/`
   };
 }
@@ -293,6 +293,11 @@ function renderPage(template, meta) {
     html = html.replace(pattern, replacement);
   }
 
+  for (const [side, slug, name] of [["from", meta.fromSlug, meta.fromName], ["to", meta.toSlug, meta.toName]]) {
+    const pattern = new RegExp('(<button[^>]*id="currency-' + side + '"[^>]*>)[\\s\\S]*?(</button>)');
+    html = html.replace(pattern, `$1<span class="currency-text"><strong>${esc(slug.toUpperCase())}</strong><small>${esc(name)}</small></span>$2`);
+  }
+
   /* متن اختصاصی زیر بندِ عمومی پایان بخش می‌نشیند تا سه بند بالایی که
      app.js با نرخ لحظه ای بازنویسی‌شان می‌کند دست‌نخورده بمانند. */
   const extra = PAIR_CONTENT[`${meta.fromSlug}-to-${meta.toSlug}`];
@@ -305,7 +310,7 @@ function renderPage(template, meta) {
   }
 
   // مسیرهای نسبی یک سطح عمیق‌تر می‌شوند، پس مطلقشان می‌کنیم.
-  return html
+  return enrichPage(html, meta.path)
     .replace(/(src|href)="assets\//g, '$1="/assets/')
     .replace(/(src|href)="data\//g, '$1="/data/');
 }
@@ -351,8 +356,8 @@ function priceAssetMeta(group, slug, name) {
   const category = PRICE_CATEGORIES[group];
   const date = todayLabel();
   return {
-    title: `قیمت لحظه ای ${name} امروز ${date}`,
-    description: `قیمت لحظه ای ${name} امروز ${date}، میزان تغییر قیمت و اطلاعات بازار ${name}.`,
+    title: `قیمت لحظه ای ${name} امروز`,
+    description: `قیمت لحظه ای ${name} امروز، میزان تغییر قیمت و اطلاعات بازار ${name}.`,
     path: `/price/${group}/${slug}/`,
     slots: [
       [/(<h1 id="asset-title">)[^<]*(<\/h1>)/, `$1قیمت ${name}$2`],
@@ -368,8 +373,8 @@ function priceCategoryMeta(group) {
   const category = PRICE_CATEGORIES[group];
   const date = todayLabel();
   return {
-    title: `قیمت لحظه ای ${category.name} امروز ${date}`,
-    description: `فهرست قیمت لحظه ای ${category.name} امروز ${date}. مشاهده قیمت و تغییرات ۲۴ ساعته.`,
+    title: `قیمت لحظه ای ${category.name} امروز`,
+    description: `فهرست قیمت لحظه ای ${category.name} امروز. مشاهده قیمت و تغییرات ۲۴ ساعته.`,
     path: `/price/${group}/`,
     slots: [
       [/(<h1 id="category-title">)[^<]*(<\/h1>)/, `$1قیمت لحظه ای ${category.name}$2`],
@@ -378,9 +383,66 @@ function priceCategoryMeta(group) {
   };
 }
 
+const snapshots = {};
+try {
+  const history = JSON.parse(await readFile(resolve(ROOT, "data/market-history.json"), "utf8"));
+  for (const [id, points] of Object.entries(history.assets || {})) {
+    const point = points.reduce((a, b) => !a || b[0] > a[0] ? b : a, null);
+    if (point && Number.isFinite(point[1]) && point[1] > 0) snapshots[id] = { toman: point[1], at: new Date(point[0] * 1000).toISOString() };
+  }
+} catch (error) { if (error.code !== "ENOENT") throw error; }
+try { Object.assign(snapshots, JSON.parse(await readFile(resolve(SITE, "data/seo-rates.json"), "utf8"))); }
+catch (error) { if (error.code !== "ENOENT") throw error; }
+
+function esc(value) { return String(value).replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll('"', "&quot;"); }
+function assetForSlug(slug) { return Object.values(ASSETS).find(a => a.slug === slug); }
+function groupFor(slug) { return Object.entries(PRICE_GROUPS).find(([, ids]) => ids.includes(slug))?.[0] || "crypto"; }
+function assetLink(slug) { const a = assetForSlug(slug); return `<a href="/price/${groupFor(slug)}/${slug}/">قیمت ${esc(a?.name || cryptoName([...TOP_CRYPTO, ...INDEXED_CRYPTO].find(id => cryptoSlug(id) === slug) || slug))}</a>`; }
+function savedQuote(slug) {
+  const id = Object.keys(ASSETS).find(id => ASSETS[id].slug === slug) || [...TOP_CRYPTO, ...INDEXED_CRYPTO].find(id => cryptoSlug(id) === slug) || slug;
+  const row = snapshots[id];
+  if (!row || !Number.isFinite(row.toman) || row.toman <= 0 || !Number.isFinite(Date.parse(row.at))) return "";
+  const date = new Intl.DateTimeFormat("fa-IR", {timeZone:"Asia/Tehran", dateStyle:"medium", timeStyle:"short"}).format(new Date(row.at));
+  return `<p class="saved-quote">نرخ ذخیره‌شده: ${new Intl.NumberFormat("fa-IR", {maximumFractionDigits: 4}).format(row.toman)} تومان؛ زمان دریافت یا ثبت داده: <time datetime="${esc(row.at)}">${date}</time>. این عدد نرخ لحظه‌ای نیست؛ نرخ تازه در بالای صفحه نمایش داده می‌شود.</p>`;
+}
+const GROUP_HELP = {
+  currency: ["این نرخ متعلق به چه بازاری است؟", "نرخ ارز از سرویس BrsApi دریافت می‌شود. نرخ نمایش‌داده‌شده را با قیمت خرید، فروش، حواله یا نرخ رسمی یکسان نگیرید؛ پیش از پرداخت، نوع نرخ و کارمزد را از ارائه‌دهنده معامله بپرسید. یک تومان برابر ده ریال است. نرخ ین در این سایت برای یکصد ین نمایش داده می‌شود."],
+  gold: ["وزن و عیار طلا چه اثری در محاسبه دارد؟", "طلای ۱۸ و ۲۴ عیار به گرم، طلای آب‌شده به مثقال و انس جهانی با واحد انس نمایش داده می‌شوند. محاسبه ارزش وزن طلا با قیمت هر واحد انجام می‌شود؛ این برآورد قیمت نهایی زیورآلات نیست و اجرت، سود فروشنده و هزینه‌های معامله را محاسبه نمی‌کند."],
+  coin: ["قیمت سکه با ارزش طلای آن چه تفاوتی دارد؟", "واحد قیمت سکه یک عدد از همان نوع سکه است. سکه امامی، بهار آزادی، نیم، ربع و یک‌گرمی قیمت‌های جدا دارند؛ قیمت سکه ممکن است با ارزش طلای داخل آن متفاوت باشد. نرخ مرجع، قیمت قطعی خرید یا فروش فروشنده نیست."],
+  commodity: ["این نرخ فلز مربوط به کدام واحد است؟", "نقره ۹۹۹ در این سایت به گرم و مس به کیلوگرم نمایش داده می‌شوند و منبع داده گواهی سپرده بورس کالا از طریق BrsApi است. این نرخ را با قیمت مصنوعات، مس مصرفی یا فلز دارای عیار متفاوت یکسان نگیرید. در توقف منبع، زمان داده ذخیره‌شده را بررسی کنید."],
+  energy: ["نرخ انرژی چه چیزی را اندازه می‌گیرد؟", "نفت برنت به دلار برای هر بشکه و بنزین آمریکا (RBOB) به دلار برای هر گالن نمایش داده می‌شوند. این ارقام نرخ بازار جهانی انرژی هستند و قیمت بنزین جایگاه‌های ایران یا قیمت تحویل محلی را نشان نمی‌دهند."],
+  crypto: ["قیمت تومانی و تتری چرا متفاوت است؟", "نرخ رمزارز از آخرین معامله در بازار عمومی نوبیتکس دریافت می‌شود. بازار تومان و بازار تتر سفارش‌های جدا دارند؛ به همین دلیل نرخ تومانی الزاماً برابر حاصل‌ضرب قیمت تتری در قیمت تتر نیست. آخرین معامله نیز تضمین قیمت اجرای سفارش جدید نیست."]
+};
+function enrichPage(html, path) {
+  // A persistent section is outside the slots refreshed by live JavaScript.
+  let content = "";
+  const match = /^\/price\/(\w+)\/([^/]+)\/$/.exec(path);
+  const pair = /^\/convert\/([a-z0-9]+)-to-([a-z0-9]+)\/$/.exec(path);
+  if (match) {
+    const [, group, slug] = match; const help = GROUP_HELP[group];
+    content = `<h2>${help[0]}</h2><p>${help[1]}</p>${savedQuote(slug)}<p><a href="/convert/${slug}-to-${group === "energy" ? "usd" : "irt"}/">محاسبه ارزش این دارایی</a></p>`;
+    html = html.replace(/(<a class="converter-link" id="asset-converter-link" href=")[^"]*/, `$1/convert/${slug}-to-${group === "energy" ? "usd" : "irt"}/`);
+  } else if (pair) {
+    const [, from, to] = pair; const a = assetForSlug(from), b = assetForSlug(to);
+    const nameA = esc(a.name), nameB = esc(b.name);
+    content = `<h2>روش محاسبه ${nameA} به ${nameB}</h2><p>مقدار مبدأ × نرخ تومانی هر واحد مبدأ ÷ نرخ تومانی هر واحد مقصد = مقدار معادل مقصد. نرخ تومان در این فرمول یک است. برای مثال با نرخ فرضی ۱۰۰ تومان برای مبدأ و ۲۰۰ تومان برای مقصد، ۱۰ واحد مبدأ معادل ۵ واحد مقصد است؛ این مثال نرخ واقعی بازار نیست.</p><p>${GROUP_HELP[groupFor(from === "irt" ? to : from)][1]}</p><p>این ابزار ارزش معادل را محاسبه می‌کند و خرید، فروش یا انتقال دارایی انجام نمی‌دهد. نتیجه شامل اختلاف خرید و فروش و کارمزد معامله نیست. واحد انتخاب‌شده کنار نام دارایی را بررسی کنید.</p><nav aria-label="قیمت‌ها و تبدیل مرتبط"><ul>${[from,to].filter(x=>x!=="irt").map(x=>`<li>${assetLink(x)}</li>`).join("")}<li><a href="/convert/${to}-to-${from}/">تبدیل ${nameB} به ${nameA}</a></li></ul></nav>`;
+  } else if (path.startsWith("/price/")) {
+    const group = path.split("/")[2];
+    const list = group ? (group === "crypto" ? [...TOP_CRYPTO,...INDEXED_CRYPTO].map(cryptoSlug) : PRICE_GROUPS[group] || []) : ["usd","gold18","emami","btc","usdt","eur"];
+    content = `<h2>دسترسی به صفحات قیمت</h2><ul>${list.map(slug=>`<li>${assetLink(slug)}</li>`).join("")}</ul>`;
+  } else {
+    content = `<h2>تبدیل‌های پرکاربرد</h2><ul>${["gold18-to-eur","afn-to-irt","irt-to-iqd","usd-to-irt","aed-to-irt"].map(slug=>{const [a,b]=slug.split("-to-");return `<li><a href="/convert/${slug}/">تبدیل ${esc(assetForSlug(a).name)} به ${esc(assetForSlug(b).name)}</a></li>`;}).join("")}</ul>`;
+  }
+  return html.replace(/<\/main>/, `<section class="seo-content" aria-label="راهنما و صفحات مرتبط">${content}<p><a href="/methodology/">منابع داده و روش محاسبه تبدکس</a></p></section></main>`);
+}
+
 const template = await readFile(resolve(ROOT, "convert", "index.html"), "utf8");
 const assetTemplate = await readFile(resolve(ROOT, "price", "asset.html"), "utf8");
 const categoryTemplate = await readFile(resolve(ROOT, "price", "category.html"), "utf8");
+for (const slug of ["cake", "hype", "safe"]) {
+  ASSETS[slug] = { slug, name: cryptoName(slug) };
+  WITH_TOMAN.push(slug);
+}
 const pairs = buildPairs();
 const today = new Date().toISOString().slice(0, 10);
 const urls = [`  <url>\n    <loc>${ORIGIN}/</loc>\n    <lastmod>${today}</lastmod>\n    <priority>1.0</priority>\n  </url>`];
@@ -395,7 +457,7 @@ addSitemapUrl("/convert/", "0.9");
 async function writePricePage(path, html) {
   const directory = resolve(SITE, path.replace(/^\/|\/$/g, ""));
   await mkdir(directory, { recursive: true });
-  await writeFile(resolve(directory, "index.html"), html, "utf8");
+  await writeFile(resolve(directory, "index.html"), enrichPage(html, path), "utf8");
 }
 
 let pricePages = 0;
@@ -434,7 +496,7 @@ for (const [fromId, toId] of pairs) {
   urls.push(`  <url>\n    <loc>${ORIGIN}${meta.path}</loc>\n    <lastmod>${today}</lastmod>\n    <priority>0.8</priority>\n  </url>`);
 }
 
-for (const path of INDEXED_CONVERT_PATHS) addSitemapUrl(`/convert/${path}/`, "0.8");
+// Previously sitemap-only paths are now generated by buildPairs().
 
 /* آدرس‌های قدیمی بدون پیشوند /convert/ از کامیت 3d17369 با ۳۰۱ به
    مسیر تازه می‌روند، ولی گوگل تا صفحه‌ای را دوباره نخزد ریدایرکت را
@@ -453,10 +515,30 @@ const legacyXml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http:/
   .join("\n")}\n</urlset>\n`;
 await writeFile(resolve(SITE, "sitemap-legacy.xml"), legacyXml, "utf8");
 
-const sitemapXml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.join("\n")}\n</urlset>\n`;
-await Promise.all([
-  writeFile(resolve(ROOT, "sitemap.xml"), sitemapXml, "utf8"),
-  writeFile(resolve(SITE, "sitemap.xml"), sitemapXml, "utf8")
-]);
+// Generate the hubs as well; deployment copies their templates before this step.
+for (const [path, file] of [["/", "index.html"], ["/price/", "price/index.html"], ["/convert/", "convert/index.html"]]) {
+  let html = await readFile(resolve(ROOT, file), "utf8");
+  html = html.replace(/ امروز (?:پنجشنبه|دوشنبه) [^<".]+۱۴۰۵/g, " امروز");
+  await writePricePage(path, html);
+}
+const methodTemplate = await readFile(resolve(ROOT, "price/index.html"), "utf8");
+const methodBody = `<main class="wide-shell price-main" id="price-main"><section class="seo-content"><h1>منابع داده و روش محاسبه تبدکس</h1><p>تبدکس ابزار نمایش نرخ و محاسبه ارزش معادل دارایی‌هاست و معامله یا انتقال وجه انجام نمی‌دهد.</p><h2>منابع قیمت</h2>${Object.values(GROUP_HELP).map(([h,t])=>`<h3>${h}</h3><p>${t}</p>`).join("")}<h2>زمان داده و قطع ارتباط</h2><p>زمان دریافت داده توسط تبدکس ممکن است با زمان آخرین معامله در منبع تفاوت داشته باشد. نرخ ذخیره‌شده با زمان خودش مشخص می‌شود و نباید نرخ لحظه‌ای تلقی شود. در نبود داده تازه، پیش از تصمیم‌گیری نرخ را با منبع معامله بررسی کنید.</p><h2>فرمول تبدیل</h2><p>ارزش مقدار مبدأ به تومان بر نرخ تومانی هر واحد مقصد تقسیم می‌شود. نرخ‌هایی که از نوبیتکس به ریال دریافت می‌شوند برای نمایش تومان بر ۱۰ تقسیم می‌شوند.</p><p><a href="/convert/">مبدل قیمت</a> · <a href="/price/">فهرست قیمت‌ها</a></p></section></main>`;
+let methodology = methodTemplate.replace(/<main[\s\S]*?<\/main>/, methodBody).replace(/<title>[^<]+<\/title>/,"<title>منابع داده و روش محاسبه | تبدکس</title>").replace(/(<link rel="canonical" href=")[^"]+/, '$1https://tabdex.ir/methodology/').replace(/(<meta property="og:url" content=")[^"]+/, '$1https://tabdex.ir/methodology/').replace(/(<meta (?:name="description"|property="og:description") content=")[^"]+/g, '$1منابع نرخ، واحد دارایی‌ها و روش محاسبه ارزش معادل در تبدکس.').replace(/(<meta property="og:title" content=")[^"]+/, '$1منابع داده و روش محاسبه | تبدکس').replace(/<script id="price-schema"[\s\S]*?<\/script>/, '').replace(/<script src="\/assets\/price.js[^<]+<\/script>/, '');
+await mkdir(resolve(SITE,"methodology"), {recursive:true});
+await writeFile(resolve(SITE,"methodology/index.html"), methodology);
+addSitemapUrl("/methodology/", "0.5");
+for (const [path, title, body] of [
+  ["/about/", "درباره تبدکس", "<p>تبدکس توسط تیمی متشکل از جوانان علاقه‌مند به اقتصاد و بازارهای مالی گردانده می‌شود.</p><p>هدف ما فراهم کردن دسترسی ساده به نرخ دارایی‌ها و محاسبه ارزش معادل آن‌هاست. تبدکس نرخ‌های منابع بیرونی را نمایش می‌دهد و خدمات خرید، فروش یا انتقال وجه ارائه نمی‌کند.</p><p><a href='/methodology/'>منابع داده و روش محاسبه</a> · <a href='/contact/'>تماس با ما</a></p>"],
+  ["/contact/", "تماس با تبدکس", "<p>برای ارتباط با تیم تبدکس، ارسال پیشنهاد یا گزارش خطا در قیمت‌ها و ابزار تبدیل، از راه‌های زیر استفاده کنید.</p><ul><li>ایمیل: <a href='mailto:info@tabdex.ir' dir='ltr'>info@tabdex.ir</a></li><li>شماره تماس: <a href='tel:+989981903599' dir='ltr'>09981903599</a></li></ul><p>برای گزارش خطا، آدرس صفحه و زمان مشاهده مشکل را همراه توضیح ارسال کنید.</p>"]
+]) {
+  let html = methodology.replace(/<main[\s\S]*?<\/main>/, `<main class="wide-shell price-main" id="price-main"><section class="seo-content"><h1>${title}</h1>${body}</section></main>`);
+  html = html.replace(/منابع داده و روش محاسبه \| تبدکس/g, `${title} | تبدکس`).replaceAll("https://tabdex.ir/methodology/", ORIGIN + path).replace(/منابع نرخ، واحد دارایی‌ها و روش محاسبه ارزش معادل در تبدکس\./g, title + "؛ معرفی و راه‌های ارتباط با تیم تبدکس.");
+  await mkdir(resolve(SITE,path.slice(1)), {recursive:true});
+  await writeFile(resolve(SITE,path.slice(1),"index.html"),html);
+  addSitemapUrl(path,"0.5");
+}
+const completeSitemap = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.join("\n")}\n</urlset>\n`;
+await writeFile(resolve(SITE,"sitemap.xml"),completeSitemap);
+await writeFile(resolve(ROOT,"sitemap.xml"),completeSitemap);
 
-console.log(`${pairs.length} صفحهٔ تبدیل و ${pricePages} صفحهٔ قیمت ساخته شد، ${urls.length} آدرس در سایت‌مپ و ${legacyPaths.length} آدرس قدیمی در سایت‌مپ ریدایرکت‌ها ثبت شد.`);
+console.log(`${pairs.length} converter pages, ${pricePages} price pages; ${urls.length} canonical URLs with initial HTML.`);

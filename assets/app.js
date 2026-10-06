@@ -494,6 +494,7 @@
   }
 
   function paintConversion() {
+    if (state.pendingRoute) return;
     var fromCurrency = currencies[state.from];
     var toCurrency = currencies[state.to];
     if (!fromCurrency || !toCurrency) return;
@@ -555,6 +556,10 @@
   }
 
   function paintRate() {
+    if (state.pendingRoute) {
+      elements.rateValue.textContent = "در حال دریافت نرخ این تبدیل…";
+      return;
+    }
     var fromCurrency = currencies[state.from];
     var toCurrency = currencies[state.to];
     if (!Number.isFinite(state.rate) || state.rate <= 0) {
@@ -575,6 +580,7 @@
   }
 
   function paintPairContent() {
+    if (state.pendingRoute) return;
     var fromCurrency = currencies[state.from];
     var toCurrency = currencies[state.to];
     if (!fromCurrency || !toCurrency || !elements.pairContentTitle) return;

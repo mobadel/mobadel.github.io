@@ -92,6 +92,7 @@ fs.mkdirSync(path.join(workdir, "scripts"), { recursive: true });
 fs.cpSync("scripts/build-pages.mjs", path.join(workdir, "scripts/build-pages.mjs"));
 // صفحه‌های قیمت هم سرورساخته‌اند، پس مولد به قالب‌ها و نام دارایی‌ها نیاز دارد.
 fs.mkdirSync(path.join(workdir, "price"), { recursive: true });
+fs.cpSync("price/index.html", path.join(workdir, "price/index.html"));
 fs.cpSync("price/asset.html", path.join(workdir, "price/asset.html"));
 fs.cpSync("price/category.html", path.join(workdir, "price/category.html"));
 fs.mkdirSync(path.join(workdir, "data"), { recursive: true });
@@ -103,8 +104,8 @@ const generated = path.join(workdir, "_site", "convert", "gold18-to-irt", "index
 assert.ok(fs.existsSync(generated), "صفحهٔ gold18-to-irt ساخته نشد");
 
 const html = fs.readFileSync(generated, "utf8");
-assert.match(html, /<title>تبدیل طلای ۱۸ عیار به تومان امروز [^<]+ \| مبدل قیمت<\/title>/);
-assert.match(html, /<meta name="description" content="تبدیل طلای ۱۸ عیار به تومان با قیمت لحظه ای امروز [^"]+\. مبدل نرخ طلای ۱۸ عیار به تومان\.">/);
+assert.match(html, /<title>تبدیل طلای ۱۸ عیار به تومان \| مبدل قیمت<\/title>/);
+assert.match(html, /<meta name="description" content="تبدیل طلای ۱۸ عیار به تومان با نرخ مرجع بازار\. مبدل نرخ طلای ۱۸ عیار به تومان\.">/);
 assert.match(html, /<link rel="canonical" href="https:\/\/tabdex\.ir\/convert\/gold18-to-irt\/">/);
 assert.match(html, /<h1 id="page-title">تبدیل طلای ۱۸ عیار به تومان<\/h1>/);
 assert.match(html, /<h2 id="pair-content-title">تبدیل طلای ۱۸ عیار به تومان با قیمت لحظه ای و سریع<\/h2>/);
@@ -167,11 +168,11 @@ for (const id of ["usd", "eur", "gbp", "chf", "aed", "try", "jpy", "cny", "aud",
 
 /* نام فارسی دارایی‌ها باید بدون افزودن واحد در قالب توضیحات بیاید. */
 const ouncePage = fs.readFileSync(path.join(workdir, "_site", "convert", "ounce-to-irt", "index.html"), "utf8");
-assert.match(ouncePage, /تبدیل انس طلا به تومان با قیمت لحظه ای امروز [^"]+\. مبدل نرخ انس طلا به تومان\./);
+assert.match(ouncePage, /تبدیل انس طلا به تومان با نرخ مرجع بازار\. مبدل نرخ انس طلا به تومان\./);
 
 const silverPage = fs.readFileSync(path.join(workdir, "_site", "convert", "silver-to-irt", "index.html"), "utf8");
 assert.match(silverPage, /<h1 id="page-title">تبدیل نقره ۹۹۹ به تومان<\/h1>/);
-assert.match(silverPage, /تبدیل نقره ۹۹۹ به تومان با قیمت لحظه ای امروز [^"]+\. مبدل نرخ نقره ۹۹۹ به تومان\./);
+assert.match(silverPage, /تبدیل نقره ۹۹۹ به تومان با نرخ مرجع بازار\. مبدل نرخ نقره ۹۹۹ به تومان\./);
 
 const pageCount = (sitemap.match(/<loc>/g) || []).length;
 assert.ok(pageCount > 50, `انتظار بیش از ۵۰ آدرس در سایت‌مپ، ${pageCount} بود`);
