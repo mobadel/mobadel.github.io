@@ -431,7 +431,8 @@ function enrichPage(html, path) {
     const list = group ? (group === "crypto" ? [...TOP_CRYPTO,...INDEXED_CRYPTO].map(cryptoSlug) : PRICE_GROUPS[group] || []) : ["usd","gold18","emami","btc","usdt","eur"];
     content = `<h2>دسترسی به صفحات قیمت</h2><ul>${list.map(slug=>`<li>${assetLink(slug)}</li>`).join("")}</ul>`;
   } else {
-    content = `<h2>تبدیل‌های پرکاربرد</h2><ul>${["gold18-to-eur","afn-to-irt","irt-to-iqd","usd-to-irt","aed-to-irt"].map(slug=>{const [a,b]=slug.split("-to-");return `<li><a href="/convert/${slug}/">تبدیل ${esc(assetForSlug(a).name)} به ${esc(assetForSlug(b).name)}</a></li>`;}).join("")}</ul>`;
+    content = `<h2>تبدیل‌های پرکاربرد</h2><p class="popular-conversions-intro">تبدیل موردنظر را انتخاب کنید و ارزش معادل دارایی‌تان را ببینید.</p><ul class="popular-conversions-grid">${["gold18-to-eur","afn-to-irt","irt-to-iqd","usd-to-irt","aed-to-irt"].map(slug=>{const [a,b]=slug.split("-to-");return `<li><a class="popular-conversion" href="/convert/${slug}/"><span class="popular-conversion-symbol" aria-hidden="true">${esc(a === "gold18" ? "۱۸" : a.toUpperCase())}</span><span class="popular-conversion-label"><strong>${esc(assetForSlug(a).name)} به ${esc(assetForSlug(b).name)}</strong><span>محاسبه و تبدیل</span></span><span class="icon-chevron" aria-hidden="true"></span></a></li>`;}).join("")}</ul>`;
+    return html.replace(/<\/main>/, `<section class="seo-content popular-conversions" aria-label="تبدیل‌های پرکاربرد">${content}</section></main>`);
   }
   return html.replace(/<\/main>/, `<section class="seo-content" aria-label="راهنما و صفحات مرتبط">${content}<p><a href="/methodology/">منابع داده و روش محاسبه تبدکس</a></p></section></main>`);
 }
