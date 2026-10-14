@@ -42,8 +42,8 @@
   <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png" sizes="180x180">
   <link rel="preload" href="/assets/fonts/Vazirmatn-Regular.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="/assets/fonts/Vazirmatn-Bold.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="/assets/styles.css?v=20261014-redesign">
-  <link rel="stylesheet" href="/assets/site.css?v=20261014-redesign">
+  <link rel="stylesheet" href="/assets/styles.css?v=20261014-fixes">
+  <link rel="stylesheet" href="/assets/site.css?v=20261014-fixes">
 
   <script type="application/ld+json">
   {
@@ -93,7 +93,7 @@
         </span>
         <span>تبدکس</span>
       </a>
-      <nav class="site-nav" aria-label="منوی اصلی"><a href="/price/">قیمت‌ها</a><a href="/price/currency/">ارز</a><a href="/price/gold/">طلا</a><a href="/price/coin/">سکه</a><a href="/price/crypto/">ارز دیجیتال</a><a href="/convert/">مبدل قیمت</a><a href="/mag/">مجله</a></nav>
+      <nav class="site-nav" id="site-nav" aria-label="منوی اصلی"><a href="/price/">قیمت‌ها</a><a href="/price/currency/">ارز</a><a href="/price/gold/">طلا</a><a href="/price/coin/">سکه</a><a href="/price/crypto/">ارز دیجیتال</a><a href="/convert/">مبدل قیمت</a><a href="/mag/">مجله</a></nav><div class="header-actions"><a class="header-icon" href="/price/#search" aria-label="جستجوی دارایی"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg></a><button class="header-icon menu-toggle" id="menu-toggle" type="button" aria-label="باز کردن منو" aria-expanded="false" aria-controls="site-nav"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button></div>
     </div>
   </header>
 
@@ -287,15 +287,16 @@
         <button class="asset-filter" type="button" data-group="energy" aria-pressed="false">انرژی</button>
         <button class="asset-filter" type="button" data-group="fiat" aria-pressed="false">ارز</button>
       </div>
+      <div class="asset-recent" id="asset-recent" hidden><p>اخیراً انتخاب‌شده</p><div class="asset-recent-list" data-recent-list></div></div>
       <div class="asset-list" id="asset-list" role="listbox" aria-label="فهرست دارایی‌ها"></div>
       <p class="asset-empty" id="asset-empty" hidden>دارایی‌ای پیدا نشد.</p>
     </section>
   </div>
 
   <script src="/assets/date.js?v=20260829-1"></script>
-  <script src="/assets/site.js?v=20261014-redesign"></script>
-  <script src="/assets/app.js?v=20261014-redesign"></script>
-  <script src="/assets/convert-extras.js?v=20261014-redesign"></script>
+  <script src="/assets/site.js?v=20261014-fixes"></script>
+  <script src="/assets/app.js?v=20261014-fixes"></script>
+  <script src="/assets/convert-extras.js?v=20261014-fixes"></script>
   <script src="/assets/home.js?v=20261014-redesign"></script>
 </body>
 </html>

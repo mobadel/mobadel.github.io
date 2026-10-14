@@ -30,6 +30,13 @@ body { background: var(--page); font-variant-numeric: tabular-nums; }
 .site-nav a:focus-visible { outline: 3px solid rgba(22, 129, 95, .25); outline-offset: 1px; }
 .site-header .site-date { flex: 0 0 auto; margin-inline-start: auto; }
 
+.header-actions { display: none; }
+.header-icon { display: grid; width: 44px; height: 44px; place-items: center; padding: 0; border: 1px solid var(--border); border-radius: 12px; color: var(--text); background: var(--surface); cursor: pointer; }
+.header-icon svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
+.header-icon:hover { border-color: var(--green); color: var(--green-dark); }
+.header-icon:focus-visible { outline: 3px solid rgba(22, 129, 95, .25); outline-offset: 2px; }
+.menu-toggle[aria-expanded="true"] { border-color: var(--green); color: var(--green-dark); background: var(--green-soft); }
+
 /* ── فوتر ────────────────────────────────────────────────────── */
 .site-footer { width: auto; margin: 48px 0 0; padding: 0; border-top: 0; color: var(--ink-soft); background: var(--ink); }
 .footer-inner { display: flex; flex-wrap: wrap; gap: 32px 40px; padding: 48px 0 30px; }
@@ -355,16 +362,22 @@ body { background: var(--page); font-variant-numeric: tabular-nums; }
 
 /* ── نمای باریک ──────────────────────────────────────────────── */
 @media (max-width: 900px) {
-  .site-header .header-inner { gap: 6px 16px; padding-block: 10px 0; }
-  .site-nav { order: 3; flex-basis: 100%; margin-inline: -8px; padding-bottom: 8px; overflow-x: auto; scrollbar-width: none; }
-  .site-nav::-webkit-scrollbar { display: none; }
+  /* هدر موبایل: لوگو، و دکمه‌های جستجو و منو. منو زیر هدر باز می‌شود. */
+  .site-header { position: relative; z-index: 30; }
+  .site-header .header-inner { flex-wrap: nowrap; gap: 10px; min-height: 60px; padding-block: 8px; }
+  .site-header .brand { font-size: 19px; }
+  .site-header .brand-mark, .site-header .brand-mark svg { width: 36px; height: 36px; }
+  .site-header .site-date { display: none; }
+  .header-actions { display: flex; gap: 8px; margin-inline-start: auto; }
+  .site-nav { position: absolute; inset-inline: 0; top: 100%; display: none; flex-direction: column; align-items: stretch; gap: 2px; padding: 8px 12px 14px; border-bottom: 1px solid var(--border); background: var(--surface); box-shadow: 0 18px 32px rgba(14, 31, 25, .10); }
+  .site-header.menu-open .site-nav { display: flex; }
+  .site-nav a { display: flex; align-items: center; min-height: 46px; padding: 0 14px; border-radius: 12px; font-size: 15.5px; }
   .home-converter-col { max-width: none; }
 }
 
 @media (max-width: 600px) {
   .site-shell { width: min(100% - 24px, 1200px); }
   .site-header .header-inner { min-height: 0; }
-  .site-nav a { padding: 7px 11px; font-size: 13.5px; }
   .site-footer { margin-top: 32px; }
   .footer-inner { gap: 26px 20px; padding-top: 32px; }
   .footer-brand { flex-basis: 100%; }
@@ -414,4 +427,134 @@ body { background: var(--page); font-variant-numeric: tabular-nums; }
   .asset-stat:last-child:nth-child(odd) { grid-column: 1 / -1; }
   .asset-days h2 { padding: 18px 16px 10px; font-size: 18px; }
   .asset-days th, .asset-days td { padding-inline: 16px; }
+}
+
+/* ── هم‌خوانی با طرح: مبدل ───────────────────────────────────── */
+.converter-card .rate-summary { margin-bottom: 22px; padding: 0; border: 0; }
+.converter-card .rate-value { font-size: clamp(18px, 2.4vw, 22px); }
+.converter-card .rate-status { padding: 4px 12px; border-radius: 999px; color: var(--green-dark); background: var(--green-soft); font-size: 13px; }
+.converter-card .rate-status .status-dot { box-shadow: none; }
+.converter-card .rate-status.error { color: var(--danger); background: #fee4e2; }
+.converter-card .currency-field label { margin: 0 4px 6px 0; font-weight: 500; font-size: 14px; }
+.converter-card .field-control { border-radius: 18px; }
+.converter-card .currency-field[data-side="from"] .field-control { border-color: var(--green); }
+.converter-card .output-control { border-width: 1px; background: var(--surface-muted); }
+.converter-card .currency-badge { border: 1px solid var(--border); background: var(--surface-muted); }
+.converter-card .output-control .currency-badge { background: var(--surface); }
+.converter-card .currency-badge.is-picking { border-color: var(--green); box-shadow: 0 0 0 3px rgba(22, 129, 95, .14); }
+.converter-card .swap-divider { padding: 10px 0; }
+
+.convert-main { padding-top: 40px; }
+.convert-main .intro { margin-bottom: 30px; }
+.convert-main .intro h1 { font-size: clamp(32px, 4.4vw, 44px); letter-spacing: 0; }
+.convert-layout { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: center; gap: 24px; }
+.convert-layout > .converter-card { flex: 1 1 520px; max-width: 640px; min-width: 0; padding: 32px; }
+.convert-main > .conversion-tables, .convert-main > .pair-content, .convert-main > .seo-content { max-width: 1084px; margin-inline: auto; }
+.convert-main .conversion-tables { margin-top: 40px; }
+.convert-main .pair-content, .convert-main .seo-content { margin-top: 32px; }
+
+/* انتخابگر ثابت کنار مبدل (فقط صفحهٔ مبدل، نمایشگر پهن) */
+.asset-dialog.is-inline { position: static; inset: auto; z-index: auto; display: block; flex: 1 1 340px; max-width: 420px; min-width: 0; padding: 0; }
+.asset-dialog.is-inline .asset-dialog-backdrop, .asset-dialog.is-inline .dialog-close { display: none; }
+.asset-dialog.is-inline .asset-dialog-panel { width: 100%; max-height: 640px; padding: 20px; border-radius: 24px; box-shadow: 0 22px 60px rgba(26, 58, 47, .10); }
+.asset-dialog.is-inline .asset-dialog-title { font-size: 18px; }
+.asset-dialog-panel .asset-search { margin-top: 14px; border-color: var(--green); background: var(--surface); }
+.asset-filter { min-height: 34px; padding: 0 12px; border-width: 1px; background: var(--surface); }
+.asset-filter.is-active { border-color: var(--ink); color: #fff; background: var(--ink); }
+.asset-recent { margin: 2px 0 12px; }
+.asset-recent[hidden] { display: none; }
+.asset-recent > p { margin: 0 0 6px; color: var(--muted); font-size: 12.5px; font-weight: 700; }
+.asset-recent-list { display: flex; flex-wrap: wrap; gap: 6px; }
+.asset-recent-chip { display: inline-flex; align-items: center; gap: 6px; min-height: 34px; padding: 0 10px 0 6px; border: 0; border-radius: 999px; color: var(--text); background: var(--surface-muted); font-size: 13px; cursor: pointer; }
+.asset-recent-chip:hover { background: var(--green-soft); }
+.asset-recent-chip .currency-icon { width: 22px; height: 22px; font-size: 10px; }
+.asset-option { border-bottom: 1px solid var(--line-soft); border-radius: 10px; }
+.asset-option-icon { width: 34px; height: 34px; }
+
+.pair-content { padding: 28px 32px; border: 1px solid var(--border); border-radius: 24px; background: var(--surface); box-shadow: none; }
+.pair-content h2 { margin-bottom: 10px; font-size: 22px; }
+.pair-content p { color: #4a5c55; font-size: 15.5px; line-height: 1.95; text-align: start; }
+
+/* تبدیل‌های پرکاربرد: کارت با آیکون گرد دارایی */
+.popular-conversions { padding: 28px 32px; border-radius: 24px; }
+.popular-conversions .popular-conversions-grid { grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); }
+.popular-conversions .popular-conversion { border-radius: 16px; background: var(--surface); }
+.popular-conversion-symbol { flex: 0 0 34px; height: 34px; overflow: hidden; border-radius: 50%; }
+.popular-conversion-symbol img { width: 100%; height: 100%; object-fit: cover; }
+
+/* ── هم‌خوانی با طرح: صفحهٔ دارایی ───────────────────────────── */
+.asset-price-hero { display: grid; grid-template-columns: minmax(0, auto) minmax(0, 1fr) auto; grid-template-areas: "identity quote actions" "identity secondary actions" "identity fresh actions"; align-items: center; gap: 6px 40px; padding: 28px 32px; border: 1px solid var(--border); border-radius: 28px; background: var(--surface); box-shadow: none; }
+.asset-price-hero .asset-identity { grid-area: identity; grid-column: auto; }
+.asset-price-hero .asset-main-icon { flex-basis: 72px; width: 72px; height: 72px; box-shadow: 0 10px 24px rgba(14, 31, 25, .14); }
+.asset-price-hero .asset-identity h1 { font-size: clamp(26px, 3vw, 34px); }
+.asset-price-hero .asset-english { font-size: 15px; }
+.asset-price-hero .asset-quote { grid-area: quote; display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; padding: 0; border: 0; direction: rtl; }
+.asset-price-hero .price-primary { order: 1; text-align: start; }
+.asset-price-hero .price-primary > strong { font-size: clamp(34px, 4vw, 46px); line-height: 1.15; }
+.asset-price-hero .price-unit { order: 2; justify-self: auto; font-size: 16px; }
+.asset-price-hero .price-secondary[hidden] { display: none; }
+.asset-price-hero .asset-quote > .price-change { order: 3; display: inline-flex; align-items: baseline; gap: 6px; direction: ltr; align-self: center; padding: 4px 12px; border-radius: 10px; background: #eef1f0; }
+.asset-price-hero .asset-quote > .price-change.positive { background: var(--up-soft); }
+.asset-price-hero .asset-quote > .price-change.negative { background: var(--down-soft); }
+.asset-price-hero .price-change strong { display: inline; font-size: 15px; }
+.price-change-abs { font-size: 14px; font-weight: 500; direction: ltr; unicode-bidi: isolate; }
+.asset-price-hero .price-change-abs:empty { display: none; }
+.asset-price-hero .price-secondary { grid-area: secondary; margin: 0; }
+.asset-price-hero .price-secondary .price-secondary-value { order: 1; }
+.asset-price-hero .price-secondary .price-unit { order: 2; font-size: 14px; }
+.asset-price-hero .price-secondary > .price-change { order: 3; padding: 2px 8px; background: transparent; }
+.asset-price-hero .price-freshness { grid-area: fresh; grid-column: auto; padding-top: 4px; border: 0; color: var(--green-dark); font-size: 13.5px; }
+.asset-price-hero .asset-actions { grid-area: actions; justify-self: end; }
+
+.asset-stat strong { font-size: 19px; font-weight: 800; }
+
+.asset-chart { padding: 24px; border: 1px solid var(--border); border-radius: 24px; background: var(--surface); }
+.asset-chart-heading h2 { font-size: 20px; }
+.chart-ranges { padding: 4px; border: 0; border-radius: 12px; background: #eef3f0; }
+.chart-ranges button { min-height: 38px; padding: 0 16px; border-radius: 9px; color: #3f514a; font-size: 14px; font-weight: 600; }
+.chart-ranges button.is-active { color: var(--text); background: var(--surface); box-shadow: 0 1px 3px rgba(14, 31, 25, .12); font-weight: 700; }
+.btc-chart-stage { border: 0; border-radius: 0; background: transparent; }
+.btc-chart-area { fill: var(--green-soft); }
+.btc-chart-summary { gap: 12px; margin: 18px 0 0; text-align: start; }
+.btc-chart-summary-item { padding: 12px 16px; border-radius: 14px; background: var(--surface-muted); }
+.btc-chart-summary-label { color: var(--muted); font-size: 12.5px; }
+.btc-chart-summary-value { margin-top: 2px; font-size: 17px; }
+.btc-chart-summary-high, .btc-chart-summary-low { color: var(--text); }
+
+.asset-days-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 20px 24px 12px; }
+.asset-days-head h2 { padding: 0; }
+.text-button { padding: 6px 4px; border: 0; color: var(--green-dark); background: transparent; font-size: 14px; font-weight: 700; cursor: pointer; }
+.text-button:hover { color: var(--green); }
+.text-button:focus-visible { outline: 3px solid rgba(22, 129, 95, .25); border-radius: 6px; }
+
+.asset-layout-main > .asset-content { padding: 28px 32px; border: 1px solid var(--border); border-radius: 24px; background: var(--surface); }
+.asset-content h2 { margin-bottom: 10px; font-size: 22px; }
+.asset-content h3 { margin-top: 22px; font-size: 17px; }
+.asset-content p { color: #4a5c55; font-size: 15.5px; line-height: 1.95; text-align: start; }
+.asset-content .converter-link { min-height: 46px; margin-inline-start: 0; padding: 0 18px; border: 1px solid var(--green); border-radius: 12px; color: var(--green-dark); background: transparent; }
+.asset-content .converter-link:hover { color: #fff; background: var(--green); }
+.quick-convert-field { border-color: var(--green); }
+.quick-convert output { font-size: 24px; font-weight: 800; }
+.source-note { padding: 18px; border: 1px dashed var(--border-strong); border-radius: 20px; color: #4a5c55; background: var(--surface-muted); font-size: 13.5px; }
+.source-note[hidden] { display: none; }
+.source-note strong { display: block; margin-bottom: 4px; color: var(--text); }
+.source-note p { margin: 0; line-height: 1.85; }
+.source-note a { display: inline-flex; align-items: center; gap: 6px; margin-top: 6px; color: var(--green-dark); font-weight: 700; text-decoration: none; }
+
+@media (max-width: 900px) {
+  .asset-price-hero { grid-template-columns: minmax(0, 1fr); grid-template-areas: "identity" "quote" "secondary" "fresh" "actions"; gap: 12px; }
+  .asset-price-hero .asset-quote { padding-top: 14px; border-top: 1px solid var(--border); }
+  .asset-price-hero .asset-actions { justify-self: stretch; }
+  .asset-price-hero .asset-primary-link { flex: 1; justify-content: center; }
+}
+@media (max-width: 600px) {
+  .asset-price-hero { padding: 20px 18px; border-radius: 22px; }
+  .asset-price-hero .asset-main-icon { flex-basis: 56px; width: 56px; height: 56px; }
+  .asset-chart { padding: 18px 10px; border-radius: 20px; }
+  .btc-chart-summary { gap: 6px; }
+  .btc-chart-summary-item { padding: 10px; }
+  .btc-chart-summary-value { font-size: 13px; }
+  .asset-layout-main > .asset-content, .pair-content, .popular-conversions { padding: 22px 18px; border-radius: 20px; }
+  .convert-layout > .converter-card { padding: 18px; }
+  .asset-days-head { padding: 18px 16px 10px; }
 }

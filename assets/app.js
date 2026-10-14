@@ -617,7 +617,7 @@
     } }));
   }
 
-  function paint() { updateRate(); refreshPairStatus(); paintConversion(); paintRate(); paintPairContent(); notifyPair(); }
+  function paint() { updateRate(); refreshPairStatus(); paintConversion(); paintRate(); paintPairContent(); notifyPair(); refreshInlineList(); }
 
   function editableTokens(value) {
     var normalized = toEnglishDigits(value).replace(/٫/g, ".");
@@ -795,6 +795,8 @@
     var query = normalizedSearch(elements.assetSearch.value);
     var counterpart = state.dialogSide ? state[state.dialogSide === "from" ? "to" : "from"] : null;
     var allowedGroups = FILTER_GROUPS[state.filterGroup] || null;
+    listSignature = [Object.keys(currencies).length, state.from, state.to, state.dialogSide, state.filterGroup, elements.assetSearch.value].join("|");
+    paintRecent(counterpart);
     var assets = availableCurrencies(counterpart).filter(function (currency) {
       // تگ دسته و متن جستجو با هم AND می‌شوند.
       if (allowedGroups && allowedGroups.indexOf(currency.group || "crypto") === -1) return false;
@@ -856,7 +858,94 @@
     renderAssetList();
   }
 
+  /* ── انتخابگر کنار مبدل ───────────────────────────────────────
+     در صفحهٔ مبدل (data-inline-picker روی body) و روی نمایشگر پهن،
+     همان پنجرهٔ انتخاب دارایی به‌جای باز شدن روی صفحه، کنار مبدل ثابت
+     می‌ماند. پیش‌فرض آن انتخاب مبدأ است و کلیک روی دکمهٔ مقصد آن را به
+     انتخاب مقصد می‌برد. روی موبایل و صفحهٔ اصلی همان پنجرهٔ قبلی است. */
+  var INLINE_QUERY = "(min-width: 1100px)";
+  var inlineEnabled = !!(typeof document !== "undefined" && document.body && typeof document.body.hasAttribute === "function" && document.body.hasAttribute("data-inline-picker"));
+  var inlineMode = false;
+  var listSignature = "";
+
+  function wantsInline() {
+    if (!inlineEnabled || typeof window === "undefined" || typeof window.matchMedia !== "function") return false;
+    try { return window.matchMedia(INLINE_QUERY).matches; } catch (error) { return false; }
+  }
+
+  function markPickingSide() {
+    [["from", elements.currencyFrom], ["to", elements.currencyTo]].forEach(function (pair) {
+      if (pair[1] && pair[1].classList) pair[1].classList.toggle("is-picking", inlineMode && state.dialogSide === pair[0]);
+    });
+  }
+
+  function setPickerSide(side) {
+    state.dialogSide = side;
+    elements.dialogTitle.textContent = side === "from" ? "انتخاب دارایی مبدأ" : "انتخاب دارایی مقصد";
+    markPickingSide();
+  }
+
+  function setInlineMode(on) {
+    if (on === inlineMode) return;
+    inlineMode = on;
+    if (elements.dialog.classList) elements.dialog.classList.toggle("is-inline", on);
+    if (on) {
+      document.body.classList.remove("dialog-open");
+      elements.dialog.hidden = false;
+      if (elements.dialogPanel && elements.dialogPanel.setAttribute) { elements.dialogPanel.setAttribute("role", "region"); elements.dialogPanel.removeAttribute("aria-modal"); }
+      state.filterGroup = "all"; paintFilters();
+      setPickerSide("from"); renderAssetList();
+    } else {
+      elements.dialog.hidden = true;
+      if (elements.dialogPanel && elements.dialogPanel.setAttribute) { elements.dialogPanel.setAttribute("role", "dialog"); elements.dialogPanel.setAttribute("aria-modal", "true"); }
+      state.dialogSide = null; markPickingSide();
+    }
+  }
+
+  // داده‌ها دیرتر از رندر اول می‌رسند؛ فهرست کناری فقط وقتی چیزی در آن
+  // عوض شده دوباره ساخته می‌شود تا اسکرول کاربر با هر تازه‌سازی نپرد.
+  function refreshInlineList() {
+    if (!inlineMode) return;
+    var signature = [Object.keys(currencies).length, state.from, state.to, state.dialogSide, state.filterGroup, elements.assetSearch.value].join("|");
+    if (signature === listSignature) return;
+    renderAssetList();
+  }
+
+  /* دارایی‌های اخیراً انتخاب‌شده در همین مرورگر. نبودِ localStorage
+     (حالت خصوصی، تنظیمات مرورگر) فقط یعنی این ردیف دیده نمی‌شود. */
+  var RECENT_KEY = "tabdex:recent-assets";
+  function readRecent() {
+    try { var value = JSON.parse(window.localStorage.getItem(RECENT_KEY) || "[]"); return Array.isArray(value) ? value.filter(function (id) { return typeof id === "string"; }) : []; }
+    catch (error) { return []; }
+  }
+  function rememberRecent(id) {
+    if (id === "irt") return;
+    var list = [id].concat(readRecent().filter(function (item) { return item !== id; })).slice(0, 6);
+    try { window.localStorage.setItem(RECENT_KEY, JSON.stringify(list)); } catch (error) { /* ذخیره نشد */ }
+  }
+  function paintRecent(counterpart) {
+    var box = typeof document !== "undefined" && document.getElementById ? document.getElementById("asset-recent") : null;
+    var list = box && box.querySelector ? box.querySelector("[data-recent-list]") : null;
+    if (!box || !list) return;
+    var items = readRecent().filter(function (id) { return currencies[id] && id !== state[state.dialogSide] && (!counterpart || isPairAllowed(id, counterpart) || isPairAllowed(counterpart, id)); }).slice(0, 4);
+    list.replaceChildren();
+    items.forEach(function (id) {
+      var currency = currencies[id];
+      var chip = document.createElement("button"); chip.type = "button"; chip.className = "asset-recent-chip";
+      chip.appendChild(createCurrencyIcon(currency, "asset-recent-icon"));
+      chip.appendChild(document.createTextNode(currency.name));
+      chip.addEventListener("click", function () { selectCurrency(id); });
+      list.appendChild(chip);
+    });
+    box.hidden = items.length === 0;
+  }
+
   function openDialog(side) {
+    if (inlineMode) {
+      setPickerSide(side); elements.assetSearch.value = ""; renderAssetList();
+      if (prefersAutoFocus()) elements.assetSearch.focus();
+      return;
+    }
     state.dialogSide = side; state.lastFocused = document.activeElement;
     elements.dialogTitle.textContent = side === "from" ? "انتخاب دارایی مبدأ" : "انتخاب دارایی مقصد";
     elements.assetSearch.value = ""; elements.dialog.hidden = false;
@@ -891,7 +980,7 @@
   }
 
   function closeDialog() {
-    if (elements.dialog.hidden) return;
+    if (inlineMode || elements.dialog.hidden) return;
     elements.dialog.hidden = true; document.body.classList.remove("dialog-open"); state.dialogSide = null;
     if (state.lastFocused && state.lastFocused.focus) state.lastFocused.focus();
   }
@@ -910,6 +999,7 @@
       state[otherSide] = state[side] === "irt" ? "usdt" : "irt";
     }
     state.edited = "from"; state.amount = parseAmount(elements.amountFrom.value);
+    rememberRecent(id);
     closeDialog(); syncRoute(); paint();
   }
 
@@ -1055,6 +1145,15 @@
 
   paint();
   paintFilters();
+  setInlineMode(wantsInline());
+  if (inlineEnabled && typeof window !== "undefined" && typeof window.matchMedia === "function") {
+    try {
+      var inlineQuery = window.matchMedia(INLINE_QUERY);
+      var onInlineChange = function () { setInlineMode(inlineQuery.matches); };
+      if (inlineQuery.addEventListener) inlineQuery.addEventListener("change", onInlineChange);
+      else if (inlineQuery.addListener) inlineQuery.addListener(onInlineChange);
+    } catch (error) { /* حالت پنجره‌ای می‌ماند */ }
+  }
   loadSnapshot().finally(refreshAll);
 
   /* ── تازه‌سازی دوره‌ای ───────────────────────────────────────────
