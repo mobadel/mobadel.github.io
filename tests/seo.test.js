@@ -28,6 +28,8 @@ for (const slug of ['cake','hype','safe']) {
  const html=fs.readFileSync(path.join(root,'convert',slug+'-to-irt','index.html'),'utf8');
  assert.ok(!html.includes('<h1 id="page-title">تبدیل دلار به تومان</h1>'));
 }
+assert.ok(!fs.readFileSync(path.join(root,'price/index.html'),'utf8').includes('دسترسی به صفحات قیمت'),'هاب قیمت نباید فهرست «دسترسی به صفحات قیمت» داشته باشد');
+assert.ok(fs.readFileSync(path.join(root,'price/currency/index.html'),'utf8').includes('دسترسی به صفحات قیمت'),'صفحهٔ دسته همچنان فهرست دارد');
 const contact=fs.readFileSync(path.join(root,'contact/index.html'),'utf8');
 assert.ok(contact.includes('mailto:info@tabdex.ir')&&contact.includes('tel:+989981903599'));
 // Exercise the real rendering branch with missing upstream rates; indexing and

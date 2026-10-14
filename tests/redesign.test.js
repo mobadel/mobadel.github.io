@@ -34,6 +34,14 @@ for (const [name, html] of Object.entries(templates)) {
 }
 
 assert.match(templates.home, /id="home-kpis"[\s\S]*class="converter-card"[\s\S]*id="quick-amounts"/, "هوم: شاخص‌ها و مبدل با مبلغ سریع");
+// بخش مبدل هوم با طراحی اولیه: عنوان بیرون و بالای کارت، «مبدل کامل» وسط و در ردیف جدا.
+assert.match(templates.home, /<section class="intro" aria-labelledby="page-title">[\s\S]*?<\/section>\s*<section class="converter-card"/, "هوم: عنوان مبدل بالای کارت");
+assert.match(templates.home, /<\/div>\s*<div class="converter-more"><a class="section-link" href="\/convert\/">مبدل کامل/, "هوم: مبدل کامل در ردیف جدا");
+assert.match(css, /\.converter-more \{[^}]*justify-content: center/, "مبدل کامل وسط‌چین");
+assert.match(css, /\.home-converter-col \.rate-summary \{ grid-template-columns: 1fr;/, "نرخ و زمان به‌روزرسانی زیر هم");
+assert.doesNotMatch(css, /\.converter-card \.(?:rate-summary|rate-status|field-control|currency-badge) \{/, "کارت مبدل نباید روی طراحی اولیهٔ styles.css بازنویسی شود");
+// فوتر روشن
+assert.match(css, /\.site-footer \{[^}]*background: var\(--surface\);/, "پس‌زمینهٔ فوتر روشن");
 assert.match(templates.home, /id="home-market-filters"[\s\S]*class="home-market-trend">روند ۳۰ روز/, "هوم: تگ‌های دسته و ستون روند");
 assert.match(templates.home, /id="home-usd-chart" hidden[\s\S]*id="home-movers" hidden/, "هوم: کارت‌های کناری تا رسیدن داده پنهان‌اند");
 assert.match(templates.home, /class="home-mag" id="home-mag"[^>]*hidden/, "هوم: مجله بدون داده پنهان می‌ماند");
