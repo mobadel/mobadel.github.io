@@ -62,7 +62,29 @@
         row.append(date, value, cell); rows.push(row);
       }
       if (rows.length) { daysRows.replaceChildren.apply(daysRows, rows); daysBox.hidden = false; }
+      bindCsv(points);
     }
+  }
+
+  /* همهٔ قیمت‌های پایانی روزانهٔ دریافت‌شده (تا ۴۰۰ روز) به‌صورت CSV.
+     BOM اول فایل لازم است تا اکسل متن فارسی را درست باز کند. */
+  var csvPoints = [];
+  function bindCsv(points) {
+    csvPoints = points;
+    var button = document.getElementById("asset-days-csv");
+    if (!button || button.dataset.bound) return; button.dataset.bound = "1";
+    button.addEventListener("click", function () {
+      var iso = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Tehran" });
+      var jalali = new Intl.DateTimeFormat("fa-IR-u-ca-persian-nu-latn", { timeZone: "Asia/Tehran", year: "numeric", month: "2-digit", day: "2-digit" });
+      var lines = ["date,jalali_date,close_toman"].concat(csvPoints.map(function (point) {
+        var date = new Date(point[0] * 1000);
+        return iso.format(date) + "," + jalali.format(date).replace(/[^0-9/]/g, "") + "," + point[1];
+      }));
+      var blob = new Blob(["\ufeff" + lines.join("\n") + "\n"], { type: "text/csv;charset=utf-8" });
+      var link = document.createElement("a"); link.href = URL.createObjectURL(blob); link.download = "tabdex-" + id + "-daily.csv";
+      document.body.appendChild(link); link.click(); link.remove();
+      setTimeout(function () { URL.revokeObjectURL(link.href); }, 1000);
+    });
   }
 
   fetch("/api/history.php?assets=" + encodeURIComponent(id) + "&days=400", { headers: { Accept: "application/json" } })

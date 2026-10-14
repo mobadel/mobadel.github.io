@@ -413,6 +413,12 @@ const GROUP_HELP = {
   energy: ["نرخ انرژی چه چیزی را اندازه می‌گیرد؟", "نفت برنت به دلار برای هر بشکه و بنزین آمریکا (RBOB) به دلار برای هر گالن نمایش داده می‌شوند. این ارقام نرخ بازار جهانی انرژی هستند و قیمت بنزین جایگاه‌های ایران یا قیمت تحویل محلی را نشان نمی‌دهند."],
   crypto: ["قیمت تومانی و تتری چرا متفاوت است؟", "نرخ رمزارز از آخرین معامله در بازار عمومی نوبیتکس دریافت می‌شود. بازار تومان و بازار تتر سفارش‌های جدا دارند؛ به همین دلیل نرخ تومانی الزاماً برابر حاصل‌ضرب قیمت تتری در قیمت تتر نیست. آخرین معامله نیز تضمین قیمت اجرای سفارش جدید نیست."]
 };
+// آیکون گرد مبدأ در کارت‌های «تبدیل‌های پرکاربرد».
+function popularIcon(slug) {
+  if (slug === "gold18") return "/assets/gold-18k.svg";
+  if (slug === "irt") return "/assets/flags/ir.svg";
+  return `/assets/flags/${({ usd: "us", aed: "ae", afn: "af", eur: "eu", gbp: "gb", try: "tr" })[slug] || slug}.svg`;
+}
 function enrichPage(html, path) {
   // A persistent section is outside the slots refreshed by live JavaScript.
   let content = "";
@@ -431,7 +437,7 @@ function enrichPage(html, path) {
     const list = group ? (group === "crypto" ? [...TOP_CRYPTO,...INDEXED_CRYPTO].map(cryptoSlug) : PRICE_GROUPS[group] || []) : ["usd","gold18","emami","btc","usdt","eur"];
     content = `<h2>دسترسی به صفحات قیمت</h2><ul>${list.map(slug=>`<li>${assetLink(slug)}</li>`).join("")}</ul>`;
   } else {
-    content = `<h2>تبدیل‌های پرکاربرد</h2><p class="popular-conversions-intro">تبدیل موردنظر را انتخاب کنید و ارزش معادل دارایی‌تان را ببینید.</p><ul class="popular-conversions-grid">${["gold18-to-eur","afn-to-irt","irt-to-iqd","usd-to-irt","aed-to-irt"].map(slug=>{const [a,b]=slug.split("-to-");return `<li><a class="popular-conversion" href="/convert/${slug}/"><span class="popular-conversion-symbol" aria-hidden="true">${esc(a === "gold18" ? "۱۸" : a.toUpperCase())}</span><span class="popular-conversion-label"><strong>${esc(assetForSlug(a).name)} به ${esc(assetForSlug(b).name)}</strong><span>محاسبه و تبدیل</span></span><span class="icon-chevron" aria-hidden="true"></span></a></li>`;}).join("")}</ul>`;
+    content = `<h2>تبدیل‌های پرکاربرد</h2><p class="popular-conversions-intro">تبدیل موردنظر را انتخاب کنید و ارزش معادل دارایی‌تان را ببینید.</p><ul class="popular-conversions-grid">${["gold18-to-eur","afn-to-irt","irt-to-iqd","usd-to-irt","aed-to-irt"].map(slug=>{const [a,b]=slug.split("-to-");return `<li><a class="popular-conversion" href="/convert/${slug}/"><span class="popular-conversion-symbol" aria-hidden="true"><img src="${popularIcon(a)}" alt="" loading="lazy"></span><span class="popular-conversion-label"><strong>${esc(assetForSlug(a).name)} به ${esc(assetForSlug(b).name)}</strong><span>محاسبه و تبدیل</span></span><span class="icon-chevron" aria-hidden="true"></span></a></li>`;}).join("")}</ul>`;
     return html.replace(/<\/main>/, `<section class="seo-content popular-conversions" aria-label="تبدیل‌های پرکاربرد">${content}</section></main>`);
   }
   return html.replace(/<\/main>/, `<section class="seo-content" aria-label="راهنما و صفحات مرتبط">${content}<p><a href="/methodology/">منابع داده و روش محاسبه تبدکس</a></p></section></main>`);

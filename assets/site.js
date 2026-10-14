@@ -23,10 +23,26 @@
     else link.removeAttribute("aria-current");
   });
 
-  // نوار منو در موبایل افقی اسکرول می‌خورد؛ گزینهٔ فعال باید دیده شود.
-  var active = document.querySelector(".site-nav a[aria-current]");
-  if (active && active.scrollIntoView && window.matchMedia && window.matchMedia("(max-width: 900px)").matches) {
-    try { active.scrollIntoView({ block: "nearest", inline: "center" }); } catch (error) { /* قدیمی */ }
+  /* منوی موبایل: دکمهٔ سه‌خط فهرست را زیر هدر باز می‌کند. با Escape،
+     کلیک بیرون از هدر یا انتخاب یک گزینه بسته می‌شود. */
+  var header = document.querySelector(".site-header");
+  var toggle = document.getElementById("menu-toggle");
+  if (header && toggle) {
+    var setOpen = function (open) {
+      header.classList.toggle("menu-open", open);
+      toggle.setAttribute("aria-expanded", open ? "true" : "false");
+      toggle.setAttribute("aria-label", open ? "بستن منو" : "باز کردن منو");
+    };
+    toggle.addEventListener("click", function () { setOpen(!header.classList.contains("menu-open")); });
+    document.addEventListener("keydown", function (event) {
+      if (event.key === "Escape" && header.classList.contains("menu-open")) { setOpen(false); toggle.focus(); }
+    });
+    document.addEventListener("click", function (event) {
+      if (header.classList.contains("menu-open") && !header.contains(event.target)) setOpen(false);
+    });
+    Array.prototype.forEach.call(header.querySelectorAll(".site-nav a"), function (link) {
+      link.addEventListener("click", function () { setOpen(false); });
+    });
   }
 
   try {

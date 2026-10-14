@@ -19,16 +19,18 @@ for (const file of ["site.js", "convert-extras.js", "asset-insights.js", "home.j
 }
 
 for (const [name, html] of Object.entries(templates)) {
-  assert.match(html, /<nav class="site-nav" aria-label="منوی اصلی">/, `${name}: منوی اصلی لازم است`);
+  assert.match(html, /<nav class="site-nav" id="site-nav" aria-label="منوی اصلی">/, `${name}: منوی اصلی لازم است`);
   for (const href of ["/price/", "/price/currency/", "/price/gold/", "/price/coin/", "/price/crypto/", "/convert/", "/mag/"]) {
     assert.ok(html.includes(`class="site-nav"`) && new RegExp(`site-nav[^\\n]*href="${href}"`).test(html), `${name}: منو باید ${href} را داشته باشد`);
   }
   // فوتر کامل، نه فهرست خلاصه، در همهٔ صفحه‌ها
   assert.match(html, /class="site-footer"><?[\s\S]*class="site-shell footer-inner"[\s\S]*class="footer-brand"/, `${name}: فوتر کامل لازم است`);
   for (const label of ["قیمت‌ها", "ابزارها و محتوا", "تبدکس"]) assert.match(html, new RegExp(`<strong>${label}</strong>`), `${name}: ستون «${label}» فوتر`);
-  assert.match(html, /\/assets\/site\.css\?v=20261014-redesign/, `${name}: site.css`);
-  assert.match(html, /\/assets\/site\.js\?v=20261014-redesign/, `${name}: site.js`);
+  assert.match(html, /\/assets\/site\.css\?v=20261014-fixes/, `${name}: site.css`);
+  assert.match(html, /\/assets\/site\.js\?v=20261014-fixes/, `${name}: site.js`);
   assert.doesNotMatch(html, /←/, `${name}: فلش متنی نباید باشد`);
+  // هدر موبایل: لوگو، دکمهٔ جستجو و دکمهٔ منو که فهرست را باز می‌کند.
+  assert.match(html, /class="header-actions"><a class="header-icon" href="\/price\/#search" aria-label="جستجوی دارایی">[\s\S]*?id="menu-toggle"[^>]*aria-expanded="false" aria-controls="site-nav"/, `${name}: دکمه‌های هدر موبایل`);
 }
 
 assert.match(templates.home, /id="home-kpis"[\s\S]*class="converter-card"[\s\S]*id="quick-amounts"/, "هوم: شاخص‌ها و مبدل با مبلغ سریع");
@@ -39,6 +41,8 @@ assert.doesNotMatch(templates.home, /home-faq|class="ticker/, "پرسش‌ها �
 assert.match(templates.convert, /id="quick-amounts"[\s\S]*id="converter-insights"[^>]*hidden[\s\S]*id="conversion-tables"[^>]*hidden[\s\S]*class="pair-content"/, "مبدل: مبلغ سریع، خلاصه و جدول تبدیل");
 assert.match(templates.hub, /id="hub-search"[\s\S]*id="hub-indices"[\s\S]*id="category-grid"[\s\S]*id="hub-movers"/, "هاب: جستجو، شاخص‌ها، دسته‌ها و بیشترین تغییرات");
 assert.match(templates.category, /id="category-stats"[\s\S]*id="market-sort"[\s\S]*id="market-table-wrap"[\s\S]*id="other-markets"/, "دسته: آمار، مرتب‌سازی، جدول و بازارهای دیگر");
+assert.match(templates.convert, /<body data-inline-picker>[\s\S]*class="convert-layout">[\s\S]*class="converter-card"[\s\S]*id="asset-dialog"[\s\S]*id="asset-recent"[\s\S]*<\/div>\n    <\/div>\n\n    <section class="conversion-tables"/, "مبدل: انتخابگر کنار مبدل");
+assert.match(templates.asset, /id="asset-days-csv"[\s\S]*id="data-source-note"/, "دارایی: دانلود CSV و یادداشت منبع");
 assert.match(templates.asset, /id="asset-hero-convert"[\s\S]*id="asset-share"[\s\S]*id="asset-stats"[^>]*hidden[\s\S]*id="btc-price-chart"[\s\S]*id="asset-days"[^>]*hidden[\s\S]*class="asset-content"[\s\S]*id="asset-quick"[\s\S]*id="asset-related"/, "دارایی: اقدام‌ها، آمار، نمودار، روزها، محتوا و ستون کناری");
 
 // آیکون همهٔ دارایی‌ها گرد است.
@@ -49,7 +53,7 @@ assert.match(read("assets/styles.css"), /\.field-control \{[^}]*flex-direction: 
 
 // app.js جفت و نرخ را برای بخش‌های کمکی می‌فرستد، بی‌خطر در محیط بدون CustomEvent.
 const app = read("assets/app.js");
-assert.match(app, /function paint\(\) \{[^}]*notifyPair\(\); \}/);
+assert.match(app, /function paint\(\) \{[^}]*notifyPair\(\);[^}]*\}/);
 assert.match(app, /typeof CustomEvent !== "function"\) return;/);
 assert.match(read("assets/convert-extras.js"), /addEventListener\("tabdex:pair"/);
 

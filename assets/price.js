@@ -298,6 +298,10 @@
     input.addEventListener("keydown", function (event) { if (event.key === "Escape") { input.value = ""; paint(); } });
     document.addEventListener("click", function (event) { if (!results.hidden && !event.target.closest(".hub-search")) results.hidden = true; });
     input.addEventListener("focus", function () { if (normalizeQuery(input.value)) paint(); });
+    // دکمهٔ جستجوی هدر به /price/#search می‌آید؛ همان‌جا فیلد آماده است.
+    function focusFromHash() { if (location.hash === "#search") { input.focus(); if (input.scrollIntoView) input.scrollIntoView({ block: "center" }); } }
+    window.addEventListener("hashchange", focusFromHash);
+    focusFromHash();
   }
 
   function renderHub() {
@@ -427,6 +431,8 @@
     var heroConvert = document.getElementById("asset-hero-convert"); if (heroConvert && converter) { heroConvert.setAttribute("href", converter.getAttribute("href")); heroConvert.replaceChildren(document.createTextNode("تبدیل " + asset.name + " "), converter.querySelector(".icon-chevron").cloneNode(true)); }
     renderQuickConvert(asset);
     renderRelated(asset);
+    renderAbsoluteChange(asset);
+    var sourceBox = document.getElementById("data-source-note"); if (sourceBox) { text(document.getElementById("data-source-text"), "قیمت " + asset.name + " از " + (asset.source || "بازار") + " دریافت می‌شود" + (hasHistory(asset) ? " و قیمت پایانی روزانه‌اش در سرور تبدکس ثبت می‌شود." : ".")); sourceBox.hidden = false; }
     var measured = [{ "@type": "PropertyValue", name: "قیمت به " + priceLabel(asset), value: asset.price, unitText: priceLabel(asset) }, { "@type": "PropertyValue", name: "تغییر ۲۴ ساعته", value: Number.isFinite(asset.change) ? asset.change : null, unitText: "درصد" }]; if (Number.isFinite(asset.tomanPrice)) measured.push({ "@type": "PropertyValue", name: "قیمت تومانی", value: asset.tomanPrice, unitText: "تومان" }); var dataset = { "@type": "Dataset", name: "قیمت لحظه ای " + asset.name, description: description, url: ORIGIN + path, dateModified: (asset.updatedAt || latestUpdate || new Date()).toISOString(), variableMeasured: measured };
     setSchema([{ "@type": "WebPage", "@id": ORIGIN + path + "#page", name: title.replace(" | تبدکس", ""), description: description, url: ORIGIN + path, inLanguage: "fa-IR", about: { "@type": "Thing", name: asset.name, alternateName: asset.code || asset.englishName }, mainEntity: { "@id": ORIGIN + path + "#dataset" } }, breadcrumb([{ name: "تبدکس", path: "/" }, { name: "قیمت‌ها", path: "/price/" }, { name: category.name, path: categoryUrl(group) }, { name: asset.name, path: path }]), Object.assign({ "@id": ORIGIN + path + "#dataset" }, dataset)]);
   }
@@ -456,6 +462,15 @@
     if (table) table.replaceChildren.apply(table, [1, 5, 10, 100].map(function (amount) { var row = document.createElement("tr"); row.append(el("td", "", formatNumber(amount) + " " + unit), el("td", "", formatPrice(amount * asset.price, asset) + " " + priceLabel(asset))); return row; }));
     paintQuickConvert(); section.hidden = false;
   }
+  /* کنار درصد، مقدار مطلق تغییر هم با واحد اصلی می‌آید: «+۱٬۱۶۰».
+     از قیمت فعلی و درصد ۲۴ ساعته بازسازی می‌شود. */
+  function renderAbsoluteChange(asset) {
+    var box = document.getElementById("asset-change"); if (!box) return;
+    var node = box.querySelector(".price-change-abs");
+    if (!node) { node = el("small", "price-change-abs"); box.appendChild(node); }
+    var delta = Number.isFinite(asset.change) && asset.change > -100 ? asset.price - asset.price / (1 + asset.change / 100) : NaN;
+    node.textContent = Number.isFinite(delta) && delta !== 0 ? "(" + (delta > 0 ? "+" : "−") + formatPrice(Math.abs(delta), asset) + ")" : "";
+  }
   function renderRelated(asset) {
     var section = document.getElementById("asset-related"); var list = document.getElementById("asset-related-list"); if (!section || !list) return;
     var related = availableAssets(asset.group).filter(function (item) { return item.id !== asset.id; }).slice(0, 5);
@@ -482,7 +497,7 @@
     box.textContent = message;
   }
   function start() {
-    var mode = document.body.getAttribute("data-price-page"); if (mode === "hub") renderCategoryCards();
+    var mode = document.body.getAttribute("data-price-page"); if (mode === "hub") { renderCategoryCards(); bindHubSearch(); }
     function render() { if (mode === "hub") renderHub(); else if (mode === "category") renderCategory(); else if (mode === "asset") renderAsset(); }
     loadAll().then(render);
 
