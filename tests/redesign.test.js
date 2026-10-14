@@ -35,7 +35,9 @@ for (const [name, html] of Object.entries(templates)) {
 
 assert.match(templates.home, /id="home-kpis"[\s\S]*class="converter-card"[\s\S]*id="quick-amounts"/, "هوم: شاخص‌ها و مبدل با مبلغ سریع");
 // بخش مبدل هوم با طراحی اولیه: عنوان بیرون و بالای کارت، «مبدل کامل» وسط و در ردیف جدا.
-assert.match(templates.home, /<section class="intro" aria-labelledby="page-title">[\s\S]*?<\/section>\s*<section class="converter-card"/, "هوم: عنوان مبدل بالای کارت");
+assert.match(templates.home, /<div class="home-converter-col">\s*<section class="converter-card" aria-labelledby="page-title">\s*<div class="intro converter-intro">/, "هوم: عنوان مبدل داخل کارت");
+assert.match(css, /\.home-top \{ display: grid; grid-template-columns: minmax\(0, 1fr\) minmax\(380px, 500px\);/, "هوم: مبدل در دسکتاپ همیشه ستون چپ");
+assert.match(read("assets/home.js"), /KPI_IDS = \["usd", "gold18", "emami", "btc", "brent", "silver"\]/, "هوم: شش کارت قیمت زیر تیتر");
 assert.match(templates.home, /<\/div>\s*<div class="converter-more"><a class="section-link" href="\/convert\/">مبدل کامل/, "هوم: مبدل کامل در ردیف جدا");
 assert.match(css, /\.converter-more \{[^}]*justify-content: center/, "مبدل کامل وسط‌چین");
 assert.match(css, /\.home-converter-col \.rate-summary \{ grid-template-columns: 1fr;/, "نرخ و زمان به‌روزرسانی زیر هم");

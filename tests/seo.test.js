@@ -29,7 +29,7 @@ for (const slug of ['cake','hype','safe']) {
  assert.ok(!html.includes('<h1 id="page-title">تبدیل دلار به تومان</h1>'));
 }
 assert.ok(!fs.readFileSync(path.join(root,'price/index.html'),'utf8').includes('دسترسی به صفحات قیمت'),'هاب قیمت نباید فهرست «دسترسی به صفحات قیمت» داشته باشد');
-assert.ok(fs.readFileSync(path.join(root,'price/currency/index.html'),'utf8').includes('دسترسی به صفحات قیمت'),'صفحهٔ دسته همچنان فهرست دارد');
+for (const group of ['currency','gold','coin','commodity','energy','crypto']) assert.ok(!fs.readFileSync(path.join(root,'price',group,'index.html'),'utf8').includes('دسترسی به صفحات قیمت'),`صفحهٔ دسته ${group} نباید فهرست «دسترسی به صفحات قیمت» داشته باشد`);
 const contact=fs.readFileSync(path.join(root,'contact/index.html'),'utf8');
 assert.ok(contact.includes('mailto:info@tabdex.ir')&&contact.includes('tel:+989981903599'));
 // Exercise the real rendering branch with missing upstream rates; indexing and

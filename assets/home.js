@@ -60,7 +60,12 @@
     ["quartercoin", "ربع سکه", "/price/coin/rob/", COIN], ["gramcoin", "سکه یک گرمی", "/price/coin/gerami/", COIN],
     ["silver", "نقره ۹۹۹", "/price/commodity/silver/", "/assets/silver.svg"], ["copper", "مس", "/price/commodity/copper/", "/assets/copper.svg"]
   ];
-  var KPI_IDS = ["usd", "gold18", "emami"];
+  /* کارت‌های زیر تیتر؛ شش‌تا تا ارتفاع ستون با کارت مبدل کنارش هم‌تراز شود.
+     نقره فقط اینجا نمایش داده می‌شود و در جدول قیمت‌های مهم نیست. */
+  var KPI_IDS = ["usd", "gold18", "emami", "btc", "brent", "silver"];
+  var KPI_EXTRA = [
+    { id: "silver", name: "نقره گرمی", code: "هر گرم", url: "/price/commodity/silver/", icon: "/assets/silver.svg", source: "proxy" }
+  ];
 
   function getJson(url, init) {
     return fetch(url, init || { cache: "no-store" }).then(function (response) {
@@ -154,17 +159,17 @@
       link.append(identity, priceCell, changeCell, trend); rows.appendChild(link);
     });
     applyFilter();
-    paintKpis(proxy);
+    paintKpis(stats, proxy);
     paintMovers(proxy);
   }
 
-  function paintKpis(proxy) {
+  function paintKpis(stats, proxy) {
     var box = document.getElementById("home-kpis");
     if (!box) return;
     var cards = [];
     KPI_IDS.forEach(function (id) {
-      var definition = definitions.filter(function (item) { return item.id === id; })[0];
-      var quote = quoteFor(definition, null, proxy);
+      var definition = definitions.concat(KPI_EXTRA).filter(function (item) { return item.id === id; })[0];
+      var quote = quoteFor(definition, stats, proxy);
       if (!(quote.price > 0)) return;
       var card = document.createElement("a"); card.className = "home-kpi"; card.href = definition.url;
       var name = document.createElement("span"); name.className = "home-kpi-name"; name.append(roundIcon(definition.icon), document.createTextNode(definition.name));
