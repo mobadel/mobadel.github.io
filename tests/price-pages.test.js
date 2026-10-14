@@ -169,6 +169,8 @@ for (const [name, source] of [["home", home], ["convert", converter], ["price", 
   assert.doesNotMatch(source, /class="main-nav"/, `${name}: سوییچ هدر باید حذف شود`);
 }
 assert.match(home, /class="home-hero"[\s\S]*<span>قیمت<\/span>[\s\S]*id="rotating-asset-name">دلار/, "عنوان متغیر هوم باید با دلار شروع شود");
+assert.match(home, /<h1 id="home-title">تبدکس \| قیمت لحظه‌ای دلار، طلا، سکه و ارز دیجیتال به همراه تبدیل سریع<\/h1>/, "تیتر یک هوم باید متن کامل سئو باشد");
+assert.doesNotMatch(home, /<h1[^>]*>\s*<span>قیمت<\/span>/, "عنوان متغیر نباید تیتر یک باشد");
 assert.match(home, /id="rotating-asset-name">دلار<\/span><img id="rotating-asset-icon"/, "آیکون باید در سمت چپ نام متغیر قرار بگیرد");
 assert.match(home, /class="home-market-all" href="\/price\/">مشاهده همه/, "انتهای جدول باید لینک مشاهده همه داشته باشد");
 assert.match(home, /home-market-all[^>]*>مشاهده همه <span class="icon-chevron"/, "فلش مشاهده همه باید chevron مینیمال باشد");
@@ -183,7 +185,7 @@ assert.match(homeScript, /id: "gold18", name: "طلای ۱۸ عیار", code: "�
 assert.match(homeScript, /id: "emami", name: "سکه امامی", code: "هر عدد"/, "واحد سکه هوم باید هر عدد باشد");
 assert.match(homeScript, /name: "دلار"[\s\S]*name: "طلا"[\s\S]*name: "تتر"[\s\S]*name: "سکه"[\s\S]*name: "بیت‌کوین"/, "ترتیب دارایی‌های عنوان متغیر باید ثابت بماند");
 assert.match(homeStyles, /\.home-market-label small \{[^}]*direction: rtl;[^}]*text-align: right;/, "زیرعنوان ردیف هوم باید راست‌چین باشد");
-assert.match(homeStyles, /\.home-hero h1 \{[^}]*white-space: nowrap;/, "عنوان متغیر باید در همه اندازه‌ها یک‌خطی بماند");
+assert.match(homeStyles, /\.home-hero-title \{[^}]*white-space: nowrap;/, "عنوان متغیر باید در همه اندازه‌ها یک‌خطی بماند");
 assert.match(read("assets/app.js"), /location\.href = target;[\s\S]*return;/, "تغییر جفت در هوم باید navigation واقعی انجام دهد");
 for (const source of [read("index.html"), converter, hub, category, asset]) assert.match(source, /class="site-footer"/, "همه قالب‌ها باید فوتر داشته باشند");
 assert.match(script, /crypto:[\s\S]*gold:[\s\S]*coin:/, "طلا و سکه باید دسته‌های جدا باشند");
