@@ -433,11 +433,9 @@ function enrichPage(html, path) {
     const nameA = esc(a.name), nameB = esc(b.name);
     content = `<h2>روش محاسبه ${nameA} به ${nameB}</h2><p>مقدار مبدأ × نرخ تومانی هر واحد مبدأ ÷ نرخ تومانی هر واحد مقصد = مقدار معادل مقصد. نرخ تومان در این فرمول یک است. برای مثال با نرخ فرضی ۱۰۰ تومان برای مبدأ و ۲۰۰ تومان برای مقصد، ۱۰ واحد مبدأ معادل ۵ واحد مقصد است؛ این مثال نرخ واقعی بازار نیست.</p><p>${GROUP_HELP[groupFor(from === "irt" ? to : from)][1]}</p><p>این ابزار ارزش معادل را محاسبه می‌کند و خرید، فروش یا انتقال دارایی انجام نمی‌دهد. نتیجه شامل اختلاف خرید و فروش و کارمزد معامله نیست. واحد انتخاب‌شده کنار نام دارایی را بررسی کنید.</p><nav aria-label="قیمت‌ها و تبدیل مرتبط"><ul>${[from,to].filter(x=>x!=="irt").map(x=>`<li>${assetLink(x)}</li>`).join("")}<li><a href="/convert/${to}-to-${from}/">تبدیل ${nameB} به ${nameA}</a></li></ul></nav>`;
   } else if (path.startsWith("/price/")) {
-    const group = path.split("/")[2];
-    // هاب قیمت فهرست پیوند جدا لازم ندارد؛ دسته‌ها و جستجو همین کار را می‌کنند.
-    if (!group) return html;
-    const list = group ? (group === "crypto" ? [...TOP_CRYPTO,...INDEXED_CRYPTO].map(cryptoSlug) : PRICE_GROUPS[group] || []) : ["usd","gold18","emami","btc","usdt","eur"];
-    content = `<h2>دسترسی به صفحات قیمت</h2><ul>${list.map(slug=>`<li>${assetLink(slug)}</li>`).join("")}</ul>`;
+    // هاب و صفحهٔ دسته‌ها فهرست پیوند «دسترسی به صفحات قیمت» ندارند؛ جدول
+    // و کارت‌های همان صفحه به همهٔ دارایی‌ها پیوند می‌دهند.
+    return html;
   } else {
     content = `<h2>تبدیل‌های پرکاربرد</h2><p class="popular-conversions-intro">تبدیل موردنظر را انتخاب کنید و ارزش معادل دارایی‌تان را ببینید.</p><ul class="popular-conversions-grid">${["gold18-to-eur","afn-to-irt","irt-to-iqd","usd-to-irt","aed-to-irt"].map(slug=>{const [a,b]=slug.split("-to-");return `<li><a class="popular-conversion" href="/convert/${slug}/"><span class="popular-conversion-symbol" aria-hidden="true"><img src="${popularIcon(a)}" alt="" loading="lazy"></span><span class="popular-conversion-label"><strong>${esc(assetForSlug(a).name)} به ${esc(assetForSlug(b).name)}</strong><span>محاسبه و تبدیل</span></span><span class="icon-chevron" aria-hidden="true"></span></a></li>`;}).join("")}</ul>`;
     return html.replace(/<\/main>/, `<section class="seo-content popular-conversions" aria-label="تبدیل‌های پرکاربرد">${content}</section></main>`);
