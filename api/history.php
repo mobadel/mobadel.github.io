@@ -12,6 +12,9 @@ declare(strict_types=1);
 require __DIR__ . '/market-history.php';
 
 header('Content-Type: application/json; charset=utf-8');
+
+// سقف شمار دارایی در یک درخواست خلاصهٔ روزانه؛ بزرگ‌ترین دسته (ارز) ۲۷ تاست.
+const HISTORY_BATCH_LIMIT = 40;
 header('Cache-Control: public, max-age=60');
 
 function configKey(): string {
@@ -58,28 +61,46 @@ if (($_GET['capture'] ?? '') === '1') {
     exit;
 }
 
+/* حالت خلاصهٔ روزانه برای چند دارایی در یک درخواست: نمودارهای کوچک
+   صفحهٔ اصلی و جدول دسته‌ها. بدون این، هر ردیف یک درخواست جدا با کل
+   تاریخچهٔ چندساله می‌زد. فقط قیمت پایانی هر روز برمی‌گردد. */
+if (isset($_GET['assets'])) {
+    $ids = array_values(array_unique(array_filter(
+        array_map('trim', explode(',', strtolower((string) $_GET['assets']))),
+        static fn($id) => $id !== ''
+    )));
+    $valid = $ids && count($ids) <= HISTORY_BATCH_LIMIT;
+    foreach ($ids as $id) if (!preg_match('/^[a-z0-9]+$/', $id)) $valid = false;
+    if (!$valid) {
+        http_response_code(400);
+        echo json_encode(['error' => 'invalid_assets']);
+        exit;
+    }
+    $days = (int) ($_GET['days'] ?? 30);
+    $days = max(2, min(400, $days));
+    $since = time() - $days * 86400;
+    $seed = historyReadJson(HISTORY_SEED_FILE);
+    $dynamic = historyReadJson(HISTORY_CACHE_FILE);
+    $rates = historyReadJson(HISTORY_RATES_FILE);
+    $result = [];
+    foreach ($ids as $id) {
+        $group = (string) ($rates['assets'][$id]['group'] ?? '');
+        $result[$id] = historyDailyCloses(historyMergedPoints($id, $group, $seed, $dynamic), $since);
+    }
+    header('Cache-Control: public, max-age=300');
+    echo json_encode(['unit' => 'toman', 'days' => $days, 'assets' => $result], JSON_UNESCAPED_UNICODE);
+    exit;
+}
+
 $id = strtolower((string) ($_GET['asset'] ?? ''));
 if (!preg_match('/^[a-z0-9]+$/', $id)) {
     http_response_code(400);
     echo json_encode(['error' => 'invalid_asset']);
     exit;
 }
-$seed = historyReadJson(HISTORY_SEED_FILE);
-$dynamic = historyReadJson(HISTORY_CACHE_FILE);
-$merged = [];
 /* فیلتر روزهای تعطیل اینجا هم اعمال می‌شود، نه فقط هنگام ثبت. قاعدهٔ
    ساعت کاری بعداً اضافه شد و نقطه‌هایی که پیش از آن ثبت شده بودند در
    نمودار مانده‌اند — مثلاً جمعه ۱۳ شهریور ۱۴۰۵. فیلتر هنگام خواندن،
    مستقل از اینکه نقطه کِی ثبت شده، تعطیلی را از نمودار بیرون می‌گذارد. */
-$group = assetGroup($id);
-foreach ([$seed, $dynamic] as $source) {
-    foreach (($source['assets'][$id] ?? []) as $point) {
-        if (!is_array($point) || !isset($point[0], $point[1])) continue;
-        $time = (int) $point[0]; $price = (float) $point[1];
-        if ($time <= 0 || $price <= 0) continue;
-        if (!marketDayIsOpen($group, $time)) continue;
-        $merged[$time] = [$time, $price];
-    }
-}
-ksort($merged, SORT_NUMERIC);
-echo json_encode(['asset' => $id, 'unit' => 'toman', 'points' => array_values($merged)], JSON_UNESCAPED_UNICODE);
+$points = historyMergedPoints($id, assetGroup($id), historyReadJson(HISTORY_SEED_FILE), historyReadJson(HISTORY_CACHE_FILE));
+echo json_encode(['asset' => $id, 'unit' => 'toman', 'points' => $points], JSON_UNESCAPED_UNICODE);

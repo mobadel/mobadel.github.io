@@ -598,7 +598,26 @@
       " برابر با " + formatCurrencyNumber(reverseRate, fromCurrency) + " " + unitizedName(fromCurrency) + " است.";
   }
 
-  function paint() { updateRate(); refreshPairStatus(); paintConversion(); paintRate(); paintPairContent(); }
+  /* بخش‌های جانبی مبدل (جدول تبدیل، خلاصهٔ روزهای اخیر) در
+     convert-extras.js هستند و جفت و نرخ فعلی را از همین رویداد
+     می‌گیرند، تا این فایل از چیدمان آن بخش‌ها بی‌خبر بماند. محیط تست
+     CustomEvent ندارد، پس بی‌صدا رد می‌شود. */
+  function describeCurrency(currency) {
+    return { id: currency.id, name: currency.name, code: currency.code || "", group: currency.group, unit: unitPrefix(currency), decimals: currency.decimals };
+  }
+
+  function notifyPair() {
+    if (typeof document === "undefined" || typeof document.dispatchEvent !== "function" || typeof CustomEvent !== "function") return;
+    var fromCurrency = currencies[state.from];
+    var toCurrency = currencies[state.to];
+    if (!fromCurrency || !toCurrency || state.pendingRoute) return;
+    document.dispatchEvent(new CustomEvent("tabdex:pair", { detail: {
+      from: describeCurrency(fromCurrency), to: describeCurrency(toCurrency),
+      rate: Number.isFinite(state.rate) && state.rate > 0 ? state.rate : null, live: state.live
+    } }));
+  }
+
+  function paint() { updateRate(); refreshPairStatus(); paintConversion(); paintRate(); paintPairContent(); notifyPair(); }
 
   function editableTokens(value) {
     var normalized = toEnglishDigits(value).replace(/٫/g, ".");

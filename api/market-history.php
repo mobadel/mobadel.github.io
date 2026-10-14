@@ -92,6 +92,42 @@ function marketIsOpen(string $group, int $time): bool {
     return $hour >= 11 && $hour < 20;
 }
 
+/* همهٔ نقطه‌های یک دارایی: بستهٔ روزانهٔ بلندمدت (seed) و اسنپ‌شات‌های
+   پنج‌دقیقه‌ای کش، یکی و مرتب. روزهای تعطیل بازار همین‌جا بیرون می‌روند
+   تا هم نمودار و هم خلاصه‌های روزانه از یک منطق بخوانند. $seed و
+   $dynamic از بیرون داده می‌شوند تا درخواستِ چنددارایی هر فایل را فقط
+   یک‌بار بخواند. */
+function historyMergedPoints(string $id, string $group, array $seed, array $dynamic): array {
+    $merged = [];
+    foreach ([$seed, $dynamic] as $source) {
+        foreach (($source['assets'][$id] ?? []) as $point) {
+            if (!is_array($point) || !isset($point[0], $point[1])) continue;
+            $time = (int) $point[0]; $price = (float) $point[1];
+            if ($time <= 0 || $price <= 0) continue;
+            if (!marketDayIsOpen($group, $time)) continue;
+            $merged[$time] = [$time, $price];
+        }
+    }
+    ksort($merged, SORT_NUMERIC);
+    return array_values($merged);
+}
+
+/* یک نقطه برای هر روز تقویمی تهران: قیمت پایانی همان روز، نه اولین یا
+   میانگین. نمودارهای کوچک و خلاصهٔ چندروزه به همین بسنده می‌کنند و
+   لازم نیست هزاران اسنپ‌شات پنج‌دقیقه‌ای به مرورگر برسد. */
+function historyDailyCloses(array $points, int $since = 0): array {
+    $zone = new DateTimeZone('Asia/Tehran');
+    $days = [];
+    foreach ($points as $point) {
+        $time = (int) ($point[0] ?? 0); $price = (float) ($point[1] ?? 0);
+        if ($time < $since || $price <= 0) continue;
+        $day = (new DateTimeImmutable('@' . $time))->setTimezone($zone)->format('Y-m-d');
+        if (!isset($days[$day]) || $days[$day][0] <= $time) $days[$day] = [$time, $price];
+    }
+    ksort($days);
+    return array_values($days);
+}
+
 /* ثبت یک اسنپ‌شات از نرخ‌های همین لحظه. هم rates.php بعد از تازه‌کردن
    کش صدایش می‌زند، هم کرون از راه history.php. */
 function recordHistoryPoints(array $assets, int $fetchedUnix): int {
