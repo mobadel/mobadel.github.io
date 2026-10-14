@@ -434,6 +434,8 @@ function enrichPage(html, path) {
     content = `<h2>روش محاسبه ${nameA} به ${nameB}</h2><p>مقدار مبدأ × نرخ تومانی هر واحد مبدأ ÷ نرخ تومانی هر واحد مقصد = مقدار معادل مقصد. نرخ تومان در این فرمول یک است. برای مثال با نرخ فرضی ۱۰۰ تومان برای مبدأ و ۲۰۰ تومان برای مقصد، ۱۰ واحد مبدأ معادل ۵ واحد مقصد است؛ این مثال نرخ واقعی بازار نیست.</p><p>${GROUP_HELP[groupFor(from === "irt" ? to : from)][1]}</p><p>این ابزار ارزش معادل را محاسبه می‌کند و خرید، فروش یا انتقال دارایی انجام نمی‌دهد. نتیجه شامل اختلاف خرید و فروش و کارمزد معامله نیست. واحد انتخاب‌شده کنار نام دارایی را بررسی کنید.</p><nav aria-label="قیمت‌ها و تبدیل مرتبط"><ul>${[from,to].filter(x=>x!=="irt").map(x=>`<li>${assetLink(x)}</li>`).join("")}<li><a href="/convert/${to}-to-${from}/">تبدیل ${nameB} به ${nameA}</a></li></ul></nav>`;
   } else if (path.startsWith("/price/")) {
     const group = path.split("/")[2];
+    // هاب قیمت فهرست پیوند جدا لازم ندارد؛ دسته‌ها و جستجو همین کار را می‌کنند.
+    if (!group) return html;
     const list = group ? (group === "crypto" ? [...TOP_CRYPTO,...INDEXED_CRYPTO].map(cryptoSlug) : PRICE_GROUPS[group] || []) : ["usd","gold18","emami","btc","usdt","eur"];
     content = `<h2>دسترسی به صفحات قیمت</h2><ul>${list.map(slug=>`<li>${assetLink(slug)}</li>`).join("")}</ul>`;
   } else {

@@ -169,7 +169,8 @@ for (const [name, source] of [["home", home], ["convert", converter], ["price", 
   assert.doesNotMatch(source, /class="main-nav"/, `${name}: سوییچ هدر باید حذف شود`);
 }
 assert.match(home, /class="home-hero"[\s\S]*<span>قیمت<\/span>[\s\S]*id="rotating-asset-name">دلار/, "عنوان متغیر هوم باید با دلار شروع شود");
-assert.match(home, /<h1 id="home-title">تبدکس \| قیمت لحظه‌ای دلار، طلا، سکه و ارز دیجیتال به همراه تبدیل سریع<\/h1>/, "تیتر یک هوم باید متن کامل سئو باشد");
+assert.match(home, /<h1 id="home-title" class="sr-only">قیمت دلار، طلا، سکه و ارز دیجیتال همراه با تبدیل سریع به تومان<\/h1>/, "تیتر یک هوم متن کامل سئو است و روی صفحه نمایش داده نمی‌شود");
+assert.doesNotMatch(home, /تبدکس \| قیمت لحظه‌ای دلار، طلا، سکه و ارز دیجیتال به همراه تبدیل سریع/, "متن قدیمی تیتر نباید روی هوم بماند");
 assert.doesNotMatch(home, /<h1[^>]*>\s*<span>قیمت<\/span>/, "عنوان متغیر نباید تیتر یک باشد");
 assert.match(home, /id="rotating-asset-name">دلار<\/span><img id="rotating-asset-icon"/, "آیکون باید در سمت چپ نام متغیر قرار بگیرد");
 assert.match(home, /class="home-market-all" href="\/price\/">مشاهده همه/, "انتهای جدول باید لینک مشاهده همه داشته باشد");
