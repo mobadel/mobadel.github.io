@@ -84,6 +84,13 @@
   function formatPrice(value, asset) { return Number.isFinite(value) ? formatNumber(value, asset && (asset.group === "crypto" || asset.priceCurrency === "USD") && value >= 1 ? 2 : value < 1 ? 6 : 0) : "ناموجود"; }
   function priceLabel(asset) { return asset.priceCurrency === "USDT" ? "تتر" : asset.priceCurrency === "USD" ? "دلار" : "تومان"; }
   function formattedPrice(asset) { return formatPrice(asset.price, asset) + " " + priceLabel(asset); }
+  /* عنصر قیمت: عدد در span.num با قلم Estedad و واحد با قلم بدنه. */
+  function priceEl(tag, className, value, unit) {
+    var node = el(tag, className); node.append(el("span", "num", value), document.createTextNode(" " + unit)); return node;
+  }
+  function assetPriceEl(tag, className, asset) {
+    return Number.isFinite(asset.price) ? priceEl(tag, className, formatPrice(asset.price, asset), priceLabel(asset)) : el(tag, className, formatPrice(asset.price, asset));
+  }
   function formatChange(value) { if (!Number.isFinite(value)) return "—"; var sign = value > 0 ? "+" : ""; return sign + formatNumber(value, 2) + "٪"; }
   function formatAbsoluteChange(value) { return Number.isFinite(value) ? formatNumber(Math.abs(value), 2) + "٪" : "—"; }
   function changeClass(value) { return value > 0 ? "positive" : value < 0 ? "negative" : "neutral"; }
@@ -237,7 +244,7 @@
       if (!count) top.appendChild(el("li", "loading", "در حال دریافت قیمت‌ها…"));
       list.slice(0, 3).forEach(function (asset) {
         var item = document.createElement("li"); var row = document.createElement("a"); row.href = assetUrl(asset);
-        row.append(el("span", "", asset.name), el("b", "", formattedPrice(asset)), el("em", changeClass(asset.change), formatChange(asset.change)));
+        row.append(el("span", "", asset.name), assetPriceEl("b", "", asset), el("em", changeClass(asset.change), formatChange(asset.change)));
         item.appendChild(row); top.appendChild(item);
       });
       panel.appendChild(top); grid.appendChild(panel);
@@ -266,7 +273,7 @@
     function card(title, mark, tone, list) {
       var wrap = el("div", "card movers-card"); var heading = el("h2"); heading.append(el("span", tone, mark), document.createTextNode(title)); wrap.appendChild(heading);
       var ol = document.createElement("ol");
-      list.forEach(function (asset) { var li = document.createElement("li"); var link = document.createElement("a"); link.href = assetUrl(asset); link.append(el("span", "", asset.name), el("small", "", formattedPrice(asset)), el("em", changeClass(asset.change), formatChange(asset.change))); li.appendChild(link); ol.appendChild(li); });
+      list.forEach(function (asset) { var li = document.createElement("li"); var link = document.createElement("a"); link.href = assetUrl(asset); link.append(el("span", "", asset.name), assetPriceEl("small", "", asset), el("em", changeClass(asset.change), formatChange(asset.change))); li.appendChild(link); ol.appendChild(li); });
       wrap.appendChild(ol); return wrap;
     }
     var parts = [];
@@ -290,7 +297,7 @@
       var query = input.value; if (!normalizeQuery(query)) { results.hidden = true; results.replaceChildren(); return; }
       var found = searchAssets(query);
       if (!found.length) { results.replaceChildren(el("li", "empty", "دارایی‌ای با این عبارت پیدا نشد.")); results.hidden = false; return; }
-      results.replaceChildren.apply(results, found.map(function (asset) { var li = document.createElement("li"); var link = document.createElement("a"); link.href = assetUrl(asset); link.append(roundIcon(asset), el("span", "", asset.name), el("small", "", formattedPrice(asset))); li.appendChild(link); return li; }));
+      results.replaceChildren.apply(results, found.map(function (asset) { var li = document.createElement("li"); var link = document.createElement("a"); link.href = assetUrl(asset); link.append(roundIcon(asset), el("span", "", asset.name), assetPriceEl("small", "", asset)); li.appendChild(link); return li; }));
       results.hidden = false;
     }
     input.addEventListener("input", paint);
@@ -332,13 +339,13 @@
     var box = document.getElementById("category-stats"); if (!box) return;
     var changes = list.filter(function (asset) { return Number.isFinite(asset.change); });
     if (!list.length) { box.replaceChildren(); return; }
-    function stat(title, value, extra, tone) { var item = el("div", "category-stat"); var strong = el("strong", tone || "", value); if (extra) strong.appendChild(extra); item.append(el("small", "", title), strong); return item; }
+    function stat(title, value, extra, tone) { var item = el("div", "category-stat"); var strong = el("strong", ((tone || "") + (/^[\s+\-−\u200e۰-۹٬٫٪]+$/.test(value) ? " num" : "")).trim(), value); if (extra) strong.appendChild(extra); item.append(el("small", "", title), strong); return item; }
     var parts = [stat("تعداد دارایی", formatNumber(list.length))];
     if (changes.length) {
       var average = changes.reduce(function (sum, asset) { return sum + asset.change; }, 0) / changes.length;
       parts.push(stat("میانگین تغییر امروز", formatChange(average), null, changeClass(average)));
       var leader = changes.slice().sort(function (a, b) { return b.change - a.change; })[0];
-      if (leader && leader.change > 0) { var note = el("em", "positive", " " + formatChange(leader.change)); parts.push(stat("پیشتاز امروز", leader.name, note)); }
+      if (leader && leader.change > 0) { var note = el("em", "positive num", " " + formatChange(leader.change)); parts.push(stat("پیشتاز امروز", leader.name, note)); }
     }
     box.replaceChildren.apply(box, parts);
   }
@@ -392,7 +399,7 @@
     }
     // ورودی جستجو بین رندرها باقی می‌ماند، پس لیسنر باید یک‌بار بسته
     // شود وگرنه هر تازه‌سازی یکی روی قبلی‌ها سوار می‌کرد.
-    function paintRows(query) { var rows = document.getElementById("market-rows"); rows.replaceChildren(); var normalized = normalizeQuery(query); var filtered = sorted(list).filter(function (asset) { return !normalized || normalizeQuery([asset.name, asset.englishName, asset.code, asset.id].join(" ")).indexOf(normalized) >= 0; }); if (!filtered.length) { var empty = document.createElement("div"); empty.className = "empty-state"; empty.textContent = list.length ? "دارایی‌ای با این عبارت پیدا نشد." : "دریافت قیمت‌ها موقتاً ممکن نیست."; rows.appendChild(empty); return; } filtered.forEach(function (asset, index) { var row = document.createElement("div"); row.className = "market-row"; var rankCell = el("span", "market-row-rank", formatNumber(index + 1)); var identity = document.createElement("a"); identity.className = "market-row-identity"; identity.href = assetUrl(asset); identity.appendChild(createIcon(asset, "market-row-icon")); var label = document.createElement("span"); label.className = "market-row-label"; var strong = document.createElement("strong"); strong.textContent = asset.name; var small = document.createElement("small"); small.textContent = asset.code || ""; label.append(strong, small); identity.appendChild(label); var price = document.createElement("span"); price.className = "market-row-price"; price.textContent = formattedPrice(asset); var change = document.createElement("span"); change.className = "market-row-change change-badge " + changeClass(asset.change); change.textContent = formatChange(asset.change); var action = el("a", "market-row-action", "تبدیل"); action.href = convertHref(asset); action.setAttribute("aria-label", "تبدیل " + asset.name); row.append(rankCell, identity, price, change); if (withHistory) historyCells(asset).forEach(function (cell) { row.appendChild(cell); }); row.appendChild(action); rows.appendChild(row); }); }
+    function paintRows(query) { var rows = document.getElementById("market-rows"); rows.replaceChildren(); var normalized = normalizeQuery(query); var filtered = sorted(list).filter(function (asset) { return !normalized || normalizeQuery([asset.name, asset.englishName, asset.code, asset.id].join(" ")).indexOf(normalized) >= 0; }); if (!filtered.length) { var empty = document.createElement("div"); empty.className = "empty-state"; empty.textContent = list.length ? "دارایی‌ای با این عبارت پیدا نشد." : "دریافت قیمت‌ها موقتاً ممکن نیست."; rows.appendChild(empty); return; } filtered.forEach(function (asset, index) { var row = document.createElement("div"); row.className = "market-row"; var rankCell = el("span", "market-row-rank", formatNumber(index + 1)); var identity = document.createElement("a"); identity.className = "market-row-identity"; identity.href = assetUrl(asset); identity.appendChild(createIcon(asset, "market-row-icon")); var label = document.createElement("span"); label.className = "market-row-label"; var strong = document.createElement("strong"); strong.textContent = asset.name; var small = document.createElement("small"); small.textContent = asset.code || ""; label.append(strong, small); identity.appendChild(label); var price = document.createElement("span"); price.className = "market-row-price"; if (Number.isFinite(asset.price)) price.append(el("span", "num", formatPrice(asset.price, asset)), document.createTextNode(" " + priceLabel(asset))); else price.textContent = formatPrice(asset.price, asset); var change = document.createElement("span"); change.className = "market-row-change change-badge " + changeClass(asset.change); change.textContent = formatChange(asset.change); var action = el("a", "market-row-action", "تبدیل"); action.href = convertHref(asset); action.setAttribute("aria-label", "تبدیل " + asset.name); row.append(rankCell, identity, price, change); if (withHistory) historyCells(asset).forEach(function (cell) { row.appendChild(cell); }); row.appendChild(action); rows.appendChild(row); }); }
     searchPaint = paintRows;
     if (input && !input.dataset.searchBound) {
       input.dataset.searchBound = "1";
@@ -450,7 +457,7 @@
     if (!asset || !input || !output) return;
     var amount = parseQuickAmount(input.value); output.replaceChildren();
     if (!Number.isFinite(amount)) { output.textContent = "مقدار معتبر وارد کنید"; return; }
-    output.append(document.createTextNode(formatPrice(amount * asset.price, asset) + " "), el("small", "", priceLabel(asset)));
+    output.append(el("span", "num", formatPrice(amount * asset.price, asset)), document.createTextNode(" "), el("small", "", priceLabel(asset)));
   }
   function renderQuickConvert(asset) {
     var section = document.getElementById("asset-quick"); var input = document.getElementById("asset-quick-input"); if (!section || !input) return;
@@ -460,7 +467,7 @@
     text(document.getElementById("asset-quick-label"), "مقدار " + asset.name);
     if (!input.dataset.quickBound) { input.dataset.quickBound = "1"; input.addEventListener("input", paintQuickConvert); }
     var table = document.getElementById("asset-quick-table");
-    if (table) table.replaceChildren.apply(table, [1, 5, 10, 100].map(function (amount) { var row = document.createElement("tr"); row.append(el("td", "", formatNumber(amount) + " " + unit), el("td", "", formatPrice(amount * asset.price, asset) + " " + priceLabel(asset))); return row; }));
+    if (table) table.replaceChildren.apply(table, [1, 5, 10, 100].map(function (amount) { var row = document.createElement("tr"); row.append(priceEl("td", "", formatNumber(amount), unit), priceEl("td", "", formatPrice(amount * asset.price, asset), priceLabel(asset))); return row; }));
     paintQuickConvert(); section.hidden = false;
   }
   /* کنار درصد، مقدار مطلق تغییر هم با واحد اصلی می‌آید: «+۱٬۱۶۰».
@@ -478,7 +485,7 @@
     text(document.getElementById("asset-related-title"), "دیگر دارایی‌های " + (CATEGORIES[asset.group] ? CATEGORIES[asset.group].name : "این بازار"));
     list.replaceChildren.apply(list, related.map(function (item) {
       var li = document.createElement("li"); var link = document.createElement("a"); link.href = assetUrl(item);
-      var value = el("span", "related-meta"); value.append(el("b", "", formattedPrice(item)), el("em", changeClass(item.change), formatChange(item.change)));
+      var value = el("span", "related-meta"); value.append(assetPriceEl("b", "", item), el("em", changeClass(item.change), formatChange(item.change)));
       link.append(roundIcon(item), el("strong", "", item.name), value); li.appendChild(link); return li;
     }));
     section.hidden = !related.length;

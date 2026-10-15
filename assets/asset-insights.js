@@ -58,9 +58,9 @@
       for (var i = recent.length - 1; i >= 1; i -= 1) {
         var row = document.createElement("tr");
         var date = document.createElement("td"); date.textContent = dayFormatter.format(new Date(recent[i][0] * 1000));
-        var value = document.createElement("td"); value.textContent = number.format(recent[i][1]);
+        var value = document.createElement("td"); value.className = "num"; value.textContent = number.format(recent[i][1]);
         var delta = change(recent[i][1], recent[i - 1][1]);
-        var cell = document.createElement("td"); cell.textContent = changeText(delta); cell.className = tone(delta);
+        var cell = document.createElement("td"); cell.textContent = changeText(delta); cell.className = "num " + tone(delta);
         row.append(date, value, cell); rows.push(row);
       }
       if (rows.length) { daysRows.replaceChildren.apply(daysRows, rows); daysBox.hidden = false; }

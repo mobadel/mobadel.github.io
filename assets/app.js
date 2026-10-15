@@ -572,8 +572,16 @@
     }
     // «۱ گرم طلای ۱۸ عیار» به‌جای «۱ طلای ۱۸ عیار»
     var fromUnit = unitPrefix(fromCurrency);
+    var rateNumber = formatCurrencyNumber(state.rate, toCurrency);
     elements.rateValue.textContent = "۱ " + (fromUnit ? fromUnit + " " : "") + fromCurrency.name +
-      " = " + formatCurrencyNumber(state.rate, toCurrency) + " " + toCurrency.name;
+      " = " + rateNumber + " " + toCurrency.name;
+    // عددها با قلم Estedad (span.num) و نام دارایی‌ها با قلم بدنه.
+    if (typeof document.createTextNode === "function") {
+      var numPart = function (value) { var span = document.createElement("span"); span.className = "num"; span.textContent = value; return span; };
+      elements.rateValue.replaceChildren(numPart("۱"),
+        document.createTextNode(" " + (fromUnit ? fromUnit + " " : "") + fromCurrency.name + " = "),
+        numPart(rateNumber), document.createTextNode(" " + toCurrency.name));
+    }
     elements.rateStatus.classList.toggle("error", !state.live);
     elements.rateStatus.innerHTML = '<span class="status-dot" aria-hidden="true"></span>' +
       (state.live ? "آخرین به‌روزرسانی " + formatTime(state.updatedAt) : "نمایش آخرین نرخ ذخیره‌شده");

@@ -123,8 +123,13 @@
     return { price: price, change: change, unit: unit };
   }
 
-  function priceText(price, unit) {
-    return Number.isFinite(price) && price > 0 ? number(price, price < 1 ? 6 : unit === "دلار" ? 2 : 0) + " " + unit : "ناموجود";
+  /* عدد در span.num (قلم Estedad) و واحد متن ساده با قلم بدنه. */
+  function numSpan(value) {
+    var span = document.createElement("span"); span.className = "num"; span.textContent = value; return span;
+  }
+  function fillPrice(node, price, unit) {
+    if (Number.isFinite(price) && price > 0) node.replaceChildren(numSpan(number(price, price < 1 ? 6 : unit === "دلار" ? 2 : 0)), document.createTextNode(" " + unit));
+    else node.textContent = "ناموجود";
   }
 
   var activeFilter = "all";
@@ -152,7 +157,7 @@
       var small = document.createElement("small"); small.textContent = definition.code;
       label.append(strong, small); identity.append(icon, label);
       var priceCell = document.createElement("span"); priceCell.className = "home-market-price";
-      priceCell.textContent = priceText(price, unit);
+      fillPrice(priceCell, price, unit);
       var changeCell = document.createElement("span"); changeCell.className = "home-market-change " + (change > 0 ? "positive" : change < 0 ? "negative" : "neutral"); changeCell.textContent = changeText(change);
       var trend = document.createElement("span"); trend.className = "home-market-trend";
       trend.appendChild(definition.history ? sparkline(daily[definition.id]) : sparkline(null));
@@ -202,7 +207,7 @@
       var link = document.createElement("a"); link.className = "mover"; link.href = item.url;
       var label = document.createElement("span"); label.className = "mover-label";
       var strong = document.createElement("strong"); strong.textContent = item.name;
-      var small = document.createElement("small"); small.textContent = number(item.price) + " تومان";
+      var small = document.createElement("small"); small.append(numSpan(number(item.price)), document.createTextNode(" تومان"));
       label.append(strong, small);
       var badge = document.createElement("span"); badge.className = "change-badge " + toneOf(item.change); badge.textContent = changeText(item.change);
       link.append(roundIcon(item.icon), label, badge); li.appendChild(link); return li;
