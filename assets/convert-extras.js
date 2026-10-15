@@ -65,8 +65,8 @@
     var body = document.createElement("tbody");
     steps(rate).forEach(function (amount) {
       var row = document.createElement("tr");
-      var a = document.createElement("td"); a.textContent = smartFormat(amount, fromCurrency) + " " + label(fromCurrency);
-      var b = document.createElement("td"); b.textContent = smartFormat(amount * rate, toCurrency) + " " + label(toCurrency);
+      var a = numCell(smartFormat(amount, fromCurrency), label(fromCurrency));
+      var b = numCell(smartFormat(amount * rate, toCurrency), label(toCurrency));
       row.append(a, b); body.appendChild(row);
     });
     table.appendChild(body);
@@ -96,10 +96,18 @@
   var HISTORY_GROUPS = { fiat: true, gold: true, coin: true, commodity: true };
   var insightToken = 0;
 
-  function insightItem(title, value, tone) {
+  /* عدد در span.num با قلم Estedad و واحد با قلم بدنه. */
+  function numCell(value, unit) {
+    var td = document.createElement("td"); var num = document.createElement("span");
+    num.className = "num"; num.textContent = value; td.append(num, document.createTextNode(" " + unit)); return td;
+  }
+
+  function insightItem(title, value, tone, unit) {
     var item = document.createElement("div");
     var span = document.createElement("span"); span.textContent = title;
-    var strong = document.createElement("strong"); strong.textContent = value;
+    var strong = document.createElement("strong");
+    var num = document.createElement("span"); num.className = "num"; num.textContent = value;
+    strong.appendChild(num); if (unit) strong.appendChild(document.createTextNode(" " + unit));
     if (tone) strong.className = tone;
     item.append(span, strong);
     return item;
@@ -132,7 +140,7 @@
       var dayChange = previous ? percent(live, previous[1]) : null;
       var monthChange = monthAgo ? percent(live, monthAgo[1]) : null;
       var items = [];
-      if (previous) items.push(insightItem("پایانی آخرین روز معاملاتی", smartFormat(previous[1], { group: asset.group, decimals: 0 }) + " تومان"));
+      if (previous) items.push(insightItem("پایانی آخرین روز معاملاتی", smartFormat(previous[1], { group: asset.group, decimals: 0 }), null, "تومان"));
       if (dayChange !== null) items.push(insightItem("تغییر نسبت به آن روز", percentText(dayChange), tone(dayChange)));
       if (monthChange !== null) items.push(insightItem("تغییر ۳۰ روزه", percentText(monthChange), tone(monthChange)));
       if (!items.length) { insights.hidden = true; return; }

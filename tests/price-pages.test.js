@@ -102,7 +102,7 @@ assert.match(btcChartScript, /stage\.addEventListener\("pointerdown"/, "لمس �
 assert.match(btcChartScript, /stage\.addEventListener\("pointerup"[\s\S]*event\.pointerType !== "mouse"[\s\S]*hideTooltip/, "هاور لمسی باید با پایان لمس پاک شود");
 assert.match(btcChartScript, /stage\.addEventListener\("pointercancel", hideTooltip\)/, "لغو لمس باید نشانگر نمودار را پاک کند");
 assert.match(btcChartScript, /stage\.clientWidth < 520 \? 250 : 300/, "نسبت viewBox موبایل باید با ارتفاع واقعی نمودار یکسان باشد");
-assert.match(btcChartScript, /priceFormatter\.format\(point\.price\) \+ " " \+ marketConfig\.unit/, "Tooltip باید واحد متناسب با بازار فعال را نمایش دهد");
+assert.match(btcChartScript, /fillNum\(tooltipPrice, priceFormatter\.format\(point\.price\), marketConfig\.unit\)/, "Tooltip باید واحد متناسب با بازار فعال را نمایش دهد");
 assert.match(btcChartScript, /svg\.removeAttribute\("hidden"\)/, "پس از دریافت داده باید ویژگی hidden واقعاً از SVG حذف شود");
 
 for (const [name, html] of [["home", home], ["convert", converter], ["price", hub], ["category", category], ["asset", asset]]) {
@@ -309,4 +309,10 @@ for (const [name, html] of Object.entries({ home, converter, hub, category, asse
   assert.match(html, /gtag\('config', 'G-QPX0JKFJV0'\);/, `${name}: gtag باید با شناسهٔ تبدکس پیکربندی شود`);
 }
 
+// تایپوگرافی: Estedad برای تیتر و عدد، Vazirmatn برای متن؛ هر دو روی سرور خود سایت.
+const siteCss = fs.readFileSync("assets/site.css", "utf8");
+assert.match(siteCss, /@font-face \{\s*font-family: "Estedad";[\s\S]*?font-display: swap;/, "Estedad با font-display: swap");
+assert.match(siteCss, /--font-heading: "Estedad", "Vazirmatn", sans-serif;/, "زنجیرهٔ جایگزین قلم تیتر");
+assert.match(siteCss, /--font-body: "Vazirmatn"/, "قلم بدنه Vazirmatn می‌ماند");
+for (const file of ["Estedad-Arabic-wght.woff2", "Estedad-Latin-wght.woff2", "OFL-Estedad.txt"]) assert.ok(fs.existsSync("assets/fonts/" + file), file);
 console.log("price page tests passed");

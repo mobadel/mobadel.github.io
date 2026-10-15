@@ -47,6 +47,11 @@
   var xAxis = document.getElementById("btc-chart-x-axis");
   var area = document.getElementById("btc-chart-area");
   var line = document.getElementById("btc-chart-line");
+  /* عدد در span.num با قلم Estedad و واحد با قلم بدنه. */
+  function fillNum(node, value, unit) {
+    var num = document.createElement("span"); num.className = "num"; num.textContent = value;
+    node.replaceChildren(num, document.createTextNode(unit ? " " + unit : ""));
+  }
   var summaryHigh = document.getElementById("btc-chart-summary-high");
   var summaryLow = document.getElementById("btc-chart-summary-low");
   var summaryChange = document.getElementById("btc-chart-summary-change");
@@ -287,8 +292,8 @@
   }
 
   function renderChartSummary(highestPrice, lowestPrice, percentageChange) {
-    summaryHigh.textContent = priceFormatter.format(highestPrice) + " " + marketConfig.unit;
-    summaryLow.textContent = priceFormatter.format(lowestPrice) + " " + marketConfig.unit;
+    fillNum(summaryHigh, priceFormatter.format(highestPrice), marketConfig.unit);
+    fillNum(summaryLow, priceFormatter.format(lowestPrice), marketConfig.unit);
     summaryChange.className = "btc-chart-summary-value btc-chart-summary-change " + (percentageChange > 0 ? "positive" : percentageChange < 0 ? "negative" : "neutral");
     summaryChange.textContent = (percentageChange > 0 ? "+" : percentageChange < 0 ? "−" : "") + percentFormatter.format(Math.abs(percentageChange)) + "٪";
   }
@@ -357,7 +362,7 @@
     crosshair.removeAttribute("hidden");
     marker.removeAttribute("hidden");
     tooltipDate.textContent = (activeRange === "24h" || activeRange === "7d" || activeRange === "1m" ? dateTimeFormatter : dateFormatter).format(new Date(point.time * 1000));
-    tooltipPrice.textContent = priceFormatter.format(point.price) + " " + marketConfig.unit;
+    fillNum(tooltipPrice, priceFormatter.format(point.price), marketConfig.unit);
     tooltip.hidden = false;
     var tooltipWidth = tooltip.offsetWidth || 145;
     var left = relative - tooltipWidth / 2;

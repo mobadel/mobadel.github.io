@@ -625,3 +625,60 @@ body { background: var(--page); font-variant-numeric: tabular-nums; }
   .chart-ranges { display: flex; width: 100%; overflow: visible; }
   .chart-ranges button { flex: 1 1 0; min-width: 0; padding: 0 4px; font-size: 12.5px; white-space: nowrap; }
 }
+
+/* ── تایپوگرافی: Estedad برای تیترها و عددها، Vazirmatn برای بقیه ──────
+   هر دو قلم روی سرور خود سایت‌اند. Estedad نسخهٔ متغیر (وزن ۱۰۰ تا ۹۰۰)
+   است و فقط زیرمجموعه‌های عربی/فارسی و لاتین بار می‌شوند؛ مرورگر هر فایل
+   را تنها وقتی می‌گیرد که نویسه‌ای از بازه‌اش روی صفحه باشد. */
+@font-face {
+  font-family: "Estedad";
+  src: url("fonts/Estedad-Arabic-wght.woff2") format("woff2-variations"), url("fonts/Estedad-Arabic-wght.woff2") format("woff2");
+  font-weight: 100 900; font-style: normal; font-display: swap;
+  unicode-range: U+0600-06FF, U+0750-077F, U+200C-200E, U+2010-2011, U+FB50-FDFF, U+FE70-FEFC;
+}
+@font-face {
+  font-family: "Estedad";
+  src: url("fonts/Estedad-Latin-wght.woff2") format("woff2-variations"), url("fonts/Estedad-Latin-wght.woff2") format("woff2");
+  font-weight: 100 900; font-style: normal; font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+20AC, U+2122, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+:root {
+  --font-body: "Vazirmatn", Tahoma, Arial, sans-serif;
+  --font-heading: "Estedad", "Vazirmatn", sans-serif;
+  --font-numeric: "Estedad", "Vazirmatn", sans-serif;
+}
+body { font-family: var(--font-body); }
+
+/* تیترها و هر چیزی که نقش تیتر دارد */
+:is(h1, h2, h3, h4, h5, h6, .home-hero-title, .asset-dialog-title, .category-tile > strong, .category-card-details > strong) { font-family: var(--font-heading); }
+:is(h1, .home-hero-title) { font-weight: 800; }
+:is(h2, .asset-dialog-title) { font-weight: 700; }
+:is(h3, h4, .category-tile > strong, .category-card-details > strong) { font-weight: 600; }
+:is(h5, h6) { font-weight: 600; }
+/* سطر نرخ مبدل تیتر عددی است: عددها Estedad، نام دارایی و واحد با قلم بدنه. */
+.rate-value { font-family: var(--font-body); }
+
+/* عددهای برجسته؛ ‎.num‎ ابزار مشترک عددهایی است که جاوااسکریپت می‌سازد. */
+.num,
+:is(.home-kpi-value strong, .home-kpi-change, .home-market-change, .change-badge, #home-usd-chart-low, #home-usd-chart-high,
+  .field-control input, .index-card-bottom b, .index-card-bottom .ltr-num, .category-top em, .movers-card em, .market-row-rank, .market-row-month, .market-row-range > span > span,
+  .price-primary strong, .price-change strong, .price-change-abs, .price-secondary-value, .asset-stat strong, #btc-chart-summary-change,
+  #asset-quick-input, .related-meta em) { font-family: var(--font-numeric); }
+
+/* وزن‌ها: Estedad در عدد وزن یکسان پررنگ‌تر از Vazirmatn دیده می‌شود. */
+:is(.price-primary strong, .rate-value .num) { font-weight: 800; }
+:is(.home-kpi-value strong, .index-card-bottom b, .asset-stat strong, .price-secondary-value, .field-control input, #asset-quick-input, #asset-quick-output .num) { font-weight: 700; }
+:is(.home-kpi-change, .home-market-change, .change-badge, .home-market-price .num, .market-row-price .num, .market-row-month, .price-change strong, .category-stat .num,
+  .category-top em, .movers-card em, .related-meta em, .related-meta b .num, .category-top b .num, .btc-chart-summary-value, .btc-chart-summary-value .num, #btc-chart-tooltip-price .num, #home-usd-chart-low, #home-usd-chart-high, .converter-insights .num) { font-weight: 600; }
+:is(.market-row-rank, .market-row-range > span > span, .price-change-abs, .index-card-bottom .ltr-num, .mover-label small .num, .movers-card small .num, .hub-search-results small .num, td.num, td .num) { font-weight: 500; }
+
+/* رقم‌ها: body از قبل tabular-nums دارد. tnum در Estedad برای رقم‌های فارسی
+   کار می‌کند ولی هر رقم را ۰٫۷۴em می‌کند؛ عدد حدود ۶۰٪ پهن‌تر و از هم
+   گسیخته («۲۲۱ , ۰۶۰») دیده می‌شد. پس عددهای Estedad فاصلهٔ طبیعی خود
+   فونت را دارند. ستون‌های قیمت به یک لبه تراز شده‌اند و به‌روزرسانی زنده
+   چیدمان را جابه‌جا نمی‌کند. */
+.num, :is(.home-kpi-value strong, .home-kpi-change, .home-market-change, .change-badge, #home-usd-chart-low, #home-usd-chart-high, .field-control input, .index-card-bottom b, .index-card-bottom .ltr-num,
+  .category-top em, .movers-card em, .market-row-rank, .market-row-month, .market-row-range > span > span, .price-primary strong, .price-change strong, .price-change-abs, .price-secondary-value,
+  .asset-stat strong, #btc-chart-summary-change, #asset-quick-input, .related-meta em) { font-variant-numeric: normal; }
+/* span.num درون‌خطی می‌ماند، حتی جایی که قاعدهٔ عمومی «span» آن را flex کند. */
+span.num { display: inline; }
