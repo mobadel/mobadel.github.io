@@ -652,6 +652,8 @@ body { font-family: var(--font-body); }
 /* تیترها و هر چیزی که نقش تیتر دارد */
 :is(h1, h2, h3, h4, h5, h6, .home-hero-title, .asset-dialog-title, .category-tile > strong, .category-card-details > strong) { font-family: var(--font-heading); }
 :is(h1, .home-hero-title) { font-weight: 800; }
+/* نام سایت کنار لوگو در هدر و فوتر */
+:is(.site-header, .site-footer) .brand { font-family: var(--font-heading); font-weight: 800; }
 :is(h2, .asset-dialog-title) { font-weight: 700; }
 :is(h3, h4, .category-tile > strong, .category-card-details > strong) { font-weight: 600; }
 :is(h5, h6) { font-weight: 600; }
