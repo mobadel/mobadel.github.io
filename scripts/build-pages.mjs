@@ -417,6 +417,8 @@ const GROUP_HELP = {
 function popularIcon(slug) {
   if (slug === "gold18") return "/assets/gold-18k.svg";
   if (slug === "irt") return "/assets/flags/ir.svg";
+  if (slug === "usdt") return "/assets/usdt-logo.svg";
+  if (slug === "emami") return "/assets/coin-emami.webp?v=20260825-2";
   return `/assets/flags/${({ usd: "us", aed: "ae", afn: "af", eur: "eu", gbp: "gb", try: "tr" })[slug] || slug}.svg`;
 }
 function enrichPage(html, path) {
@@ -437,10 +439,13 @@ function enrichPage(html, path) {
     // و کارت‌های همان صفحه به همهٔ دارایی‌ها پیوند می‌دهند.
     return html;
   } else {
-    content = `<h2>تبدیل‌های پرکاربرد</h2><p class="popular-conversions-intro">تبدیل موردنظر را انتخاب کنید و ارزش معادل دارایی‌تان را ببینید.</p><ul class="popular-conversions-grid">${["gold18-to-eur","afn-to-irt","irt-to-iqd","usd-to-irt","aed-to-irt"].map(slug=>{const [a,b]=slug.split("-to-");return `<li><a class="popular-conversion" href="/convert/${slug}/"><span class="popular-conversion-symbol" aria-hidden="true"><img src="${popularIcon(a)}" alt="" loading="lazy"></span><span class="popular-conversion-label"><strong>${esc(assetForSlug(a).name)} به ${esc(assetForSlug(b).name)}</strong><span>محاسبه و تبدیل</span></span><span class="icon-chevron" aria-hidden="true"></span></a></li>`;}).join("")}</ul>`;
+    content = `<h2>تبدیل‌های پرکاربرد</h2><p class="popular-conversions-intro">تبدیل موردنظر را انتخاب کنید و ارزش معادل دارایی‌تان را ببینید.</p><ul class="popular-conversions-grid">${["usd-to-irt","usdt-to-irt","eur-to-irt","emami-to-irt","gold18-to-eur","aed-to-irt","afn-to-irt","irt-to-iqd"].map(slug=>{const [a,b]=slug.split("-to-");return `<li><a class="popular-conversion" href="/convert/${slug}/"><span class="popular-conversion-symbol" aria-hidden="true"><img src="${popularIcon(a)}" alt="" loading="lazy"></span><span class="popular-conversion-label"><strong>${esc(assetForSlug(a).name)} به ${esc(assetForSlug(b).name)}</strong><span>محاسبه و تبدیل</span></span><span class="icon-chevron" aria-hidden="true"></span></a></li>`;}).join("")}</ul>`;
     return html.replace(/<\/main>/, `<section class="seo-content popular-conversions" aria-label="تبدیل‌های پرکاربرد">${content}</section></main>`);
   }
-  return html.replace(/<\/main>/, `<section class="seo-content" aria-label="راهنما و صفحات مرتبط">${content}<p><a href="/methodology/">منابع داده و روش محاسبه تبدکس</a></p></section></main>`);
+  const section = `<section class="seo-content" aria-label="راهنما و صفحات مرتبط">${content}<p><a href="/methodology/">منابع داده و روش محاسبه تبدکس</a></p></section>`;
+  // صفحهٔ دارایی جای بخش را در ستون اصلی مشخص کرده تا زیر ستون کناری نیفتد.
+  if (html.includes("<!--seo-slot-->")) return html.replace("<!--seo-slot-->", section);
+  return html.replace(/<\/main>/, section + "</main>");
 }
 
 const template = await readFile(resolve(ROOT, "convert", "index.html"), "utf8");
@@ -529,7 +534,8 @@ for (const [path, file] of [["/", "index.html"], ["/price/", "price/index.html"]
   await writePricePage(path, html);
 }
 const methodTemplate = await readFile(resolve(ROOT, "price/index.html"), "utf8");
-const methodBody = `<main class="wide-shell price-main" id="price-main"><section class="seo-content"><h1>منابع داده و روش محاسبه تبدکس</h1><p>تبدکس ابزار نمایش نرخ و محاسبه ارزش معادل دارایی‌هاست و معامله یا انتقال وجه انجام نمی‌دهد.</p><h2>منابع قیمت</h2>${Object.values(GROUP_HELP).map(([h,t])=>`<h3>${h}</h3><p>${t}</p>`).join("")}<h2>زمان داده و قطع ارتباط</h2><p>زمان دریافت داده توسط تبدکس ممکن است با زمان آخرین معامله در منبع تفاوت داشته باشد. نرخ ذخیره‌شده با زمان خودش مشخص می‌شود و نباید نرخ لحظه‌ای تلقی شود. در نبود داده تازه، پیش از تصمیم‌گیری نرخ را با منبع معامله بررسی کنید.</p><h2>فرمول تبدیل</h2><p>ارزش مقدار مبدأ به تومان بر نرخ تومانی هر واحد مقصد تقسیم می‌شود. نرخ‌هایی که از نوبیتکس به ریال دریافت می‌شوند برای نمایش تومان بر ۱۰ تقسیم می‌شوند.</p><p><a href="/convert/">مبدل قیمت</a> · <a href="/price/">فهرست قیمت‌ها</a></p></section></main>`;
+const crumbs = (title) => `<nav class="breadcrumbs" aria-label="مسیر صفحه"><ol><li><a href="/">تبدکس</a></li><li aria-current="page">${title}</li></ol></nav>`;
+const methodBody = `<main class="wide-shell price-main static-main" id="price-main">${crumbs("منابع داده و روش محاسبه")}<section class="seo-content"><h1>منابع داده و روش محاسبه تبدکس</h1><p>تبدکس ابزار نمایش نرخ و محاسبه ارزش معادل دارایی‌هاست و معامله یا انتقال وجه انجام نمی‌دهد.</p><h2>منابع قیمت</h2>${Object.values(GROUP_HELP).map(([h,t])=>`<h3>${h}</h3><p>${t}</p>`).join("")}<h2>زمان داده و قطع ارتباط</h2><p>زمان دریافت داده توسط تبدکس ممکن است با زمان آخرین معامله در منبع تفاوت داشته باشد. نرخ ذخیره‌شده با زمان خودش مشخص می‌شود و نباید نرخ لحظه‌ای تلقی شود. در نبود داده تازه، پیش از تصمیم‌گیری نرخ را با منبع معامله بررسی کنید.</p><h2>فرمول تبدیل</h2><p>ارزش مقدار مبدأ به تومان بر نرخ تومانی هر واحد مقصد تقسیم می‌شود. نرخ‌هایی که از نوبیتکس به ریال دریافت می‌شوند برای نمایش تومان بر ۱۰ تقسیم می‌شوند.</p><p><a href="/convert/">مبدل قیمت</a> · <a href="/price/">فهرست قیمت‌ها</a></p></section></main>`;
 let methodology = methodTemplate.replace(/<main[\s\S]*?<\/main>/, methodBody).replace(/<title>[^<]+<\/title>/,"<title>منابع داده و روش محاسبه | تبدکس</title>").replace(/(<link rel="canonical" href=")[^"]+/, '$1https://tabdex.ir/methodology/').replace(/(<meta property="og:url" content=")[^"]+/, '$1https://tabdex.ir/methodology/').replace(/(<meta (?:name="description"|property="og:description") content=")[^"]+/g, '$1منابع نرخ، واحد دارایی‌ها و روش محاسبه ارزش معادل در تبدکس.').replace(/(<meta property="og:title" content=")[^"]+/, '$1منابع داده و روش محاسبه | تبدکس').replace(/<script id="price-schema"[\s\S]*?<\/script>/, '').replace(/<script src="\/assets\/price.js[^<]+<\/script>/, '');
 await mkdir(resolve(SITE,"methodology"), {recursive:true});
 await writeFile(resolve(SITE,"methodology/index.html"), methodology);
@@ -538,7 +544,7 @@ for (const [path, title, body] of [
   ["/about/", "درباره تبدکس", "<p>تبدکس توسط تیمی متشکل از جوانان علاقه‌مند به اقتصاد و بازارهای مالی گردانده می‌شود.</p><p>هدف ما فراهم کردن دسترسی ساده به نرخ دارایی‌ها و محاسبه ارزش معادل آن‌هاست. تبدکس نرخ‌های منابع بیرونی را نمایش می‌دهد و خدمات خرید، فروش یا انتقال وجه ارائه نمی‌کند.</p><p><a href='/methodology/'>منابع داده و روش محاسبه</a> · <a href='/contact/'>تماس با ما</a></p>"],
   ["/contact/", "تماس با تبدکس", "<p>برای ارتباط با تیم تبدکس، ارسال پیشنهاد یا گزارش خطا در قیمت‌ها و ابزار تبدیل، از راه‌های زیر استفاده کنید.</p><ul><li>ایمیل: <a href='mailto:info@tabdex.ir' dir='ltr'>info@tabdex.ir</a></li><li>شماره تماس: <a href='tel:+989981903599' dir='ltr'>09981903599</a></li></ul><p>برای گزارش خطا، آدرس صفحه و زمان مشاهده مشکل را همراه توضیح ارسال کنید.</p>"]
 ]) {
-  let html = methodology.replace(/<main[\s\S]*?<\/main>/, `<main class="wide-shell price-main" id="price-main"><section class="seo-content"><h1>${title}</h1>${body}</section></main>`);
+  let html = methodology.replace(/<main[\s\S]*?<\/main>/, `<main class="wide-shell price-main static-main" id="price-main">${crumbs(title)}<section class="seo-content"><h1>${title}</h1>${body}</section></main>`);
   html = html.replace(/منابع داده و روش محاسبه \| تبدکس/g, `${title} | تبدکس`).replaceAll("https://tabdex.ir/methodology/", ORIGIN + path).replace(/منابع نرخ، واحد دارایی‌ها و روش محاسبه ارزش معادل در تبدکس\./g, title + "؛ معرفی و راه‌های ارتباط با تیم تبدکس.");
   await mkdir(resolve(SITE,path.slice(1)), {recursive:true});
   await writeFile(resolve(SITE,path.slice(1),"index.html"),html);

@@ -26,8 +26,8 @@ for (const [name, html] of Object.entries(templates)) {
   // فوتر کامل، نه فهرست خلاصه، در همهٔ صفحه‌ها
   assert.match(html, /class="site-footer"><?[\s\S]*class="site-shell footer-inner"[\s\S]*class="footer-brand"/, `${name}: فوتر کامل لازم است`);
   for (const label of ["قیمت‌ها", "ابزارها و محتوا", "تبدکس"]) assert.match(html, new RegExp(`<strong>${label}</strong>`), `${name}: ستون «${label}» فوتر`);
-  assert.match(html, /\/assets\/site\.css\?v=20261014-[a-z0-9-]+/, `${name}: site.css`);
-  assert.match(html, /\/assets\/site\.js\?v=20261014-fixes/, `${name}: site.js`);
+  assert.match(html, /\/assets\/site\.css\?v=20261016-review/, `${name}: site.css`);
+  assert.match(html, /\/assets\/site\.js\?v=20261016-review/, `${name}: site.js`);
   assert.doesNotMatch(html, /←/, `${name}: فلش متنی نباید باشد`);
   // هدر موبایل: لوگو، دکمهٔ جستجو و دکمهٔ منو که فهرست را باز می‌کند.
   assert.match(html, /class="header-actions"><a class="header-icon" href="\/price\/#search" aria-label="جستجوی دارایی">[\s\S]*?id="menu-toggle"[^>]*aria-expanded="false" aria-controls="site-nav"/, `${name}: دکمه‌های هدر موبایل`);
@@ -54,6 +54,13 @@ assert.match(templates.category, /id="category-stats"[\s\S]*id="market-sort"[\s\
 assert.match(templates.convert, /<body data-inline-picker>[\s\S]*class="convert-layout">[\s\S]*class="converter-card"[\s\S]*id="asset-dialog"[\s\S]*id="asset-recent"[\s\S]*<\/div>\n    <\/div>\n\n    <section class="conversion-tables"/, "مبدل: انتخابگر کنار مبدل");
 assert.match(templates.asset, /id="asset-days-csv"[\s\S]*id="data-source-note"/, "دارایی: دانلود CSV و یادداشت منبع");
 assert.match(templates.asset, /id="asset-hero-convert"[\s\S]*id="asset-share"[\s\S]*id="asset-stats"[^>]*hidden[\s\S]*id="btc-price-chart"[\s\S]*id="asset-days"[^>]*hidden[\s\S]*class="asset-content"[\s\S]*id="asset-quick"[\s\S]*id="asset-related"/, "دارایی: اقدام‌ها، آمار، نمودار، روزها، محتوا و ستون کناری");
+
+// بازبینی طراحی: کارت‌های قیمت هوم در موبایل دو ستونه می‌مانند، بخش راهنمای
+// دارایی در ستون اصلی، و مرتب‌سازی دسته در موبایل برچسب کوتاه دارد.
+assert.doesNotMatch(css, /\.home-kpis \{[^}]*display: none/, "کارت‌های قیمت هوم در موبایل پنهان نشوند");
+assert.match(templates.asset, /<!--seo-slot-->/, "دارایی: جای بخش راهنما در ستون اصلی");
+assert.match(templates.category, /class="sort-short" aria-hidden="true">رشد</, "دسته: برچسب کوتاه مرتب‌سازی");
+assert.match(read("assets/convert-extras.js"), /function fitField\(/, "مبدل: عدد بلند در فیلد جا شود");
 
 // آیکون همهٔ دارایی‌ها گرد است.
 for (const selector of [".round-icon", ".round-icon img"]) {
