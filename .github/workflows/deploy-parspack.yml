@@ -206,6 +206,23 @@ jobs:
               echo "put -O \"$target\" \"_site/$changed\""
             done < changed-files.txt
 
+            # صفحه‌های تولیدی (هر دارایی، هر جفت مبدل، دسته‌ها، روش محاسبه و…)
+            # در گیت نیستند، پس فهرست بالا آن‌ها را نمی‌بیند. وقتی قالب یا
+            # اسکریپت ساخت عوض شده، بامپ هم‌طول نسخه (مثلاً -fonts به -brand)
+            # این صفحه‌ها را هم‌اندازه نگه می‌داشت و mirror ردشان می‌کرد؛ سرور
+            # همان HTML قدیمی با CSS/JS قدیمی را می‌داد. پس همهٔ HTMLهای
+            # ساخته‌شده بی‌قیدوشرط فرستاده می‌شوند.
+            if grep -qE '^(index\.html|convert/index\.html|price/[^/]+\.html|scripts/build-pages\.mjs|data/.*)$' changed-files.txt; then
+              ( cd _site && find . -name '*.html' -printf '%P\n' ) | sort | while IFS= read -r page; do
+                target="$FTP_DIRECTORY"
+                directory=$(dirname "$page")
+                if [ "$directory" != "." ]; then
+                  target="$FTP_DIRECTORY/$directory"
+                fi
+                echo "put -O \"$target\" \"_site/$page\""
+              done
+            fi
+
             echo bye
           } | lftp -u "$FTP_USERNAME","$FTP_PASSWORD" -p "$FTP_PORT" "$FTP_SERVER"
 
@@ -234,7 +251,10 @@ jobs:
         run: |
           set -uo pipefail
           mismatch=0
-          for file in index.html convert/index.html assets/styles.css assets/app.js assets/home.js assets/price.js; do
+          # چند صفحهٔ تولیدی هم سنجیده می‌شوند؛ این‌ها از فهرست گیت بیرون‌اند و
+          # یک بار با بامپ هم‌طول نسخه بی‌صدا جا ماندند.
+          for file in index.html convert/index.html assets/styles.css assets/site.css assets/app.js assets/home.js assets/price.js \
+                      price/index.html price/currency/index.html price/currency/usd/index.html convert/usd-to-irt/index.html methodology/index.html; do
             [ -f "_site/$file" ] || continue
             expected=$(md5sum "_site/$file" | cut -d' ' -f1)
             # کش‌شکن تا پاسخِ کش‌شدهٔ واسطه‌ها تأیید را الکی سبز نکند.
