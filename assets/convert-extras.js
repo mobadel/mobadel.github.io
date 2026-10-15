@@ -141,7 +141,22 @@
     });
   }
 
+  /* عدد بلند نباید از لبهٔ فیلد بیرون بزند (۲٬۳۵۱٬۸۸۰٬۰۰۰ در موبایل).
+     اندازهٔ قلم به اندازهٔ طبیعی برمی‌گردد و اگر عدد جا نشد به نسبت کوچک
+     می‌شود؛ کمترین اندازه ۱۵ پیکسل است. */
+  var fields = [input, document.getElementById("amount-to")].filter(Boolean);
+  function fitField(field) {
+    field.style.fontSize = "";
+    if (!field.clientWidth || field.scrollWidth <= field.clientWidth) return;
+    var size = parseFloat(window.getComputedStyle(field).fontSize) || 28;
+    field.style.fontSize = Math.max(15, Math.floor(size * field.clientWidth / field.scrollWidth) - 1) + "px";
+  }
+  function fitFields() { fields.forEach(fitField); }
+  document.addEventListener("input", function (event) { if (fields.indexOf(event.target) >= 0) fitFields(); });
+  window.addEventListener("resize", fitFields);
+
   document.addEventListener("tabdex:pair", function (event) {
+    fitFields();
     var detail = event.detail;
     if (!detail || !detail.from || !detail.to) return;
     paintTables(detail);

@@ -192,7 +192,6 @@
   var HISTORY_GROUPS = { fiat: true, gold: true, coin: true, commodity: true };
   var dailyHistory = {};
   var dailyRequests = {};
-  function hasHistory(asset) { return asset && HISTORY_GROUPS[asset.group] && asset.id !== "goldounce"; }
   function loadDaily(ids, days) {
     var wanted = ids.filter(function (id) { return id; }).slice(0, 40);
     if (!wanted.length) return Promise.resolve(false);
@@ -253,7 +252,7 @@
       var top = el("span", "index-card-top"); top.append(roundIcon(asset), el("strong", "", asset.name), el("span", "change-badge " + changeClass(asset.change), formatChange(asset.change)));
       var bottom = el("span", "index-card-bottom"); var value = el("span"); value.appendChild(el("b", "", formatPrice(asset.price, asset)));
       var month = valuesSince(asset.id, 31 * 86400); var monthChange = month.length > 1 ? percentBetween(asset.price, month[0]) : NaN;
-      value.appendChild(el("small", "", priceLabel(asset) + (Number.isFinite(monthChange) ? " · ۳۰ روز " + formatChange(monthChange) : "")));
+      var meta = el("small", "", priceLabel(asset)); if (Number.isFinite(monthChange)) { meta.appendChild(document.createTextNode(" · ۳۰ روز ")); meta.appendChild(el("span", "ltr-num " + changeClass(monthChange), formatChange(monthChange))); } value.appendChild(meta);
       bottom.append(value, sparkline(month)); card.append(top, bottom); return card;
     });
     box.replaceChildren.apply(box, cards);
@@ -273,7 +272,7 @@
     var parts = [];
     if (gainers.length) parts.push(card("بیشترین رشد ۲۴ ساعته", "▲", "positive", gainers));
     if (losers.length) parts.push(card("بیشترین افت ۲۴ ساعته", "▼", "negative", losers));
-    if (parts.length) parts[parts.length - 1].appendChild(el("p", "", "ارز، طلا، سکه، فلزات و انرژی؛ رمزارزها در صفحهٔ خودشان."));
+    if (parts.length) parts[parts.length - 1].appendChild(el("p", "", "رمزارزها در این فهرست نیستند؛ تغییراتشان را در صفحهٔ ارزهای دیجیتال ببینید."));
     box.replaceChildren.apply(box, parts); box.hidden = !parts.length;
   }
 
@@ -376,6 +375,8 @@
     }
     function historyCells(asset) {
       var week = valuesSince(asset.id, 7 * 86400); var month = valuesSince(asset.id, 31 * 86400);
+      // بدون هیچ دادهٔ تاریخی، یک متن به‌جای سه خانهٔ خالی.
+      if (week.length < 2 && month.length < 2) return [el("span", "market-row-nohistory history-col", "بدون دادهٔ تاریخی")];
       var range = el("span", "market-row-range history-col");
       if (week.length > 1) {
         var low = Math.min.apply(null, week.concat([asset.price])); var high = Math.max.apply(null, week.concat([asset.price]));
@@ -432,7 +433,7 @@
     renderQuickConvert(asset);
     renderRelated(asset);
     renderAbsoluteChange(asset);
-    var sourceBox = document.getElementById("data-source-note"); if (sourceBox) { text(document.getElementById("data-source-text"), "قیمت " + asset.name + " از " + (asset.source || "بازار") + " دریافت می‌شود" + (hasHistory(asset) ? " و قیمت پایانی روزانه‌اش در سرور تبدکس ثبت می‌شود." : ".")); sourceBox.hidden = false; }
+    var sourceBox = document.getElementById("data-source-note"); if (sourceBox) { text(document.getElementById("data-source-text"), "قیمت " + asset.name + " از " + (asset.source || "بازار") + " دریافت می‌شود."); sourceBox.hidden = false; }
     var measured = [{ "@type": "PropertyValue", name: "قیمت به " + priceLabel(asset), value: asset.price, unitText: priceLabel(asset) }, { "@type": "PropertyValue", name: "تغییر ۲۴ ساعته", value: Number.isFinite(asset.change) ? asset.change : null, unitText: "درصد" }]; if (Number.isFinite(asset.tomanPrice)) measured.push({ "@type": "PropertyValue", name: "قیمت تومانی", value: asset.tomanPrice, unitText: "تومان" }); var dataset = { "@type": "Dataset", name: "قیمت لحظه ای " + asset.name, description: description, url: ORIGIN + path, dateModified: (asset.updatedAt || latestUpdate || new Date()).toISOString(), variableMeasured: measured };
     setSchema([{ "@type": "WebPage", "@id": ORIGIN + path + "#page", name: title.replace(" | تبدکس", ""), description: description, url: ORIGIN + path, inLanguage: "fa-IR", about: { "@type": "Thing", name: asset.name, alternateName: asset.code || asset.englishName }, mainEntity: { "@id": ORIGIN + path + "#dataset" } }, breadcrumb([{ name: "تبدکس", path: "/" }, { name: "قیمت‌ها", path: "/price/" }, { name: category.name, path: categoryUrl(group) }, { name: asset.name, path: path }]), Object.assign({ "@id": ORIGIN + path + "#dataset" }, dataset)]);
   }
@@ -477,7 +478,7 @@
     text(document.getElementById("asset-related-title"), "دیگر دارایی‌های " + (CATEGORIES[asset.group] ? CATEGORIES[asset.group].name : "این بازار"));
     list.replaceChildren.apply(list, related.map(function (item) {
       var li = document.createElement("li"); var link = document.createElement("a"); link.href = assetUrl(item);
-      var value = el("span"); value.append(el("b", "", formattedPrice(item)), el("em", changeClass(item.change), formatChange(item.change)));
+      var value = el("span", "related-meta"); value.append(el("b", "", formattedPrice(item)), el("em", changeClass(item.change), formatChange(item.change)));
       link.append(roundIcon(item), el("strong", "", item.name), value); li.appendChild(link); return li;
     }));
     section.hidden = !related.length;

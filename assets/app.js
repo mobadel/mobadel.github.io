@@ -593,9 +593,15 @@
       return;
     }
     var reverseRate = 1 / state.rate;
+    /* «هر یک تومان برابر با ۰٫۰۰۰۰۰۴ دلار» خوانا نیست؛ برای عکسِ خیلی
+       کوچک، مقدار طرف دوم بزرگ می‌شود (هزار، میلیون، …) تا عدد قابل خواندن
+       شود: «هر ۱٬۰۰۰٬۰۰۰ تومان برابر با ۴٫۵۲ دلار». */
+    var multiplier = 1;
+    while (reverseRate * multiplier < 0.01 && multiplier < 1e12) multiplier *= 1000;
+    var reverseLabel = multiplier === 1 ? "هر یک " + unitizedName(toCurrency) : "هر " + formatNumber(multiplier, 0) + " " + unitizedName(toCurrency);
     elements.pairContentRate.textContent = "هر یک " + unitizedName(fromCurrency) + " معادل " +
-      formatCurrencyNumber(state.rate, toCurrency) + " " + unitizedName(toCurrency) + " و هر یک " + unitizedName(toCurrency) +
-      " برابر با " + formatCurrencyNumber(reverseRate, fromCurrency) + " " + unitizedName(fromCurrency) + " است.";
+      formatCurrencyNumber(state.rate, toCurrency) + " " + unitizedName(toCurrency) + " و " + reverseLabel +
+      " برابر با " + formatCurrencyNumber(reverseRate * multiplier, fromCurrency) + " " + unitizedName(fromCurrency) + " است.";
   }
 
   /* بخش‌های جانبی مبدل (جدول تبدیل، خلاصهٔ روزهای اخیر) در

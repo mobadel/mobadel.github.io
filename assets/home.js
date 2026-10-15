@@ -173,11 +173,15 @@
       if (!(quote.price > 0)) return;
       var card = document.createElement("a"); card.className = "home-kpi"; card.href = definition.url;
       var name = document.createElement("span"); name.className = "home-kpi-name"; name.append(roundIcon(definition.icon), document.createTextNode(definition.name));
-      // واحد کنار نام می‌نشیند تا عدد بلند سکه در کارت باریک بریده نشود.
-      var value = document.createElement("strong"); value.textContent = number(quote.price, quote.unit === "دلار" ? 2 : 0);
-      var unitNote = document.createElement("span"); unitNote.className = "home-kpi-unit"; unitNote.textContent = quote.unit; name.appendChild(unitNote);
-      var delta = document.createElement("small"); delta.className = toneOf(quote.change); delta.textContent = changeText(quote.change);
-      card.append(name, value, delta); cards.push(card);
+      // عدد زیر نام و راست‌چین؛ واحد کنار عدد و درصد تغییر کنار واحد، تا
+      // هر سه با یک نگاه خوانده شوند.
+      var value = document.createElement("span"); value.className = "home-kpi-value";
+      var amount = document.createElement("strong"); amount.textContent = number(quote.price, quote.unit === "دلار" ? 2 : 0);
+      var unitNote = document.createElement("span"); unitNote.className = "home-kpi-unit"; unitNote.textContent = quote.unit;
+      value.append(amount, unitNote);
+      var delta = document.createElement("small"); delta.className = "home-kpi-change " + toneOf(quote.change); delta.textContent = changeText(quote.change);
+      var row = document.createElement("span"); row.className = "home-kpi-row"; row.append(value, delta);
+      card.append(name, row); cards.push(card);
     });
     box.replaceChildren.apply(box, cards);
   }

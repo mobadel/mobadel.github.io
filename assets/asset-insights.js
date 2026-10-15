@@ -35,6 +35,8 @@
 
   function render(points) {
     if (!points || points.length < 2) return;
+    // جملهٔ ثبت تاریخچه فقط وقتی نمایش داده می‌شود که واقعاً تاریخچه‌ای رسیده باشد.
+    var historyNote = document.getElementById("data-source-history"); if (historyNote) historyNote.hidden = false;
     var last = points[points.length - 1]; var now = last[0];
     var week = points.filter(function (point) { return point[0] > now - 7 * 86400; }).map(function (point) { return point[1]; });
     var year = points.filter(function (point) { return point[0] > now - 365 * 86400; }).map(function (point) { return point[1]; });
