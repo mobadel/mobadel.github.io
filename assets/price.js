@@ -452,6 +452,33 @@
     var normalized = String(value || "").replace(/[۰-۹]/g, function (digit) { return String("۰۱۲۳۴۵۶۷۸۹".indexOf(digit)); }).replace(/[٠-٩]/g, function (digit) { return String("٠١٢٣٤٥٦٧٨٩".indexOf(digit)); }).replace(/[\s,٬،]/g, "").replace(/٫/g, ".");
     var amount = Number(normalized); return normalized && Number.isFinite(amount) && amount >= 0 ? amount : NaN;
   }
+  /* مثل مبدل: هر رقمی (فارسی، عربی یا انگلیسی) هنگام تایپ فارسی و سه‌رقم
+     سه‌رقم با «٬» جدا می‌شود و جای مکان‌نما بعد از قالب‌بندی حفظ می‌شود. */
+  function quickToEnglish(value) { return String(value).replace(/[۰-۹]/g, function (d) { return String("۰۱۲۳۴۵۶۷۸۹".indexOf(d)); }).replace(/[٠-٩]/g, function (d) { return String("٠١٢٣٤٥٦٧٨٩".indexOf(d)); }); }
+  function quickTokens(value) {
+    var seenDecimal = false; var tokens = 0;
+    quickToEnglish(value).replace(/٫/g, ".").split("").forEach(function (c) { if (/\d/.test(c)) tokens += 1; else if (c === "." && !seenDecimal) { seenDecimal = true; tokens += 1; } });
+    return tokens;
+  }
+  function formatQuickAmount(value) {
+    var integer = ""; var fraction = ""; var seenDecimal = false;
+    quickToEnglish(value).replace(/[\s,٬،]/g, "").replace(/٫/g, ".").split("").forEach(function (c) {
+      if (/\d/.test(c)) { if (seenDecimal) fraction += c; else integer += c; } else if (c === "." && !seenDecimal) seenDecimal = true;
+    });
+    if (!integer && seenDecimal) integer = "0";
+    integer = integer.replace(/^0+(?=\d)/, "");
+    var grouped = integer.replace(/\B(?=(\d{3})+(?!\d))/g, "٬") + (seenDecimal ? "٫" + fraction : "");
+    return grouped.replace(/\d/g, function (d) { return "۰۱۲۳۴۵۶۷۸۹"[Number(d)]; });
+  }
+  function formatQuickInput(input) {
+    var raw = input.value; var caret = input.selectionStart == null ? raw.length : input.selectionStart;
+    var before = quickTokens(raw.slice(0, caret)); var formatted = formatQuickAmount(raw);
+    if (formatted === raw) return;
+    input.value = formatted;
+    var seen = 0; var position = 0;
+    while (position < formatted.length && seen < before) { if (/[۰-۹٫]/.test(formatted[position])) seen += 1; position += 1; }
+    try { input.setSelectionRange(position, position); } catch (error) { /* نوع ورودی پشتیبانی نمی‌کند */ }
+  }
   function paintQuickConvert() {
     var asset = quickAsset; var input = document.getElementById("asset-quick-input"); var output = document.getElementById("asset-quick-output");
     if (!asset || !input || !output) return;
@@ -465,7 +492,7 @@
     var unit = asset.unit && UNIT_LABELS[asset.unit] ? UNIT_LABELS[asset.unit] : (asset.code || asset.name);
     text(document.getElementById("asset-quick-unit"), unit);
     text(document.getElementById("asset-quick-label"), "مقدار " + asset.name);
-    if (!input.dataset.quickBound) { input.dataset.quickBound = "1"; input.addEventListener("input", paintQuickConvert); }
+    if (!input.dataset.quickBound) { input.dataset.quickBound = "1"; input.addEventListener("input", function () { formatQuickInput(input); paintQuickConvert(); }); formatQuickInput(input); }
     var table = document.getElementById("asset-quick-table");
     if (table) table.replaceChildren.apply(table, [1, 5, 10, 100].map(function (amount) { var row = document.createElement("tr"); row.append(priceEl("td", "", formatNumber(amount), unit), priceEl("td", "", formatPrice(amount * asset.price, asset), priceLabel(asset))); return row; }));
     paintQuickConvert(); section.hidden = false;
