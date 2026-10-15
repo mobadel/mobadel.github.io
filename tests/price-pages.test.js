@@ -315,4 +315,15 @@ assert.match(siteCss, /@font-face \{\s*font-family: "Estedad";[\s\S]*?font-displ
 assert.match(siteCss, /--font-heading: "Estedad", "Vazirmatn", sans-serif;/, "زنجیرهٔ جایگزین قلم تیتر");
 assert.match(siteCss, /--font-body: "Vazirmatn"/, "قلم بدنه Vazirmatn می‌ماند");
 for (const file of ["Estedad-Arabic-wght.woff2", "Estedad-Latin-wght.woff2", "OFL-Estedad.txt"]) assert.ok(fs.existsSync("assets/fonts/" + file), file);
+// تبدیل سریع صفحهٔ دارایی: عدد ورودی مثل مبدل فارسی و سه‌رقم سه‌رقم جدا می‌شود.
+{
+  const start = script.indexOf("  function quickToEnglish("); const end = script.indexOf("  function formatQuickInput(");
+  const fmt = vm.runInNewContext(script.slice(start, end) + ";formatQuickAmount", {});
+  assert.equal(fmt("1234567"), "۱٬۲۳۴٬۵۶۷", "رقم انگلیسی فارسی و جدا شود");
+  assert.equal(fmt("۱۲۳۴"), "۱٬۲۳۴", "رقم فارسی جدا شود");
+  assert.equal(fmt("١٢٣٤٥"), "۱۲٬۳۴۵", "رقم عربی فارسی شود");
+  assert.equal(fmt("1,234.5"), "۱٬۲۳۴٫۵", "اعشار با ٫");
+  assert.equal(fmt(".5"), "۰٫۵");
+  assert.equal(fmt("00012abc"), "۱۲", "صفر ابتدایی و نویسهٔ غیرعددی حذف شود");
+}
 console.log("price page tests passed");
