@@ -26,7 +26,7 @@ for (const [name, html] of Object.entries(templates)) {
   // فوتر کامل، نه فهرست خلاصه، در همهٔ صفحه‌ها
   assert.match(html, /class="site-footer"><?[\s\S]*class="site-shell footer-inner"[\s\S]*class="footer-brand"/, `${name}: فوتر کامل لازم است`);
   for (const label of ["قیمت‌ها", "ابزارها و محتوا", "تبدکس"]) assert.match(html, new RegExp(`<strong>${label}</strong>`), `${name}: ستون «${label}» فوتر`);
-  assert.match(html, /\/assets\/site\.css\?v=20261016-magtabs/, `${name}: site.css`);
+  assert.match(html, /\/assets\/site\.css\?v=20261016-wide/, `${name}: site.css`);
   assert.match(html, /\/assets\/site\.js\?v=20261016-fonts/, `${name}: site.js`);
   assert.doesNotMatch(html, /←/, `${name}: فلش متنی نباید باشد`);
   // هدر موبایل: لوگو، دکمهٔ جستجو و دکمهٔ منو که فهرست را باز می‌کند.
@@ -79,6 +79,17 @@ assert.match(read("assets/convert-extras.js"), /function fitField\(/, "مبدل:
 // صفحهٔ دارایی: دکمهٔ مبدل بخش محتوا و کادر راهنما حذف شده‌اند (تکراری بودند).
 assert.doesNotMatch(templates.asset, /id="asset-converter-link"/, "دکمهٔ مبدل بخش محتوا نباید باشد");
 assert.doesNotMatch(read("scripts/build-pages.mjs"), /GROUP_HELP\[group\]/, "کادر راهنمای دارایی نباید ساخته شود");
+
+// پهنای دسکتاپ ۱۳۰۰ پیکسل و بدنهٔ صفحهٔ مبدل هم‌پهنای بقیهٔ صفحه‌ها.
+assert.match(css, /--site-width: 1300px;/, "پهنای محتوای دسکتاپ");
+assert.doesNotMatch(css, /max-width: 1084px/, "بخش‌های صفحهٔ مبدل نباید باریک‌تر از بقیه باشند");
+// دکمهٔ بالای صفحهٔ دارایی به مبدل همان دارایی به تومان می‌رود.
+assert.match(read("assets/price.js"), /heroConvert\.setAttribute\("href", "\/convert\/" \+ slugOf\(asset\.id\) \+ "-to-irt\/"\)/, "لینک مبدل دارایی");
+assert.match(read("assets/price.js"), /"مبدل قیمت " \+ asset\.name/, "متن دکمهٔ مبدل دارایی");
+// شبکه‌های اجتماعی در فوتر همهٔ قالب‌ها
+for (const [name, html] of Object.entries(templates)) {
+  assert.match(html, /class="footer-social"[\s\S]*href="https:\/\/t\.me\/tabdexir"[\s\S]*href="https:\/\/www\.instagram\.com\/tabdex\.ir"/, `${name}: لینک تلگرام و اینستاگرام در فوتر`);
+}
 
 // آیکون همهٔ دارایی‌ها گرد است.
 for (const selector of [".round-icon", ".round-icon img"]) {

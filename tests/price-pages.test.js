@@ -176,7 +176,7 @@ assert.match(home, /id="rotating-asset-name">دلار<\/span><img id="rotating-a
 assert.match(home, /class="home-market-all" href="\/price\/">مشاهده همه/, "انتهای جدول باید لینک مشاهده همه داشته باشد");
 assert.match(home, /home-market-all[^>]*>مشاهده همه <span class="icon-chevron"/, "فلش مشاهده همه باید chevron مینیمال باشد");
 assert.doesNotMatch(home + asset + script, /←/, "فلش متنی قدیمی نباید باقی بماند");
-assert.match(script, /converter\.textContent = "مبدل قیمت " \+ asset\.name/, "متن دکمه هر دارایی باید مبدل قیمت و نام دارایی باشد");
+assert.match(script, /heroConvert\.replaceChildren\(document\.createTextNode\("مبدل قیمت " \+ asset\.name/, "متن دکمه هر دارایی باید مبدل قیمت و نام دارایی باشد");
 assert.match(styles, /\.converter-link\{[^}]*margin-inline-start:auto/, "دکمه مبدل باید در سمت چپ محتوای دارایی قرار بگیرد");
 assert.match(home, /تغییرات ۲۴ ساعته/, "عنوان ستون تغییرات هوم باید کامل باشد");
 assert.match(category, /تغییرات ۲۴ ساعته/, "عنوان ستون تغییرات دسته‌بندی باید کامل باشد");

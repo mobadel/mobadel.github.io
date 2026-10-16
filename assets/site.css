@@ -16,7 +16,10 @@
 
 body { background: var(--page); font-variant-numeric: tabular-nums; }
 
-.site-shell { width: min(100% - 32px, 1200px); margin-inline: auto; }
+/* پهنای محتوای دسکتاپ؛ هم‌اندازهٔ سایت‌های مرجع (anthropic.com حدود ۱۲۹۰
+   پیکسل با حاشیهٔ ۷۰ پیکسلی در نمایشگر ۱۴۴۰). */
+:root { --site-width: 1300px; }
+.site-shell { width: min(100% - 64px, var(--site-width)); margin-inline: auto; }
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
 
 /* ── هدر ─────────────────────────────────────────────────────── */
@@ -211,7 +214,7 @@ body { background: var(--page); font-variant-numeric: tabular-nums; }
 .conversion-table td:last-child { font-weight: 700; }
 
 /* ── هاب قیمت ────────────────────────────────────────────────── */
-.price-main.wide-shell { width: min(100% - 32px, 1200px); }
+.price-main.wide-shell { width: min(100% - 64px, var(--site-width)); }
 .hub-intro { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 20px 32px; padding: 12px 0 30px; }
 .hub-intro .price-intro { flex: 1 1 460px; padding: 0; }
 .hub-search { position: relative; flex: 1 1 340px; max-width: 460px; }
@@ -401,7 +404,7 @@ body { background: var(--page); font-variant-numeric: tabular-nums; }
 }
 
 @media (max-width: 600px) {
-  .site-shell { width: min(100% - 24px, 1200px); }
+  .site-shell { width: min(100% - 24px, var(--site-width)); }
   .site-header .header-inner { min-height: 0; }
   .site-footer { margin-top: 32px; }
   .footer-inner { gap: 26px 20px; padding-top: 32px; }
@@ -439,7 +442,7 @@ body { background: var(--page); font-variant-numeric: tabular-nums; }
   .converter-insights { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
   .converter-insights span { font-size: 11.5px; line-height: 1.5; }
   .converter-insights strong { font-size: 13.5px; }
-  .price-main.wide-shell { width: min(100% - 24px, 1200px); }
+  .price-main.wide-shell { width: min(100% - 24px, var(--site-width)); }
   .hub-search { max-width: none; }
   .category-grid.category-panels { grid-template-columns: minmax(0, 1fr); }
   .category-hero { padding: 20px 18px; border-radius: 22px; }
@@ -470,13 +473,12 @@ body { background: var(--page); font-variant-numeric: tabular-nums; }
 .convert-main .intro { margin-bottom: 30px; }
 .convert-main .intro h1 { font-size: clamp(32px, 4.4vw, 44px); letter-spacing: 0; }
 .convert-layout { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: center; gap: 24px; }
-.convert-layout > .converter-card { flex: 1 1 520px; max-width: 640px; min-width: 0; }
-.convert-main > .conversion-tables, .convert-main > .pair-content, .convert-main > .seo-content { max-width: 1084px; margin-inline: auto; }
+.convert-layout > .converter-card { flex: 3 1 520px; min-width: 0; }
 .convert-main .conversion-tables { margin-top: 40px; }
 .convert-main .pair-content, .convert-main .seo-content { margin-top: 32px; }
 
 /* انتخابگر ثابت کنار مبدل (فقط صفحهٔ مبدل، نمایشگر پهن) */
-.asset-dialog.is-inline { position: static; inset: auto; z-index: auto; display: block; flex: 1 1 340px; max-width: 420px; min-width: 0; padding: 0; }
+.asset-dialog.is-inline { position: static; inset: auto; z-index: auto; display: block; flex: 2 1 340px; min-width: 0; padding: 0; }
 .asset-dialog.is-inline .asset-dialog-backdrop, .asset-dialog.is-inline .dialog-close { display: none; }
 .asset-dialog.is-inline .asset-dialog-panel { width: 100%; max-height: 640px; padding: 20px; border-radius: 24px; box-shadow: 0 22px 60px rgba(26, 58, 47, .10); }
 .asset-dialog.is-inline .asset-dialog-title { font-size: 18px; }
@@ -705,3 +707,19 @@ span.num { display: inline; }
 .pair-links { margin: 14px 0 0; color: var(--muted); font-size: 14px; }
 .pair-links a { color: var(--green-dark); font-weight: 700; text-decoration: none; }
 .pair-links a:hover { text-decoration: underline; }
+
+/* شبکه‌های اجتماعی در فوتر: دکمهٔ کپسولی با آیکون رنگی خود شبکه */
+.footer-social { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
+.social-link { display: inline-flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 14px 0 12px; border: 1px solid var(--border); border-radius: 999px; color: var(--text); background: var(--surface); font-size: 13.5px; font-weight: 700; text-decoration: none; transition: border-color .15s, background .15s; }
+.social-link svg { width: 18px; height: 18px; flex: none; fill: currentColor; }
+.social-telegram svg { color: #229ed9; }
+.social-instagram svg { color: #e4405f; }
+.social-telegram:hover { border-color: #229ed9; background: #eef8fd; }
+.social-instagram:hover { border-color: #e4405f; background: #fdf0f3; }
+
+/* تبدیل‌های پرکاربرد: آیکون بزرگ مبدأ و آیکون کوچک مقصد پایین سمت چپ آن */
+.popular-conversion-icons { position: relative; flex: 0 0 40px; width: 40px; height: 40px; }
+.popular-conversion-icons .popular-conversion-symbol { display: block; width: 40px; height: 40px; }
+.popular-conversion-target { position: absolute; bottom: -3px; left: -5px; width: 20px; height: 20px; overflow: hidden; border: 2px solid var(--surface); border-radius: 50%; background: var(--surface); box-shadow: 0 1px 3px rgba(16, 40, 32, .18); }
+.popular-conversion-target img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.popular-conversions .popular-conversion:hover .popular-conversion-target { border-color: var(--green-soft); }
