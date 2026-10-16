@@ -151,7 +151,7 @@ jobs:
           cat changed-files.txt
 
       - name: Deploy site
-        timeout-minutes: 18
+        timeout-minutes: 25
         shell: bash
         env:
           FTP_SERVER: ${{ secrets.PARS_FTP_SERVER }}
@@ -214,15 +214,10 @@ jobs:
             # این صفحه‌ها را هم‌اندازه نگه می‌داشت و mirror ردشان می‌کرد؛ سرور
             # همان HTML قدیمی با CSS/JS قدیمی را می‌داد. پس همهٔ HTMLهای
             # ساخته‌شده بی‌قیدوشرط فرستاده می‌شوند.
-            if grep -qE '^(index\.html|convert/index\.html|price/[^/]+\.html|scripts/build-pages\.mjs|data/.*)$' changed-files.txt; then
-              ( cd _site && find . -name '*.html' -printf '%P\n' ) | sort | while IFS= read -r page; do
-                target="$FTP_DIRECTORY"
-                directory=$(dirname "$page")
-                if [ "$directory" != "." ]; then
-                  target="$FTP_DIRECTORY/$directory"
-                fi
-                echo "put -O \"$target\" \"_site/$page\""
-              done
+            if grep -qE '^(index\.html|convert/index\.html|price/[^/]+\.html|scripts/build-pages\.mjs|data/.*|\.github/workflows/deploy-parspack\.yml)$' changed-files.txt; then
+              # با ~۹۰۰ صفحه، put تک‌تک و پشت سر هم از سقف زمان گام رد شد؛ mirror با
+              # --transfer-all همان «بی‌قیدوشرط فرستادن» را موازی انجام می‌دهد.
+              echo "mirror --reverse --verbose --parallel=8 --transfer-all --include-glob '*.html' _site/ \"$FTP_DIRECTORY\""
               # قاعده‌های ?amount= (تبدیل‌های پرتکرار) هنگام ساخت به _site/.htaccess
               # افزوده می‌شوند، پس با تغییر داده یا قالب باید دوباره فرستاده شود.
               echo "put -O \"$FTP_DIRECTORY\" \"_site/.htaccess\""
