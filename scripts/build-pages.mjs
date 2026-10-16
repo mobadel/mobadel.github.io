@@ -446,14 +446,19 @@ const template = await readFile(resolve(ROOT, "convert", "index.html"), "utf8");
 const FREQUENT = JSON.parse(await readFile(resolve(ROOT, "data", "frequent-conversions.json"), "utf8"));
 const faDigits = value => String(value).replace(/\d/g, d => "۰۱۲۳۴۵۶۷۸۹"[d]);
 function frequentPath(id, item) { return `/convert/${FREQUENT.assets[id].slug}-to-irt/?amount=${item.amount}`; }
+/* بخش فقط وقتی هست که دکمه‌هایش دقیقاً همین جفت را بپرسند: دارایی‌ای که داده
+   دارد به تومان. برای جفت‌های دیگر (تومان به دلار، افغانی به تتر و…) تا وقتی
+   دکمهٔ خودشان ساخته نشده، فقط یک جای خالیِ پنهان می‌ماند تا اگر کاربر در
+   همان صفحه جفت را به یک جفت جورشده عوض کرد، اسکریپت بخش را بسازد. */
 function frequentSection(fromId, toId, current) {
-  const id = FREQUENT.assets[fromId] ? fromId : FREQUENT.assets[toId] ? toId : null;
-  const entries = id ? FREQUENT.assets[id].items.map(item => [id, item]) : FREQUENT.general.map(item => [item.asset, item]);
+  const id = toId === "irt" && FREQUENT.assets[fromId] ? fromId : null;
+  if (!id) return `<section class="frequent-conversions" id="frequent-conversions" data-asset="" aria-labelledby="frequent-title" hidden></section>`;
+  const entries = FREQUENT.assets[id].items.map(item => [id, item]);
   const items = entries.map(([assetId, item]) => {
     const href = frequentPath(assetId, item);
     return `<li><a class="frequent-link" href="${href}"${href === current ? ' aria-current="page"' : ""}><h2>${esc(item.text)}</h2><span class="icon-chevron" aria-hidden="true"></span></a></li>`;
   }).join("");
-  return `<section class="frequent-conversions" id="frequent-conversions" data-asset="${id || ""}" aria-labelledby="frequent-title"><h2 id="frequent-title">تبدیل‌های پرتکرار</h2><ul class="frequent-grid">${items}</ul></section>`;
+  return `<section class="frequent-conversions" id="frequent-conversions" data-asset="${id}" aria-labelledby="frequent-title"><h2 id="frequent-title">تبدیل‌های پرتکرار</h2><ul class="frequent-grid">${items}</ul></section>`;
 }
 // مقدار پیش‌فرض فیلد مبدأ، به همان شکلی که app.js هنگام تایپ می‌نویسد.
 function editableAmount(amount) {
@@ -589,6 +594,8 @@ await writeFile(resolve(SITE, "sitemap-legacy.xml"), legacyXml, "utf8");
 for (const [path, file] of [["/", "index.html"], ["/price/", "price/index.html"], ["/convert/", "convert/index.html"]]) {
   let html = await readFile(resolve(ROOT, file), "utf8");
   html = html.replace(/ امروز (?:پنجشنبه|دوشنبه) [^<".]+۱۴۰۵/g, " امروز").replace("<!--frequent-slot-->", frequentSection(null, null));
+// /convert/ همان فایلی است که .htaccess برای جفت‌های ساخته‌نشده (مثلاً afn-to-usdt)
+// سرو می‌کند؛ پس بخش را از پیش رسم نمی‌کند و اسکریپت فقط برای جفت جورشده می‌سازدش.
   await writePricePage(path, html);
 }
 const methodTemplate = await readFile(resolve(ROOT, "price/index.html"), "utf8");

@@ -760,3 +760,4 @@ span.num { display: inline; }
   .frequent-conversions > h2 { font-size: 19px; }
   .frequent-grid { grid-template-columns: minmax(0, 1fr); gap: 10px; }
 }
+.frequent-conversions[hidden] { display: none; }
