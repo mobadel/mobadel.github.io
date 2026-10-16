@@ -372,7 +372,9 @@ function priceAssetMeta(group, slug, name) {
       [/(<li id="asset-crumb" aria-current="page">)[^<]*(<\/li>)/, `$1${name}$2`],
       [/(<a id="asset-category-link" href=")[^"]*(">)[^<]*(<\/a>)/, `$1/price/${group}/$2${category.name}$3`],
       [/(<h2 id="asset-content-title">)[^<]*(<\/h2>)/, `$1قیمت ${name} امروز$2`],
-      [/(<h3 id="asset-about-title">)[^<]*(<\/h3>)/, `$1درباره ${name}$2`]
+      [/(<h3 id="asset-about-title">)[^<]*(<\/h3>)/, `$1درباره ${name}$2`],
+      // دکمهٔ بالای صفحه از همان HTML اولیه به مبدل همین دارایی به تومان می‌رود.
+      [/(<a class="asset-primary-link" id="asset-hero-convert" href=")[^"]*(">)[^<]*/, `$1/convert/${slug}-to-irt/$2مبدل قیمت ${name} `]
     ]
   };
 }
@@ -420,7 +422,7 @@ function popularIcon(slug) {
   if (slug === "irt") return "/assets/flags/ir.svg";
   if (slug === "usdt") return "/assets/usdt-logo.svg";
   if (slug === "emami") return "/assets/coin-emami.webp?v=20260825-2";
-  return `/assets/flags/${({ usd: "us", aed: "ae", afn: "af", eur: "eu", gbp: "gb", try: "tr" })[slug] || slug}.svg`;
+  return `/assets/flags/${({ usd: "us", aed: "ae", afn: "af", eur: "eu", gbp: "gb", try: "tr", iqd: "iq" })[slug] || slug}.svg`;
 }
 function enrichPage(html, path) {
   // صفحهٔ دارایی و صفحهٔ جفت مبدل کادر راهنمای جدا ندارند: «این نرخ متعلق
@@ -429,7 +431,7 @@ function enrichPage(html, path) {
   // همان صفحه به همهٔ دارایی‌ها پیوند می‌دهند.
   if (/^\/price\//.test(path) || /^\/convert\/[a-z0-9]+-to-[a-z0-9]+\/$/.test(path)) return html.replace("<!--seo-slot-->", "");
   // صفحهٔ اصلی و صفحهٔ اصلی مبدل: «تبدیل‌های پرکاربرد»
-  const content = `<h2>تبدیل‌های پرکاربرد</h2><p class="popular-conversions-intro">تبدیل موردنظر را انتخاب کنید و ارزش معادل دارایی‌تان را ببینید.</p><ul class="popular-conversions-grid">${["usd-to-irt","usdt-to-irt","eur-to-irt","emami-to-irt","gold18-to-eur","aed-to-irt","afn-to-irt","irt-to-iqd"].map(slug=>{const [a,b]=slug.split("-to-");return `<li><a class="popular-conversion" href="/convert/${slug}/"><span class="popular-conversion-symbol" aria-hidden="true"><img src="${popularIcon(a)}" alt="" loading="lazy"></span><span class="popular-conversion-label"><strong>${esc(assetForSlug(a).name)} به ${esc(assetForSlug(b).name)}</strong><span>محاسبه و تبدیل</span></span><span class="icon-chevron" aria-hidden="true"></span></a></li>`;}).join("")}</ul>`;
+  const content = `<h2>تبدیل‌های پرکاربرد</h2><p class="popular-conversions-intro">تبدیل موردنظر را انتخاب کنید و ارزش معادل دارایی‌تان را ببینید.</p><ul class="popular-conversions-grid">${["usd-to-irt","usdt-to-irt","eur-to-irt","emami-to-irt","gold18-to-eur","aed-to-irt","afn-to-irt","irt-to-iqd"].map(slug=>{const [a,b]=slug.split("-to-");return `<li><a class="popular-conversion" href="/convert/${slug}/"><span class="popular-conversion-icons" aria-hidden="true"><span class="popular-conversion-symbol"><img src="${popularIcon(a)}" alt="" loading="lazy"></span><span class="popular-conversion-target"><img src="${popularIcon(b)}" alt="" loading="lazy"></span></span><span class="popular-conversion-label"><strong>${esc(assetForSlug(a).name)} به ${esc(assetForSlug(b).name)}</strong><span>محاسبه و تبدیل</span></span><span class="icon-chevron" aria-hidden="true"></span></a></li>`;}).join("")}</ul>`;
   return html.replace(/<\/main>/, `<section class="seo-content popular-conversions" aria-label="تبدیل‌های پرکاربرد">${content}</section></main>`);
 }
 
