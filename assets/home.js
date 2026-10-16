@@ -195,8 +195,13 @@
     KPI_IDS.forEach(function (id) {
       var definition = definitions.concat(KPI_EXTRA).filter(function (item) { return item.id === id; })[0];
       var quote = quoteFor(definition, stats, proxy);
-      if (!(quote.price > 0)) return;
-      var card = document.createElement("a"); card.className = "home-kpi"; card.href = definition.url;
+      if (!(quote.price > 0)) {
+        // نرخ این کارت هنوز نرسیده: کارت ایستای سرور سر جایش می‌ماند تا چیدمان نپرد.
+        var kept = box.querySelector('[data-kpi="' + id + '"]');
+        if (kept) cards.push(kept);
+        return;
+      }
+      var card = document.createElement("a"); card.className = "home-kpi"; card.href = definition.url; card.setAttribute("data-kpi", id);
       var name = document.createElement("span"); name.className = "home-kpi-name"; name.append(roundIcon(definition.icon), document.createTextNode(definition.name));
       // عدد زیر نام و راست‌چین؛ واحد کنار عدد و درصد تغییر کنار واحد، تا
       // هر سه با یک نگاه خوانده شوند.
@@ -259,9 +264,12 @@
   var proxyCache = { fetchedUnix: 0, ttl: 0 };
 
   function load() {
+    var proxyRequest = getJson("/api/rates.php?t=" + Date.now());
+    // کارت‌های بالای صفحه منتظر نوبیتکس نمی‌مانند؛ پنج کارت از rates.php است.
+    proxyRequest.then(function (proxy) { if (proxy) paintKpis(lastStats, proxy); }, function () {});
     return Promise.allSettled([
       getJson("https://apiv2.nobitex.ir/market/stats"),
-      getJson("/api/rates.php?t=" + Date.now())
+      proxyRequest
     ]).then(function (results) {
       var proxy = results[1].status === "fulfilled" ? results[1].value : null;
       if (proxy) proxyCache = { fetchedUnix: Number(proxy.fetched_unix) || 0, ttl: Number(proxy.ttl) || 0 };

@@ -607,8 +607,40 @@ const legacyXml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http:/
 await writeFile(resolve(SITE, "sitemap-legacy.xml"), legacyXml, "utf8");
 
 // Generate the hubs as well; deployment copies their templates before this step.
+/* شش کارت بالای صفحهٔ اصلی پیش‌تر فقط با جاوااسکریپت و پس از پاسخ هر دو
+   API ساخته می‌شدند؛ تا آن موقع جعبه خالی و پنهان بود و در موبایل مبدل اول
+   بالا می‌آمد و بعد پایین رانده می‌شد. حالا کارت‌ها با نرخ لحظهٔ دیپلوی در
+   HTML هستند و home.js همان‌ها را درجا به‌روز می‌کند. ساختار باید با
+   paintKpis در home.js یکی بماند. */
+const HOME_KPIS = [
+  { id: "usd", name: "دلار", url: "/price/currency/usd/", icon: "/assets/flags/us.svg" },
+  { id: "gold18", name: "طلای ۱۸ عیار", url: "/price/gold/gold18/", icon: "/assets/gold-18k.svg" },
+  { id: "emami", name: "سکه امامی", url: "/price/coin/emami/", icon: "/assets/coin-emami.webp?v=20260825-2" },
+  { id: "btc", name: "بیت کوین", url: "/price/crypto/btc/", icon: "/assets/crypto-icons/btc.svg", unit: "تتر" },
+  { id: "brent", name: "نفت برنت", url: "/price/energy/brent/", icon: "/assets/crude-oil.svg", unit: "دلار" },
+  { id: "silver", name: "نقره گرمی", url: "/price/commodity/silver/", icon: "/assets/silver.svg" }
+];
+const faNumber = (value, digits) => new Intl.NumberFormat("fa-IR", { maximumFractionDigits: digits }).format(value);
+function homeKpis() {
+  return HOME_KPIS.map((kpi) => {
+    const snap = snapshots[kpi.id] || {};
+    const unit = kpi.unit || "تومان";
+    const price = unit === "تتر" ? snap.usdt : unit === "دلار" ? snap.usd : snap.toman;
+    const change = unit === "تتر" ? snap.usdtChange : snap.change;
+    const amount = Number(price) > 0 ? faNumber(price, unit === "دلار" ? 2 : 0) : "…";
+    const known = Number.isFinite(change);
+    const tone = !known ? "neutral" : change > 0 ? "positive" : change < 0 ? "negative" : "neutral";
+    const delta = known ? (change > 0 ? "+" : "") + faNumber(change, 2) + "٪" : "—";
+    return `<a class="home-kpi" href="${kpi.url}" data-kpi="${kpi.id}"><span class="home-kpi-name"><span class="round-icon"><img src="${kpi.icon}" alt=""></span>${kpi.name}</span><span class="home-kpi-row"><span class="home-kpi-value"><strong>${amount}</strong><span class="home-kpi-unit">${unit}</span></span><small class="home-kpi-change ${tone}">${delta}</small></span></a>`;
+  }).join("");
+}
 for (const [path, file] of [["/", "index.html"], ["/price/", "price/index.html"], ["/convert/", "convert/index.html"]]) {
   let html = await readFile(resolve(ROOT, file), "utf8");
+  if (path === "/") {
+    const box = '<div class="home-kpis" id="home-kpis" aria-live="polite"></div>';
+    if (!html.includes(box)) throw new Error("جای کارت‌های صفحهٔ اصلی در index.html پیدا نشد.");
+    html = html.replace(box, `<div class="home-kpis" id="home-kpis" aria-live="polite">${homeKpis()}</div>`);
+  }
   html = html.replace(/ امروز (?:پنجشنبه|دوشنبه) [^<".]+۱۴۰۵/g, " امروز").replace("<!--frequent-slot-->", frequentSection(null, null));
 // /convert/ همان فایلی است که .htaccess برای جفت‌های ساخته‌نشده (مثلاً afn-to-usdt)
 // سرو می‌کند؛ پس بخش را از پیش رسم نمی‌کند و اسکریپت فقط برای جفت جورشده می‌سازدش.
