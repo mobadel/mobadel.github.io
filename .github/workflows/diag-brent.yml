@@ -16,11 +16,5 @@ jobs:
         run: |
           set +e
           echo "::notice::has_key=$([ -n "$K" ] && echo yes || echo no)"
-          curl -sS -m 30 -A 'Mozilla/5.0' https://tabdex.ir/api/rates.php -o site.json; echo "::notice::site_http_exit=$?"
-          jq -c '{updated,source_updated,stale,reason,quota,ttl,markets}' site.json | sed 's/^/::notice::site_meta=/'
-          jq -r '.assets | to_entries[] | "\(.key) usd=\(.value.usd // "-") toman=\(.value.toman) ch=\(.value.change)"' site.json | tr '\n' ' ' | sed 's/^/::notice::site_assets=/' ; echo
-          jq -r '.assets | keys | join(",")' site.json | sed 's/^/::notice::site_keys=/'
-          curl -sS -m 30 -A 'tabdex-rates/1.0 (+https://tabdex.ir)' -w '\n%{http_code}' "https://api.brsapi.ir/Market/Commodity.php?key=$K" -o com.json > code.txt; echo "::notice::commodity_http=$(tail -1 code.txt) bytes=$(wc -c < com.json)"
-          head -c 300 com.json | tr '\n' ' ' | sed "s/$K/KEY/g" | sed 's/^/::notice::commodity_head=/'; echo
-          jq -c '[.. | objects | select(.symbol? == "BRENT" or .symbol? == "RBOB" or .symbol? == "WTI")]' com.json | sed 's/^/::notice::commodity_energy=/'
-          curl -sS -m 30 -A 'tabdex-rates/1.0 (+https://tabdex.ir)' "https://api.brsapi.ir/Market/Gold_Currency.php?key=$K" -o gc.json; jq -c '[.. | objects | select(.symbol? == "USD" or .symbol? == "XAUUSD" or .symbol? == "IR_GOLD_18K") | {symbol,price,time_unix,date,time}]' gc.json | sed 's/^/::notice::gc=/'
+          curl -sS -m 30 -A 'tabdex-rates/1.0 (+https://tabdex.ir)' "https://api.brsapi.ir/Market/Gold_Currency.php?key=$K" -o gc.json
+          jq -c 'to_entries|map({k:.key, n:(.value|length), nonzero:([.value[]?|select((.price//0)>0)]|length), maxt:([.value[]?|.time_unix]|max), sample:(.value[0]|{symbol,price,date,time})})' gc.json | sed 's/^/::notice::gc_summary=/'
