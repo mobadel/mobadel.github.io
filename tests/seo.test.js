@@ -9,8 +9,10 @@ const sitemap = fs.readFileSync(path.join(root,'sitemap.xml'),'utf8');
 const urls = [...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map(m=>m[1]);
 assert.equal(new Set(urls).size,urls.length,'canonical sitemap URLs must be unique');
 for (const url of urls) {
-  const pathname = new URL(url).pathname;
-  const file = path.join(root,pathname,'index.html');
+  const parsed = new URL(url); const pathname = parsed.pathname;
+  // صفحه‌های «تبدیل‌های پرتکرار» (?amount=…) فایل ایستای خودشان را دارند.
+  const amount = parsed.searchParams.get('amount');
+  const file = amount ? path.join(root,pathname,`amount-${amount}.html`) : path.join(root,pathname,'index.html');
   assert.ok(fs.existsSync(file),`${url} must have initial HTML`);
   const html = fs.readFileSync(file,'utf8');
   assert.ok(html.includes(`<link rel="canonical" href="${url}">`),`${url} must have self canonical`);
@@ -23,6 +25,31 @@ for (const url of urls) {
     assert.ok(fs.existsSync(path.join(root,reverse,'index.html')),'reverse destination must exist');
     // کادر «روش محاسبه» عمداً حذف شده؛ محتوایش تکراری بود.
     assert.ok(!html.includes('این مثال نرخ واقعی بازار نیست'),'pair page must not repeat the methodology box');
+  }
+}
+// تبدیل‌های پرتکرار: صفحهٔ مقدار canonical خودش، H1 مقدار، فیلد پرشده و قاعدهٔ .htaccess.
+{
+  const freq = JSON.parse(fs.readFileSync('data/frequent-conversions.json','utf8'));
+  let count = 0;
+  for (const [id, entry] of Object.entries(freq.assets)) for (const item of entry.items) {
+    const url = `https://tabdex.ir/convert/${entry.slug}-to-irt/?amount=${item.amount}`;
+    assert.ok(urls.includes(url), `${url} در سایت‌مپ`);
+    const html = fs.readFileSync(path.join(root,'convert',`${entry.slug}-to-irt`,`amount-${item.amount}.html`),'utf8');
+    assert.ok(html.includes(`<h1 id="page-title">${item.text}؟</h1>`), `${url}: H1`);
+    assert.ok(html.includes(`data-amount-page="${item.amount}"`), `${url}: نشان صفحهٔ مقدار`);
+    assert.ok(html.includes(`href="/convert/${entry.slug}-to-irt/?amount=${item.amount}" aria-current="page"`), `${url}: دکمهٔ فعلی`);
+    count += 1;
+  }
+  assert.equal(count, 143);
+  const pair = fs.readFileSync(path.join(root,'convert','usd-to-irt','index.html'),'utf8');
+  assert.ok(pair.includes('<link rel="canonical" href="https://tabdex.ir/convert/usd-to-irt/">'), 'صفحهٔ مادر canonical خودش');
+  assert.match(pair, /<section class="frequent-conversions" id="frequent-conversions" data-asset="usd"[^>]*><h2 id="frequent-title">تبدیل‌های پرتکرار<\/h2>[\s\S]*?<h2>۱۰۰۰ دلار چند تومان است<\/h2>/, 'بخش و دکمه‌ها تیتر ۲');
+  assert.match(fs.readFileSync(path.join(root,'convert','btc-to-irt','index.html'),'utf8'), /data-asset=""[\s\S]*?\?amount=1000/, 'جفت بدون داده: مجموعهٔ عمومی');
+  assert.match(fs.readFileSync(path.join(root,'convert','index.html'),'utf8'), /id="frequent-conversions"/, 'صفحهٔ اصلی مبدل هم بخش را دارد');
+  if (fs.existsSync(path.join(root,'.htaccess'))) {
+    const ht = fs.readFileSync(path.join(root,'.htaccess'),'utf8');
+    assert.ok(ht.includes('RewriteCond %{QUERY_STRING} ^amount=0\\.5$\n  RewriteRule ^convert/gold18-to-irt/?$ convert/gold18-to-irt/amount-0.5.html [L]'), '.htaccess قاعدهٔ مقدار اعشاری');
+    assert.ok(ht.indexOf('amount-1000.html') < ht.indexOf('RewriteCond %{REQUEST_FILENAME} -f'), 'قاعده‌ها پیش از پوشهٔ واقعی');
   }
 }
 for (const slug of ['cake','hype','safe']) {

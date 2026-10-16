@@ -223,6 +223,9 @@ jobs:
                 fi
                 echo "put -O \"$target\" \"_site/$page\""
               done
+              # قاعده‌های ?amount= (تبدیل‌های پرتکرار) هنگام ساخت به _site/.htaccess
+              # افزوده می‌شوند، پس با تغییر داده یا قالب باید دوباره فرستاده شود.
+              echo "put -O \"$FTP_DIRECTORY\" \"_site/.htaccess\""
             fi
 
             echo bye
@@ -269,6 +272,15 @@ jobs:
               mismatch=1
             fi
           done
+          # صفحهٔ «تبدیل پرتکرار»: بازنویسی ?amount= در .htaccess باید فعال باشد.
+          amount_page=$(curl -fsS --max-time 25 -H 'Cache-Control: no-cache' \
+            "https://tabdex.ir/convert/usd-to-irt/?amount=1000" || true)
+          if printf '%s' "$amount_page" | grep -q '<link rel="canonical" href="https://tabdex.ir/convert/usd-to-irt/?amount=1000">'; then
+            echo "  ✓ convert/usd-to-irt/?amount=1000"
+          else
+            echo "::error::صفحهٔ ?amount=1000 canonical خودش را ندارد؛ قاعده‌های .htaccess اعمال نشده‌اند."
+            mismatch=1
+          fi
           if [ "$mismatch" -ne 0 ]; then
             echo "::error::انتشار ناقص بود. لاگ گام Deploy site را ببینید."
             exit 1

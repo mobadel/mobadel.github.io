@@ -436,6 +436,30 @@ function enrichPage(html, path) {
 }
 
 const template = await readFile(resolve(ROOT, "convert", "index.html"), "utf8");
+
+/* ── «تبدیل‌های پرتکرار» ─────────────────────────────────────────
+   مقدارها از کیورد ریسرچ (data/frequent-conversions.json) می‌آیند. هر دکمه
+   به حالت پارامتردار مبدل همان دارایی به تومان می‌رود و برای هر کدام یک
+   صفحهٔ ایستا با عنوان، H1 و canonical خودش ساخته می‌شود؛ .htaccess فقط
+   همین آدرس‌های دقیق را به آن فایل‌ها می‌برد و هر مقدار دیگری مثل قبل
+   صفحهٔ مادر را با canonical مادر می‌گیرد. */
+const FREQUENT = JSON.parse(await readFile(resolve(ROOT, "data", "frequent-conversions.json"), "utf8"));
+const faDigits = value => String(value).replace(/\d/g, d => "۰۱۲۳۴۵۶۷۸۹"[d]);
+function frequentPath(id, item) { return `/convert/${FREQUENT.assets[id].slug}-to-irt/?amount=${item.amount}`; }
+function frequentSection(fromId, toId, current) {
+  const id = FREQUENT.assets[fromId] ? fromId : FREQUENT.assets[toId] ? toId : null;
+  const entries = id ? FREQUENT.assets[id].items.map(item => [id, item]) : FREQUENT.general.map(item => [item.asset, item]);
+  const items = entries.map(([assetId, item]) => {
+    const href = frequentPath(assetId, item);
+    return `<li><a class="frequent-link" href="${href}"${href === current ? ' aria-current="page"' : ""}><h2>${esc(item.text)}</h2><span class="icon-chevron" aria-hidden="true"></span></a></li>`;
+  }).join("");
+  return `<section class="frequent-conversions" id="frequent-conversions" data-asset="${id || ""}" aria-labelledby="frequent-title"><h2 id="frequent-title">تبدیل‌های پرتکرار</h2><ul class="frequent-grid">${items}</ul></section>`;
+}
+// مقدار پیش‌فرض فیلد مبدأ، به همان شکلی که app.js هنگام تایپ می‌نویسد.
+function editableAmount(amount) {
+  const [integer, fraction] = String(amount).split(".");
+  return faDigits(integer.replace(/\B(?=(\d{3})+(?!\d))/g, "٬") + (fraction ? "٫" + fraction : ""));
+}
 const assetTemplate = await readFile(resolve(ROOT, "price", "asset.html"), "utf8");
 const categoryTemplate = await readFile(resolve(ROOT, "price", "category.html"), "utf8");
 for (const slug of ["cake", "hype", "safe"]) {
@@ -491,9 +515,56 @@ for (const [fromId, toId] of pairs) {
   const meta = metaFor(from, to);
   const directory = resolve(SITE, "convert", `${from.slug}-to-${to.slug}`);
   await mkdir(directory, { recursive: true });
-  await writeFile(resolve(directory, "index.html"), renderPage(template, meta), "utf8");
+  await writeFile(resolve(directory, "index.html"), renderPage(template, meta).replace("<!--frequent-slot-->", frequentSection(fromId, toId)), "utf8");
   urls.push(`  <url>\n    <loc>${ORIGIN}${meta.path}</loc>\n    <lastmod>${today}</lastmod>\n    <priority>0.8</priority>\n  </url>`);
 }
+
+/* صفحه‌های مقدار: /convert/usd-to-irt/?amount=1000 → convert/usd-to-irt/amount-1000.html */
+const amountRules = [];
+for (const [id, entry] of Object.entries(FREQUENT.assets)) {
+  const from = ASSETS[id];
+  if (!from || from.slug !== entry.slug) throw new Error(`دارایی تبدیل پرتکرار ناشناخته است: ${id}`);
+  const meta = metaFor(from, ASSETS.irt);
+  const base = renderPage(template, meta);
+  for (const item of entry.items) {
+    const path = frequentPath(id, item);
+    const url = ORIGIN + path;
+    const title = `${item.text}؟ | مبدل قیمت`;
+    const description = `${item.text}؟ معادل تومانی آن را با نرخ لحظه ای بازار ببینید و هر مقدار دیگری از ${from.name} را هم به تومان تبدیل کنید.`;
+    const swaps = [
+      [/<title>[^<]*<\/title>/, `<title>${title}</title>`],
+      [/(<meta name="description" content=")[^"]*(">)/, `$1${description}$2`],
+      [/(<meta property="og:title" content=")[^"]*(">)/, `$1${title}$2`],
+      [/(<meta property="og:description" content=")[^"]*(">)/, `$1${description}$2`],
+      [/(<meta name="twitter:title" content=")[^"]*(">)/, `$1${title}$2`],
+      [/(<meta name="twitter:description" content=")[^"]*(">)/, `$1${description}$2`],
+      [/(<link rel="canonical" href=")[^"]*(">)/, `$1${url}$2`],
+      [/(<meta property="og:url" content=")[^"]*(">)/, `$1${url}$2`],
+      [/(<h1 id="page-title">)[^<]*(<\/h1>)/, `$1${item.text}؟$2`],
+      [/<body([^>]*)>/, `<body$1 data-amount-page="${item.amount}">`],
+      [/(<input id="amount-from"[^>]*value=")[^"]*(")/, `$1${editableAmount(item.amount)}$2`]
+    ];
+    let html = base;
+    for (const [pattern, replacement] of swaps) {
+      if (!pattern.test(html)) throw new Error(`الگوی «${pattern}» در صفحهٔ مقدار پیدا نشد.`);
+      html = html.replace(pattern, replacement);
+    }
+    html = html.replace("<!--frequent-slot-->", frequentSection(id, "irt", path));
+    const file = `amount-${item.amount}.html`;
+    await writeFile(resolve(SITE, "convert", `${entry.slug}-to-irt`, file), html, "utf8");
+    urls.push(`  <url>\n    <loc>${url}</loc>\n    <lastmod>${today}</lastmod>\n    <priority>0.7</priority>\n  </url>`);
+    amountRules.push(`  RewriteCond %{QUERY_STRING} ^amount=${String(item.amount).replace(".", "\\.")}$\n  RewriteRule ^convert/${entry.slug}-to-irt/?$ convert/${entry.slug}-to-irt/${file} [L]`);
+  }
+}
+/* قاعده‌ها پیش از «فایل یا پوشهٔ واقعی» می‌نشینند، چون /convert/usd-to-irt/
+   پوشهٔ واقعی است و بعد از آن هیچ بازنویسی‌ای به آن نمی‌رسد. */
+try {
+  const htaccessPath = resolve(SITE, ".htaccess");
+  const htaccess = await readFile(htaccessPath, "utf8");
+  const anchor = "  # اگر فایل یا پوشهٔ واقعی وجود دارد، دست نزن.";
+  if (!htaccess.includes(anchor)) throw new Error("جای قاعده‌های صفحه‌های مقدار در .htaccess پیدا نشد.");
+  await writeFile(htaccessPath, htaccess.replace(anchor, `  # تبدیل‌های پرتکرار: فقط همین مقدارها صفحهٔ خودشان را دارند (ساخته‌شده در build-pages).\n${amountRules.join("\n")}\n\n${anchor}`), "utf8");
+} catch (error) { if (error.code !== "ENOENT") throw error; }
 
 // Previously sitemap-only paths are now generated by buildPairs().
 
@@ -517,7 +588,7 @@ await writeFile(resolve(SITE, "sitemap-legacy.xml"), legacyXml, "utf8");
 // Generate the hubs as well; deployment copies their templates before this step.
 for (const [path, file] of [["/", "index.html"], ["/price/", "price/index.html"], ["/convert/", "convert/index.html"]]) {
   let html = await readFile(resolve(ROOT, file), "utf8");
-  html = html.replace(/ امروز (?:پنجشنبه|دوشنبه) [^<".]+۱۴۰۵/g, " امروز");
+  html = html.replace(/ امروز (?:پنجشنبه|دوشنبه) [^<".]+۱۴۰۵/g, " امروز").replace("<!--frequent-slot-->", frequentSection(null, null));
   await writePricePage(path, html);
 }
 const methodTemplate = await readFile(resolve(ROOT, "price/index.html"), "utf8");

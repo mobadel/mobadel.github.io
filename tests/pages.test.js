@@ -97,6 +97,7 @@ fs.cpSync("price/asset.html", path.join(workdir, "price/asset.html"));
 fs.cpSync("price/category.html", path.join(workdir, "price/category.html"));
 fs.mkdirSync(path.join(workdir, "data"), { recursive: true });
 fs.cpSync("data/currencies.json", path.join(workdir, "data/currencies.json"));
+fs.cpSync("data/frequent-conversions.json", path.join(workdir, "data/frequent-conversions.json"));
 
 execFileSync(process.execPath, ["scripts/build-pages.mjs"], { cwd: workdir, stdio: "pipe" });
 
