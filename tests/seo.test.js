@@ -32,7 +32,7 @@ for (const slug of ['cake','hype','safe']) {
 assert.ok(!fs.readFileSync(path.join(root,'price/index.html'),'utf8').includes('دسترسی به صفحات قیمت'),'هاب قیمت نباید فهرست «دسترسی به صفحات قیمت» داشته باشد');
 for (const group of ['currency','gold','coin','commodity','energy','crypto']) assert.ok(!fs.readFileSync(path.join(root,'price',group,'index.html'),'utf8').includes('دسترسی به صفحات قیمت'),`صفحهٔ دسته ${group} نباید فهرست «دسترسی به صفحات قیمت» داشته باشد`);
 const contact=fs.readFileSync(path.join(root,'contact/index.html'),'utf8');
-assert.ok(contact.includes('mailto:info@tabdex.ir')&&contact.includes('tel:+989981903599'));
+assert.ok(contact.includes('mailto:info@tabdex.ir')&&!contact.includes('tel:')&&!contact.includes('09981903599'),'contact page: email only, no phone number');
 // Exercise the real rendering branch with missing upstream rates; indexing and
 // the pre-rendered identity must survive the outage.
 const script=fs.readFileSync('assets/price.js','utf8');
