@@ -438,27 +438,33 @@ function enrichPage(html, path) {
 const template = await readFile(resolve(ROOT, "convert", "index.html"), "utf8");
 
 /* ── «تبدیل‌های پرتکرار» ─────────────────────────────────────────
-   مقدارها از کیورد ریسرچ (data/frequent-conversions.json) می‌آیند. هر دکمه
-   به حالت پارامتردار مبدل همان دارایی به تومان می‌رود و برای هر کدام یک
-   صفحهٔ ایستا با عنوان، H1 و canonical خودش ساخته می‌شود؛ .htaccess فقط
-   همین آدرس‌های دقیق را به آن فایل‌ها می‌برد و هر مقدار دیگری مثل قبل
-   صفحهٔ مادر را با canonical مادر می‌گیرد. */
+   مقدارها از کیورد ریسرچ (data/frequent-conversions.json) می‌آیند و کلیدشان
+   آدرس جفت است (usd-to-irt، irt-to-usd، usd-to-try…). دکمه‌های هر جفت فقط
+   روی همان جفت نمایش داده می‌شوند و هر کدام به حالت پارامتردار همان جفت
+   می‌رود؛ برای هر دکمه یک صفحهٔ ایستا با عنوان، H1 و canonical خودش ساخته
+   می‌شود. .htaccess فقط همین آدرس‌های دقیق را به آن فایل‌ها می‌برد و هر
+   مقدار دیگری مثل قبل صفحهٔ مادر را با canonical مادر می‌گیرد. */
 const FREQUENT = JSON.parse(await readFile(resolve(ROOT, "data", "frequent-conversions.json"), "utf8"));
 const faDigits = value => String(value).replace(/\d/g, d => "۰۱۲۳۴۵۶۷۸۹"[d]);
-function frequentPath(id, item) { return `/convert/${FREQUENT.assets[id].slug}-to-irt/?amount=${item.amount}`; }
-/* بخش فقط وقتی هست که دکمه‌هایش دقیقاً همین جفت را بپرسند: دارایی‌ای که داده
-   دارد به تومان. برای جفت‌های دیگر (تومان به دلار، افغانی به تتر و…) تا وقتی
-   دکمهٔ خودشان ساخته نشده، فقط یک جای خالیِ پنهان می‌ماند تا اگر کاربر در
-   همان صفحه جفت را به یک جفت جورشده عوض کرد، اسکریپت بخش را بسازد. */
+function frequentKey(fromId, toId) {
+  const from = ASSETS[fromId], to = ASSETS[toId];
+  return from && to ? `${from.slug}-to-${to.slug}` : null;
+}
+for (const [key, entry] of Object.entries(FREQUENT.pairs)) {
+  if (frequentKey(entry.from, entry.to) !== key) throw new Error(`کلید تبدیل پرتکرار با دارایی‌هایش نمی‌خواند: ${key}`);
+}
+function frequentPath(key, item) { return `/convert/${key}/?amount=${item.amount}`; }
+/* جفتی که دکمه ندارد فقط یک جای خالیِ پنهان می‌گیرد تا اگر کاربر در همان
+   صفحه جفت را به یک جفت دکمه‌دار عوض کرد، اسکریپت بخش را بسازد. */
 function frequentSection(fromId, toId, current) {
-  const id = toId === "irt" && FREQUENT.assets[fromId] ? fromId : null;
-  if (!id) return `<section class="frequent-conversions" id="frequent-conversions" data-asset="" aria-labelledby="frequent-title" hidden></section>`;
-  const entries = FREQUENT.assets[id].items.map(item => [id, item]);
-  const items = entries.map(([assetId, item]) => {
-    const href = frequentPath(assetId, item);
+  const key = frequentKey(fromId, toId);
+  const entry = key ? FREQUENT.pairs[key] : null;
+  if (!entry) return `<section class="frequent-conversions" id="frequent-conversions" data-pair="" aria-labelledby="frequent-title" hidden></section>`;
+  const items = entry.items.map((item) => {
+    const href = frequentPath(key, item);
     return `<li><a class="frequent-link" href="${href}"${href === current ? ' aria-current="page"' : ""}><h2>${esc(item.text)}</h2><span class="icon-chevron" aria-hidden="true"></span></a></li>`;
   }).join("");
-  return `<section class="frequent-conversions" id="frequent-conversions" data-asset="${id}" aria-labelledby="frequent-title"><h2 id="frequent-title">تبدیل‌های پرتکرار</h2><ul class="frequent-grid">${items}</ul></section>`;
+  return `<section class="frequent-conversions" id="frequent-conversions" data-pair="${key}" data-from="${entry.from}" data-to="${entry.to}" aria-labelledby="frequent-title"><h2 id="frequent-title">تبدیل‌های پرتکرار</h2><ul class="frequent-grid">${items}</ul></section>`;
 }
 // مقدار پیش‌فرض فیلد مبدأ، به همان شکلی که app.js هنگام تایپ می‌نویسد.
 function editableAmount(amount) {
@@ -513,7 +519,16 @@ for (const { group, slug, id } of priceAssets) {
   pricePages += 1;
 }
 
-for (const [fromId, toId] of pairs) {
+/* جفت‌هایی که دکمهٔ پرتکرار دارند (مثلاً دلار به لیر) صفحهٔ ایستای خودشان
+   را می‌گیرند تا بخش در HTML اولیه باشد؛ پیش‌تر از /convert/ سرو می‌شدند. */
+const pagePairs = [...pairs];
+for (const entry of Object.values(FREQUENT.pairs)) {
+  // هر صفحهٔ جفت به جفت معکوسش لینک دارد، پس معکوس هم ساخته می‌شود.
+  for (const [a, b] of [[entry.from, entry.to], [entry.to, entry.from]]) {
+    if (!pagePairs.some(([x, y]) => x === a && y === b)) pagePairs.push([a, b]);
+  }
+}
+for (const [fromId, toId] of pagePairs) {
   const from = ASSETS[fromId];
   const to = ASSETS[toId];
   if (!from || !to) throw new Error(`دارایی ناشناخته در فهرست جفت‌ها: ${fromId} یا ${toId}`);
@@ -526,16 +541,17 @@ for (const [fromId, toId] of pairs) {
 
 /* صفحه‌های مقدار: /convert/usd-to-irt/?amount=1000 → convert/usd-to-irt/amount-1000.html */
 const amountRules = [];
-for (const [id, entry] of Object.entries(FREQUENT.assets)) {
-  const from = ASSETS[id];
-  if (!from || from.slug !== entry.slug) throw new Error(`دارایی تبدیل پرتکرار ناشناخته است: ${id}`);
-  const meta = metaFor(from, ASSETS.irt);
+for (const [key, entry] of Object.entries(FREQUENT.pairs)) {
+  const from = ASSETS[entry.from], to = ASSETS[entry.to];
+  const meta = metaFor(from, to);
   const base = renderPage(template, meta);
   for (const item of entry.items) {
-    const path = frequentPath(id, item);
+    const path = frequentPath(key, item);
     const url = ORIGIN + path;
     const title = `${item.text}؟ | مبدل قیمت`;
-    const description = `${item.text}؟ معادل تومانی آن را با نرخ لحظه ای بازار ببینید و هر مقدار دیگری از ${from.name} را هم به تومان تبدیل کنید.`;
+    const description = entry.to === "irt"
+      ? `${item.text}؟ معادل تومانی آن را با نرخ لحظه ای بازار ببینید و هر مقدار دیگری از ${from.name} را هم به تومان تبدیل کنید.`
+      : `${item.text}؟ معادل آن به ${to.name} را با نرخ لحظه ای بازار ببینید و هر مقدار دیگری از ${from.name} را هم به ${to.name} تبدیل کنید.`;
     const swaps = [
       [/<title>[^<]*<\/title>/, `<title>${title}</title>`],
       [/(<meta name="description" content=")[^"]*(">)/, `$1${description}$2`],
@@ -554,11 +570,11 @@ for (const [id, entry] of Object.entries(FREQUENT.assets)) {
       if (!pattern.test(html)) throw new Error(`الگوی «${pattern}» در صفحهٔ مقدار پیدا نشد.`);
       html = html.replace(pattern, replacement);
     }
-    html = html.replace("<!--frequent-slot-->", frequentSection(id, "irt", path));
+    html = html.replace("<!--frequent-slot-->", frequentSection(entry.from, entry.to, path));
     const file = `amount-${item.amount}.html`;
-    await writeFile(resolve(SITE, "convert", `${entry.slug}-to-irt`, file), html, "utf8");
+    await writeFile(resolve(SITE, "convert", key, file), html, "utf8");
     urls.push(`  <url>\n    <loc>${url}</loc>\n    <lastmod>${today}</lastmod>\n    <priority>0.7</priority>\n  </url>`);
-    amountRules.push(`  RewriteCond %{QUERY_STRING} ^amount=${String(item.amount).replace(".", "\\.")}$\n  RewriteRule ^convert/${entry.slug}-to-irt/?$ convert/${entry.slug}-to-irt/${file} [L]`);
+    amountRules.push(`  RewriteCond %{QUERY_STRING} ^amount=${String(item.amount).replace(".", "\\.")}$\n  RewriteRule ^convert/${key}/?$ convert/${key}/${file} [L]`);
   }
 }
 /* قاعده‌ها پیش از «فایل یا پوشهٔ واقعی» می‌نشینند، چون /convert/usd-to-irt/
@@ -619,4 +635,4 @@ const completeSitemap = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="
 await writeFile(resolve(SITE,"sitemap.xml"),completeSitemap);
 await writeFile(resolve(ROOT,"sitemap.xml"),completeSitemap);
 
-console.log(`${pairs.length} converter pages, ${pricePages} price pages; ${urls.length} canonical URLs with initial HTML.`);
+console.log(`${pagePairs.length} converter pages, ${pricePages} price pages; ${urls.length} canonical URLs with initial HTML.`);
