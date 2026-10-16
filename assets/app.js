@@ -499,8 +499,12 @@
     var toCurrency = currencies[state.to];
     if (!fromCurrency || !toCurrency) return;
     var heading = "تبدیل " + fromCurrency.name + " به " + toCurrency.name;
-    elements.pageTitle.textContent = heading;
-    paintDocumentMeta(heading, fromCurrency, toCurrency);
+    // صفحهٔ مقدار («۱۰۰۰ دلار چند تومان است؟») عنوان، H1 و canonical خودش را
+    // از سرور دارد؛ تا وقتی جفت همان است دست نمی‌خورند.
+    if (!onAmountPage()) {
+      elements.pageTitle.textContent = heading;
+      paintDocumentMeta(heading, fromCurrency, toCurrency);
+    }
     paintCurrency(elements.currencyFrom, fromCurrency);
     paintCurrency(elements.currencyTo, toCurrency);
     var result = convertEditedAmount();
@@ -512,6 +516,16 @@
      که هنگام دیپلوی ساخته می‌شوند همین مقادیر را از ابتدا در HTML
      دارند؛ این تابع برای بقیهٔ آدرس‌هاست که از بازنویسی می‌آیند و
      برای وقتی که کاربر بدون بارگذاری دوباره جفت را عوض می‌کند. */
+  /* صفحه‌های «تبدیل‌های پرتکرار» با data-amount-page روی body ساخته
+     می‌شوند. با اولین تغییر جفت، صفحه دیگر صفحهٔ مقدار نیست و برنمی‌گردد. */
+  var amountPage = null;
+  function onAmountPage() {
+    if (!amountPage) return false;
+    if (state.from === amountPage.from && state.to === amountPage.to) return true;
+    amountPage = null;
+    return false;
+  }
+
   function paintDocumentMeta(heading, fromCurrency, toCurrency) {
     if (typeof document === "undefined") return;
 
@@ -1158,6 +1172,8 @@
   // انجام می‌شود تا صفحه یک‌بار با جفت پیش‌فرض رسم و بعد عوض نشود.
   var bootRoute = parseRoute(location.pathname);
   if (!applyRoute(bootRoute)) state.pendingRoute = bootRoute;
+  var amountPageAttribute = document.body && typeof document.body.getAttribute === "function" ? document.body.getAttribute("data-amount-page") : null;
+  if (amountPageAttribute && !state.pendingRoute) amountPage = { from: state.from, to: state.to };
   var initialAmount = parseAmountParam(location.search);
   if (initialAmount !== null) {
     state.amount = initialAmount;

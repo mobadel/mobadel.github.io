@@ -742,3 +742,21 @@ span.num { display: inline; }
 @media (max-width: 600px) { .home-market-label h3 { font-size: 14px; } }
 
 .rate-status.closed { color: var(--green-dark); }
+
+/* «تبدیل‌های پرتکرار» در صفحه‌های مبدل: عنوان بخش و متن هر دکمه h2 است
+   (کیورد ریسرچ مهر ۱۴۰۵)؛ دکمه‌ها کارت‌های هم‌اندازه در چهار ستون. */
+.frequent-conversions { margin-top: 32px; padding: 28px 32px; border: 1px solid var(--border); border-radius: 24px; background: var(--surface); }
+.frequent-conversions > h2 { margin: 0 0 16px; font-size: 22px; line-height: 1.5; }
+.frequent-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin: 0; padding: 0; list-style: none; }
+.frequent-grid li { min-width: 0; }
+.frequent-link { display: flex; align-items: center; justify-content: space-between; gap: 10px; height: 100%; min-height: 56px; padding: 12px 16px; border: 1px solid var(--border); border-radius: 14px; color: var(--text); background: var(--surface-muted); text-decoration: none; transition: border-color .15s, background .15s; }
+.frequent-link:hover, .frequent-link[aria-current="page"] { border-color: var(--green); background: var(--green-soft); }
+.frequent-link:focus-visible { outline: 3px solid var(--green); outline-offset: 3px; }
+.frequent-link h2 { margin: 0; font-size: 14.5px; font-weight: 600; line-height: 1.7; }
+.frequent-link .icon-chevron { flex: none; color: var(--green); }
+@media (max-width: 1100px) { .frequent-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 600px) {
+  .frequent-conversions { margin-top: 24px; padding: 22px 16px; border-radius: 20px; }
+  .frequent-conversions > h2 { font-size: 19px; }
+  .frequent-grid { grid-template-columns: minmax(0, 1fr); gap: 10px; }
+}

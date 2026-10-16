@@ -163,11 +163,43 @@
   document.addEventListener("input", function (event) { if (fields.indexOf(event.target) >= 0) fitFields(); });
   window.addEventListener("resize", fitFields);
 
+  /* «تبدیل‌های پرتکرار»: HTML سرور دکمه‌های همان جفت را دارد. اگر کاربر
+     جفت را عوض کرد، دکمه‌های دارایی تازه از همان فایل داده ساخته می‌شوند. */
+  var frequent = document.getElementById("frequent-conversions");
+  var frequentData = null;
+  function frequentLink(id, item) {
+    var li = document.createElement("li");
+    var link = document.createElement("a"); link.className = "frequent-link";
+    link.href = "/convert/" + frequentData.assets[id].slug + "-to-irt/?amount=" + item.amount;
+    var title = document.createElement("h2"); title.textContent = item.text;
+    var arrow = document.createElement("span"); arrow.className = "icon-chevron"; arrow.setAttribute("aria-hidden", "true");
+    link.append(title, arrow); li.appendChild(link); return li;
+  }
+  function paintFrequent(detail) {
+    if (!frequent || typeof fetch !== "function") return;
+    // همان دارایی که سرور رسم کرده: بدون دریافت فایل داده.
+    var current = frequent.getAttribute("data-asset");
+    if (!frequentData && current && (current === detail.from.id || current === detail.to.id)) return;
+    var render = function () {
+      var id = frequentData.assets[detail.from.id] ? detail.from.id : frequentData.assets[detail.to.id] ? detail.to.id : "";
+      if ((frequent.getAttribute("data-asset") || "") === id) return;
+      var list = frequent.querySelector(".frequent-grid"); if (!list) return;
+      var entries = id ? frequentData.assets[id].items.map(function (item) { return [id, item]; })
+        : frequentData.general.map(function (item) { return [item.asset, item]; });
+      list.replaceChildren.apply(list, entries.map(function (entry) { return frequentLink(entry[0], entry[1]); }));
+      frequent.setAttribute("data-asset", id);
+    };
+    if (frequentData) { render(); return; }
+    fetch("/data/frequent-conversions.json").then(function (response) { return response.ok ? response.json() : null; })
+      .then(function (data) { if (data && data.assets) { frequentData = data; render(); } }).catch(function () { /* بخش همان می‌ماند */ });
+  }
+
   document.addEventListener("tabdex:pair", function (event) {
     fitFields();
     var detail = event.detail;
     if (!detail || !detail.from || !detail.to) return;
     paintTables(detail);
+    paintFrequent(detail);
     paintInsights(detail);
   });
 }());
