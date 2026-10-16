@@ -174,7 +174,7 @@
       var icon = document.createElement("span"); icon.className = "home-market-icon";
       var image = document.createElement("img"); image.src = definition.icon; image.alt = ""; icon.appendChild(image);
       var label = document.createElement("span"); label.className = "home-market-label";
-      var strong = document.createElement("strong"); strong.textContent = definition.name;
+      var strong = document.createElement("h3"); strong.textContent = definition.name;
       var small = document.createElement("small"); small.textContent = definition.code;
       label.append(strong, small); identity.append(icon, label);
       var priceCell = document.createElement("span"); priceCell.className = "home-market-price";

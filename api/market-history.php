@@ -92,6 +92,16 @@ function marketIsOpen(string $group, int $time): bool {
     return $hour >= 11 && $hour < 20;
 }
 
+/* وضعیت باز یا بسته بودن هر بازار در همین لحظه، برای نوار وضعیت مبدل و
+   صفحهٔ قیمت. رمزارزها شبانه‌روز بازند و اینجا نمی‌آیند. */
+function marketStatusMap(int $time): array {
+    $map = [];
+    foreach (['fiat', 'gold', 'coin', 'commodity', 'energy'] as $group) {
+        $map[$group] = marketIsOpen($group, $time);
+    }
+    return $map;
+}
+
 /* همهٔ نقطه‌های یک دارایی: بستهٔ روزانهٔ بلندمدت (seed) و اسنپ‌شات‌های
    پنج‌دقیقه‌ای کش، یکی و مرتب. روزهای تعطیل بازار همین‌جا بیرون می‌روند
    تا هم نمودار و هم خلاصه‌های روزانه از یک منطق بخوانند. $seed و
