@@ -11,6 +11,8 @@ on:
       - 'tests/**'
       - 'tools/**'
       - '**.md'
+      - 'scripts/telegram-post.mjs'
+      - '.github/workflows/telegram-prices.yml'
   workflow_dispatch:
   # کرون پنج‌دقیقه‌ای اینجا بود و به‌تنهایی کل سهمیهٔ ۲۰۰۰ دقیقه‌ای پلن
   # رایگان را می‌خورد: هر اجرا دو جاب، و هر جاب دست‌کم یک دقیقه حساب

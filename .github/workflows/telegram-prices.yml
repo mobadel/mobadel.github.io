@@ -1,0 +1,33 @@
+name: Telegram price post
+
+on:
+  # هر نیم ساعت. دقیقه‌های ۷ و ۳۷ به‌جای ۰ و ۳۰ چون کرون‌های سر ساعت در
+  # گیت‌هاب شلوغ‌ترند و بیشتر تأخیر می‌خورند.
+  schedule:
+    - cron: '7,37 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: telegram-prices
+  cancel-in-progress: false
+
+jobs:
+  post:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: scripts/telegram-post.mjs
+          sparse-checkout-cone-mode: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: ارسال پست قیمت
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ vars.TELEGRAM_CHAT_ID || '@tabdexir' }}
+        run: node scripts/telegram-post.mjs
