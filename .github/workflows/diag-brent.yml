@@ -16,5 +16,6 @@ jobs:
         run: |
           set +e
           echo "::notice::has_key=$([ -n "$K" ] && echo yes || echo no)"
-          curl -sS -m 30 -A 'tabdex-rates/1.0 (+https://tabdex.ir)' "https://api.brsapi.ir/Market/Gold_Currency.php?key=$K" -o gc.json
-          jq -c 'to_entries|map({k:.key, n:(.value|length), nonzero:([.value[]?|select((.price//0)>0)]|length), maxt:([.value[]?|.time_unix]|max), sample:(.value[0]|{symbol,price,date,time})})' gc.json | sed 's/^/::notice::gc_summary=/'
+          curl -sS -m 30 -A 'Mozilla/5.0' https://tabdex.ir/api/rates.php -o site.json; echo "::notice::site_http_exit=$?"
+          jq -c '{updated,source_updated,stale,reason,quota,carried,ttl}' site.json | sed 's/^/::notice::site_meta=/'
+          jq -c '{brent:.assets.brent.usd,gasoline:.assets.gasoline.usd,usd:.assets.usd.toman,gold18:.assets.gold18.toman,ounce:.assets.goldounce.usd,silver:.assets.silver.toman}' site.json | sed 's/^/::notice::site_assets=/'
