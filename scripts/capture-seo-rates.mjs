@@ -8,16 +8,25 @@ const jobs = [
     if (!Number.isFinite(Date.parse(at))) return;
     for (const [id, row] of Object.entries(payload.assets || {})) {
       const toman = Number(row.toman);
-      if (Number.isFinite(toman) && toman > 0) snapshot[id] = { toman, at };
+      if (!(Number.isFinite(toman) && toman > 0)) continue;
+      // usd و change برای کارت‌های ایستای صفحهٔ اصلی (نفت به دلار، درصد تغییر).
+      snapshot[id] = { ...snapshot[id], toman, at };
+      if (Number(row.usd) > 0) snapshot[id].usd = Number(row.usd);
+      if (Number.isFinite(Number(row.change))) snapshot[id].change = Number(row.change);
     }
   }],
   ['https://apiv2.nobitex.ir/market/stats', payload => {
     for (const [market, row] of Object.entries(payload.stats || {})) {
+      const usdt = /^(.+)-usdt$/.exec(market);
+      if (usdt && Number(row.latest) > 0) {
+        snapshot[usdt[1]] = { ...snapshot[usdt[1]], usdt: Number(row.latest), usdtChange: Number(row.dayChange) };
+        continue;
+      }
       const match = /^(.+)-rls$/.exec(market);
       const toman = Number(row.latest) / 10;
       if (!match || !Number.isFinite(toman) || toman <= 0) continue;
       // Mark response receipt time separately from the exchange's last-trade time.
-      snapshot[match[1]] = { toman, at: new Date().toISOString() };
+      snapshot[match[1]] = { ...snapshot[match[1]], toman, at: new Date().toISOString() };
     }
   }]
 ];
