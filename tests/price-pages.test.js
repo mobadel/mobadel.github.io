@@ -94,7 +94,7 @@ assert.match(marketHistoryStore, /\$hour >= 11 && \$hour < 20/, "ساعت‌ها
 assert.match(marketHistoryStore, /foreach \(\$assets as [\s\S]*marketIsOpen/, "فیلتر باید پیش از نوشتن هر نقطه اعمال شود");
 // ثبت باید به کرون وابسته نباشد، وگرنه نمودار ۲۴ ساعته روزی یکی دو
 // نقطه می‌گیرد و ساعت‌های شلوغ بازار در آن نیستند.
-assert.match(ratesApi, /recordHistoryPoints\(\$assets, \$result\['fetched_unix'\]\)/, "نرخِ تازه باید همان لحظه نقطهٔ نمودار را هم ثبت کند");
+assert.match(ratesApi, /recordHistoryPoints\((?:\$assets|array_diff_key\(\$assets, array_flip\(\$carried\)\)), \$result\['fetched_unix'\]\)/, "نرخِ تازه باید همان لحظه نقطهٔ نمودار را هم ثبت کند");
 assert.match(marketHistoryStore, /HISTORY_BUCKET = 300/, "نقطه‌ها باید در سطل پنج‌دقیقه‌ای بنشینند تا تماس دقیقه‌ای حجم فایل را بالا نبرد");
 assert.match(marketHistoryApi, /require __DIR__ \. '\/market-history\.php'/, "history.php باید همان منطق مشترک را استفاده کند");
 assert.match(btcChartScript, /stage\.addEventListener\("pointermove"/, "هاور نمودار باید اطلاعات نقطه را نمایش دهد");
@@ -327,3 +327,10 @@ for (const file of ["Estedad-Arabic-wght.woff2", "Estedad-Latin-wght.woff2", "OF
   assert.equal(fmt("00012abc"), "۱۲", "صفر ابتدایی و نویسهٔ غیرعددی حذف شود");
 }
 console.log("price page tests passed");
+
+// BrsApi گاهی همهٔ نرخ‌های طلا و ارز را صفر می‌دهد. قلم صفر باید از کش
+// بماند و کش تمدید شود؛ وگرنه هر بازدید به بالادست می‌زند، سهمیه می‌سوزد
+// و نفت (که اندپوینت سالمی دارد) هم قفل می‌شود.
+assert.match(ratesApi, /\$carried\[\] = \$carryId/, "قلم با قیمت صفر باید آخرین نرخ کش را نگه دارد");
+assert.match(ratesApi, /'carried'\s*=> \$carried/, "پاسخ باید بگوید کدام قلم‌ها از کش آمده‌اند");
+assert.match(ratesApi, /array_diff_key\(\$assets, array_flip\(\$carried\)\)/, "نرخ منتقل‌شده نباید نقطهٔ نمودار شود");

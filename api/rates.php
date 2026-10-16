@@ -541,7 +541,22 @@ foreach ($payload as $section) {
     }
 }
 
+/* ── قیمت صفر از بالادست ─────────────────────────────────────
+   BrsApi گاهی (مثلاً از بامداد پنجشنبه تا شنبه) همهٔ ردیف‌های طلا و ارز
+   را با price=0 می‌دهد. قبلاً این یعنی $assets خالی و serveStale بدون
+   نوشتن کش؛ پس عمر کش هیچ‌وقت تمدید نمی‌شد و هر بازدید دوباره به
+   بالادست می‌زد، تا سهمیه سوخت. سوختن سهمیه هم نفت را — که اندپوینت
+   جدا و سالمی دارد — قفل کرد. حالا قلمِ صفر آخرین نرخ معتبرش را از کش
+   نگه می‌دارد، کش با زمان تازه نوشته می‌شود و انرژی و بورس کالا مستقل
+   تازه می‌شوند. فهرست این قلم‌ها در carried می‌آید. */
+$cachedAssets = (is_array($cached) && is_array($cached['assets'] ?? null)) ? $cached['assets'] : [];
+if ($usdToman <= 0 && (float) ($cachedAssets['usd']['toman'] ?? 0) > 0) {
+    $usdToman  = (float) $cachedAssets['usd']['toman'];
+    $usdChange = (float) ($cachedAssets['usd']['change'] ?? 0);
+}
+
 $assets = [];
+$carried = [];
 $latest = 0;
 
 foreach ($payload as $section) {
@@ -558,6 +573,11 @@ foreach ($payload as $section) {
         }
         $price = (float) ($row['price'] ?? 0);
         if ($price <= 0) {
+            $carryId = ASSET_MAP[$symbol]['id'];
+            if (is_array($cachedAssets[$carryId] ?? null) && !isset($assets[$carryId])) {
+                $assets[$carryId] = $cachedAssets[$carryId];
+                $carried[] = $carryId;
+            }
             continue;
         }
         $rowUnit = (string) ($row['unit'] ?? '');
@@ -789,9 +809,12 @@ if (is_array($energyRows)) {
 
    ttl هم بیرون داده می‌شود تا مرورگر بداند کش کی منقضی می‌شود و درست
    همان موقع دوباره بگیرد، نه با فاز دلخواه. */
+// همهٔ نرخ‌های ایرانی از کش آمده‌اند؟ زمان منبع هم همان قبلی است.
+$sourceUpdated = $latest > 0 ? gmdate('c', $latest) : ($cached['source_updated'] ?? null);
+
 $result = [
     'updated'        => gmdate('c'),
-    'source_updated' => $latest > 0 ? gmdate('c', $latest) : null,
+    'source_updated' => $sourceUpdated,
     'fetched_unix'   => time(),
     'ttl'            => $ttl,
     /* مصرف امروز در خودِ پاسخ می‌آید. پوشهٔ کش از راه وب بسته است و
@@ -799,6 +822,7 @@ $result = [
        این عدد، علت فقط حدس می‌ماند. حساس نیست. */
     'quota'          => ['used' => quotaToday(), 'limit' => QUOTA_HARD_LIMIT],
     'stale'          => false,
+    'carried'        => $carried,
     'assets'         => $assets,
 ];
 
@@ -825,7 +849,8 @@ if (@file_put_contents($temp, $encoded) !== false) {
    نمی‌نویسند. */
 try {
     require_once __DIR__ . '/market-history.php';
-    recordHistoryPoints($assets, $result['fetched_unix']);
+    // نرخ منتقل‌شده از کش نقطهٔ تازه نیست و نمودار را صاف و دروغین می‌کرد.
+    recordHistoryPoints(array_diff_key($assets, array_flip($carried)), $result['fetched_unix']);
 } catch (Throwable $historyError) {
     // عمداً بی‌صدا: نرخ‌ها باید سرو شوند حتی اگر نمودار ثبت نشود.
 }
