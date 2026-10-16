@@ -781,6 +781,25 @@ if (is_array($energyRows)) {
             continue;
         }
         $symbol = (string) $row['symbol'];
+        /* انس طلا در Gold_Currency صفر شده و از کش آمده؟ همین پاسخ
+           Commodity انس را زیر metal_precious دارد؛ نرخ جهانی است و
+           نباید با تعطیلی بازار ایران کهنه بماند. */
+        if ($symbol === 'XAUUSD' && in_array('goldounce', $carried, true) && $usdToman > 0) {
+            $ouncePrice = (float) ($row['price'] ?? 0);
+            if ($ouncePrice > 0) {
+                $ounceChange = (float) ($row['change_percent'] ?? 0);
+                $assets['goldounce'] = array_merge($assets['goldounce'] ?? [], [
+                    'toman'  => $ouncePrice * $usdToman,
+                    'usd'    => $ouncePrice,
+                    'group'  => 'gold',
+                    'unit'   => 'ounce',
+                    'change' => $ounceChange,
+                    'toman_change' => ((1 + $ounceChange / 100) * (1 + $usdChange / 100) - 1) * 100,
+                ]);
+                $carried = array_values(array_diff($carried, ['goldounce']));
+            }
+            continue;
+        }
         if (!isset(ENERGY_MAP[$symbol])) {
             continue;
         }
