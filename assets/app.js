@@ -582,10 +582,24 @@
         document.createTextNode(" " + (fromUnit ? fromUnit + " " : "") + fromCurrency.name + " = "),
         numPart(rateNumber), document.createTextNode(" " + toCurrency.name));
     }
-    elements.rateStatus.classList.toggle("error", !state.live);
+    // بازار رسمی یکی از دو دارایی بسته است: نرخ نشان‌داده‌شده آخرین نرخ
+    // همان بازار است، نه خطا؛ پس سبز و با توضیح کوتاه.
+    var closed = pairMarketClosed();
+    elements.rateStatus.classList.toggle("error", !state.live && !closed);
+    elements.rateStatus.classList.toggle("closed", closed);
     elements.rateStatus.innerHTML = '<span class="status-dot" aria-hidden="true"></span>' +
-      (state.live ? "آخرین به‌روزرسانی " + formatTime(state.updatedAt) : "نمایش آخرین نرخ ذخیره‌شده");
+      (closed ? "آخرین نرخ بازار" + MARKET_CLOSED_HINT
+        : state.live ? "آخرین به‌روزرسانی " + formatTime(state.updatedAt) : "نمایش آخرین نرخ ذخیره‌شده");
   }
+
+  var MARKET_CLOSED_HINT = ' <span class="market-closed-hint" tabindex="0" role="img" aria-label="بازار رسمی این دارایی در حال حاضر بسته است." data-tip="بازار رسمی این دارایی در حال حاضر بسته است.">؟</span>';
+  /* گروه هر دارایی در پاسخ rates.php: ارز فیات «fiat» است. انس طلا بازار
+     جهانی دارد و تقویم بازار ایران رویش اعمال نمی‌شود. */
+  function marketClosedFor(id) {
+    if (!state.markets || id === "irt" || id === "goldounce" || !isProxyAsset(id)) return false;
+    return state.markets[groupOf(id)] === false;
+  }
+  function pairMarketClosed() { return marketClosedFor(state.from) || marketClosedFor(state.to); }
 
   function paintPairContent() {
     if (state.pendingRoute) return;
@@ -1087,6 +1101,7 @@
       state.proxyCache = { fetchedUnix: Number(payload.fetched_unix) || 0, ttl: Number(payload.ttl) || 0 };
       if (!applyProxyEdges()) throw new Error("no usable rates");
       state.sources.proxy.live = !payload.stale;
+      state.markets = payload.markets && typeof payload.markets === "object" ? payload.markets : null;
       state.sources.proxy.at = payload.updated ? new Date(payload.updated) : new Date();
       paint();
     }).catch(function () {

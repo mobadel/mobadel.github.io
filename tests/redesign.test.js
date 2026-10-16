@@ -26,7 +26,7 @@ for (const [name, html] of Object.entries(templates)) {
   // فوتر کامل، نه فهرست خلاصه، در همهٔ صفحه‌ها
   assert.match(html, /class="site-footer"><?[\s\S]*class="site-shell footer-inner"[\s\S]*class="footer-brand"/, `${name}: فوتر کامل لازم است`);
   for (const label of ["قیمت‌ها", "ابزارها و محتوا", "تبدکس"]) assert.match(html, new RegExp(`<strong>${label}</strong>`), `${name}: ستون «${label}» فوتر`);
-  assert.match(html, /\/assets\/site\.css\?v=20261016-contact/, `${name}: site.css`);
+  assert.match(html, /\/assets\/site\.css\?v=20261016-status/, `${name}: site.css`);
   assert.match(html, /\/assets\/site\.js\?v=20261016-fonts/, `${name}: site.js`);
   assert.doesNotMatch(html, /←/, `${name}: فلش متنی نباید باشد`);
   // هدر موبایل: لوگو، دکمهٔ جستجو و دکمهٔ منو که فهرست را باز می‌کند.
@@ -90,6 +90,25 @@ assert.match(read("assets/price.js"), /"مبدل قیمت " \+ asset\.name/, "م
 for (const [name, html] of Object.entries(templates)) {
   assert.match(html, /class="footer-social"[\s\S]*href="https:\/\/t\.me\/tabdexir"[\s\S]*href="https:\/\/www\.instagram\.com\/tabdex\.ir"/, `${name}: لینک تلگرام و اینستاگرام در فوتر`);
 }
+
+// رقم‌ها فاصلهٔ طبیعی فونت را دارند؛ tabular-nums روی بدنه فاصلهٔ اضافه می‌انداخت.
+assert.doesNotMatch(css + read("assets/styles.css") + read("assets/price.css"), /font-variant-numeric:\s*tabular-nums/, "رقم‌های هم‌عرض نباید روی متن اعمال شوند");
+// ساختار تیتر هوم: نام دارایی‌های جدول و نام بازارها h3
+assert.match(read("assets/home.js"), /var strong = document\.createElement\("h3"\); strong\.textContent = definition\.name;/, "نام دارایی جدول h3");
+assert.equal((templates.home.match(/<a class="category-tile"[^>]*>.*?<\/span><h3>[^<]+<\/h3>/g) || []).length, 6, "نام هر بازار h3");
+// تبدیل‌های پرکاربرد: چهار ستون، هم‌پهنای صفحه در مبدل
+assert.match(css, /\.popular-conversions \.popular-conversions-grid \{ grid-template-columns: repeat\(4, minmax\(0, 1fr\)\); \}/, "چهار ستون");
+assert.match(css, /\.convert-main > \.popular-conversions \{ max-width: none;/, "هم‌پهنای بقیهٔ اجزای مبدل");
+// لوگوهای شبکهٔ اجتماعی بدون خط‌دور عمومی آیکون‌ها
+assert.match(css, /\.social-link svg, \.social-link svg path \{ stroke: none; \}/, "لوگوی تو‌پر بدون stroke");
+// بازار بسته: «آخرین نرخ بازار» سبز با راهنما، نه خطای قرمز
+for (const file of ["assets/app.js", "assets/price.js"]) {
+  const code = read(file);
+  assert.match(code, /آخرین نرخ بازار/, `${file}: متن بازار بسته`);
+  assert.match(code, /بازار رسمی این دارایی در حال حاضر بسته است\./, `${file}: راهنمای بازار بسته`);
+}
+assert.match(read("assets/app.js"), /classList\.toggle\("error", !state\.live && !closed\)/, "بازار بسته قرمز نشود");
+assert.match(read("api/rates.php"), /function withMarketStatus/, "rates.php وضعیت بازارها را می‌فرستد");
 
 // آیکون همهٔ دارایی‌ها گرد است.
 for (const selector of [".round-icon", ".round-icon img"]) {

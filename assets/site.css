@@ -14,7 +14,10 @@
   --radius-lg: 22px;
 }
 
-body { background: var(--page); font-variant-numeric: tabular-nums; }
+/* رقم‌ها فاصلهٔ طبیعی خود فونت را دارند. tabular-nums روی کل بدنه هر رقم
+   Vazirmatn را هم‌عرض پهن‌ترین رقم می‌کرد (۰٫۶۸em)؛ کنار «۱» باریک و
+   جداکننده‌ها فاصلهٔ بی‌دلیل می‌افتاد، مثل «۱ , ۰ ۰ ۰ , ۰ ۰ ۰». */
+body { background: var(--page); }
 
 /* پهنای محتوای دسکتاپ؛ هم‌اندازهٔ سایت‌های مرجع (anthropic.com حدود ۱۲۹۰
    پیکسل با حاشیهٔ ۷۰ پیکسلی در نمایشگر ۱۴۴۰). */
@@ -162,7 +165,7 @@ body { background: var(--page); font-variant-numeric: tabular-nums; }
 .category-tile-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .category-tile .round-icon { width: 44px; height: 44px; }
 .category-tile-top small { padding: 2px 10px; border-radius: 999px; color: var(--muted); background: var(--surface-muted); font-size: 12.5px; white-space: nowrap; }
-.category-tile strong { font-size: 18px; }
+.category-tile :is(strong, h3) { font-size: 18px; }
 .category-tile > span:last-child { padding-top: 10px; border-top: 1px solid var(--line-soft); color: var(--muted); font-size: 13px; line-height: 1.7; }
 
 .trust-strip { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); margin: 0 0 52px; overflow: hidden; border-radius: 24px; color: #fff; background: var(--green-dark); }
@@ -432,7 +435,7 @@ body { background: var(--page); font-variant-numeric: tabular-nums; }
   .category-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
   .category-tile { gap: 8px; padding: 14px; border-radius: 16px; }
   .category-tile .round-icon { width: 36px; height: 36px; }
-  .category-tile strong { font-size: 15px; }
+  .category-tile :is(strong, h3) { font-size: 15px; }
   .category-tile > span:last-child { display: none; }
   .trust-strip > div { padding: 22px 20px; }
   .trust-strip > div + div { border-inline-start: 0; border-top: 1px solid rgba(255, 255, 255, .14); }
@@ -501,7 +504,12 @@ body { background: var(--page); font-variant-numeric: tabular-nums; }
 
 /* تبدیل‌های پرکاربرد: کارت با آیکون گرد دارایی */
 .popular-conversions { padding: 28px 32px; border-radius: 24px; }
-.popular-conversions .popular-conversions-grid { grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); }
+/* تبدیل‌های پرکاربرد در هوم و مبدل یکسان: دو ردیف چهارتایی هم‌پهنای بقیهٔ
+   اجزای صفحه؛ تبلت دو ستون و موبایل یک ستون. */
+.popular-conversions .popular-conversions-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.convert-main > .popular-conversions { max-width: none; margin-inline: 0; }
+@media (max-width: 1100px) { .popular-conversions .popular-conversions-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 600px) { .popular-conversions .popular-conversions-grid { grid-template-columns: minmax(0, 1fr); } }
 .popular-conversions .popular-conversion { border-radius: 16px; background: var(--surface); }
 .popular-conversion-symbol { flex: 0 0 34px; height: 34px; overflow: hidden; border-radius: 50%; }
 .popular-conversion-symbol img { width: 100%; height: 100%; object-fit: cover; }
@@ -668,12 +676,12 @@ body { background: var(--page); font-variant-numeric: tabular-nums; }
 body { font-family: var(--font-body); }
 
 /* تیترها و هر چیزی که نقش تیتر دارد */
-:is(h1, h2, h3, h4, h5, h6, .home-hero-title, .asset-dialog-title, .category-tile > strong, .category-card-details > strong) { font-family: var(--font-heading); }
+:is(h1, h2, h3, h4, h5, h6, .home-hero-title, .asset-dialog-title, .category-card-details > strong) { font-family: var(--font-heading); }
 :is(h1, .home-hero-title) { font-weight: 800; }
 /* نام سایت کنار لوگو در هدر و فوتر */
 :is(.site-header, .site-footer) .brand { font-family: var(--font-heading); font-weight: 800; }
 :is(h2, .asset-dialog-title) { font-weight: 700; }
-:is(h3, h4, .category-tile > strong, .category-card-details > strong) { font-weight: 600; }
+:is(h3, h4, .category-card-details > strong) { font-weight: 600; }
 :is(h5, h6) { font-weight: 600; }
 /* سطر نرخ مبدل تیتر عددی است: عددها Estedad، نام دارایی و واحد با قلم بدنه. */
 .rate-value { font-family: var(--font-body); }
@@ -692,14 +700,7 @@ body { font-family: var(--font-body); }
   .category-top em, .movers-card em, .related-meta em, .related-meta b .num, .category-top b .num, .btc-chart-summary-value, .btc-chart-summary-value .num, #btc-chart-tooltip-price .num, #home-usd-chart-low, #home-usd-chart-high, .converter-insights .num) { font-weight: 600; }
 :is(.market-row-rank, .market-row-range > span > span, .price-change-abs, .index-card-bottom .ltr-num, .mover-label small .num, .movers-card small .num, .hub-search-results small .num, td.num, td .num) { font-weight: 500; }
 
-/* رقم‌ها: body از قبل tabular-nums دارد. tnum در Estedad برای رقم‌های فارسی
-   کار می‌کند ولی هر رقم را ۰٫۷۴em می‌کند؛ عدد حدود ۶۰٪ پهن‌تر و از هم
-   گسیخته («۲۲۱ , ۰۶۰») دیده می‌شد. پس عددهای Estedad فاصلهٔ طبیعی خود
-   فونت را دارند. ستون‌های قیمت به یک لبه تراز شده‌اند و به‌روزرسانی زنده
-   چیدمان را جابه‌جا نمی‌کند. */
-.num, :is(.home-kpi-value strong, .home-kpi-change, .home-market-change, .change-badge, #home-usd-chart-low, #home-usd-chart-high, .field-control input, .index-card-bottom b, .index-card-bottom .ltr-num,
-  .category-top em, .movers-card em, .market-row-rank, .market-row-month, .market-row-range > span > span, .price-primary strong, .price-change strong, .price-change-abs, .price-secondary-value,
-  .asset-stat strong, #btc-chart-summary-change, #asset-quick-input, .related-meta em) { font-variant-numeric: normal; }
+/* عددهای Estedad هم فاصلهٔ طبیعی دارند؛ tnum آن هر رقم را ۰٫۷۴em می‌کند. */
 /* span.num درون‌خطی می‌ماند، حتی جایی که قاعدهٔ عمومی «span» آن را flex کند. */
 span.num { display: inline; }
 
@@ -712,6 +713,8 @@ span.num { display: inline; }
 .footer-social { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
 .social-link { display: inline-flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 14px 0 12px; border: 1px solid var(--border); border-radius: 999px; color: var(--text); background: var(--surface); font-size: 13.5px; font-weight: 700; text-decoration: none; transition: border-color .15s, background .15s; }
 .social-link svg { width: 18px; height: 18px; flex: none; fill: currentColor; }
+/* لوگوی تو‌پر است؛ خط‌دور عمومی آیکون‌های خطی شکلش را به‌هم می‌ریخت. */
+.social-link svg, .social-link svg path { stroke: none; }
 .social-telegram svg { color: #229ed9; }
 .social-instagram svg { color: #e4405f; }
 .social-telegram:hover { border-color: #229ed9; background: #eef8fd; }
@@ -723,3 +726,18 @@ span.num { display: inline; }
 .popular-conversion-target { position: absolute; bottom: -3px; left: -5px; width: 20px; height: 20px; overflow: hidden; border: 2px solid var(--surface); border-radius: 50%; background: var(--surface); box-shadow: 0 1px 3px rgba(16, 40, 32, .18); }
 .popular-conversion-target img { display: block; width: 100%; height: 100%; object-fit: cover; }
 .popular-conversions .popular-conversion:hover .popular-conversion-target { border-color: var(--green-soft); }
+
+/* بازار رسمی بسته: «آخرین نرخ بازار» سبز با علامت ؟ کم‌رنگ و توضیح هاور */
+.market-closed-hint { position: relative; display: inline-flex; align-items: center; justify-content: center; width: 16px; height: 16px; margin-inline-start: 2px; border: 1px solid var(--border-strong); border-radius: 50%; color: var(--muted); font-size: 10.5px; font-weight: 700; line-height: 1; cursor: help; opacity: .75; vertical-align: middle; }
+.market-closed-hint:hover, .market-closed-hint:focus-visible { opacity: 1; outline: none; color: var(--green-dark); border-color: var(--green); }
+.market-closed-hint::after { content: attr(data-tip); position: absolute; bottom: calc(100% + 8px); left: -6px; z-index: 20; width: max-content; max-width: 280px; padding: 7px 10px; border-radius: 8px; color: #fff; background: #17241f; font-size: 12px; font-weight: 500; line-height: 1.6; white-space: normal; text-align: center; box-shadow: 0 6px 18px rgba(16, 40, 32, .18); opacity: 0; pointer-events: none; transform: translateY(4px); transition: opacity .15s, transform .15s; }
+.market-closed-hint:hover::after, .market-closed-hint:focus::after { opacity: 1; transform: none; }
+.rate-status, .asset-price-hero .price-freshness { overflow: visible; }
+
+/* ساختار تیتر هوم: نام دارایی‌های جدول «قیمت‌های مهم امروز» و نام هر بازار
+   h3 هستند؛ ظاهرشان دقیقاً همان قبلی است (نام دارایی با قلم بدنه). */
+.home-market-label h3 { margin: 0; font-family: var(--font-body); font-size: inherit; font-weight: 700; line-height: inherit; }
+.category-tile h3 { margin: 0; line-height: inherit; }
+@media (max-width: 600px) { .home-market-label h3 { font-size: 14px; } }
+
+.rate-status.closed { color: var(--green-dark); }

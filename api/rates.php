@@ -244,6 +244,14 @@ if (!is_dir($cacheDir)) {
     @mkdir($cacheDir, 0775, true);
 }
 
+/* وضعیت بازارها در لحظهٔ پاسخ، نه لحظهٔ ساخت کش: کش یک ساعته هم نباید
+   بازارِ تازه‌بسته را «باز» نشان دهد. پس به هر پاسخ جدا افزوده می‌شود. */
+require_once __DIR__ . '/market-history.php';
+function withMarketStatus(array $payload): array {
+    $payload['markets'] = marketStatusMap(time());
+    return $payload;
+}
+
 /* ── کش تازه؟ همان را بده و تمام ─────────────────────────────── */
 $cached = null;
 if (is_readable($cacheFile)) {
@@ -254,7 +262,7 @@ if (is_readable($cacheFile)) {
             $cached = $decoded;
             $age = time() - (int) ($decoded['fetched_unix'] ?? 0);
             if ($age >= 0 && $age < $ttl) {
-                echo $raw;
+                echo json_encode(withMarketStatus($decoded), JSON_UNESCAPED_UNICODE);
                 exit;
             }
         }
@@ -454,7 +462,7 @@ function serveStale(?array $cached, string $reason): never
         $cached['stale']  = true;
         $cached['reason'] = $reason;
         $cached['quota']  = ['used' => quotaToday(), 'limit' => QUOTA_HARD_LIMIT];
-        echo json_encode($cached, JSON_UNESCAPED_UNICODE);
+        echo json_encode(withMarketStatus($cached), JSON_UNESCAPED_UNICODE);
     } else {
         http_response_code(503);
         echo json_encode([
@@ -463,6 +471,7 @@ function serveStale(?array $cached, string $reason): never
             'reason'  => $reason,
             'quota'   => ['used' => quotaToday(), 'limit' => QUOTA_HARD_LIMIT],
             'assets'  => new stdClass(),
+            'markets' => marketStatusMap(time()),
         ], JSON_UNESCAPED_UNICODE);
     }
     exit;
@@ -821,4 +830,4 @@ try {
     // عمداً بی‌صدا: نرخ‌ها باید سرو شوند حتی اگر نمودار ثبت نشود.
 }
 
-echo $encoded;
+echo json_encode(withMarketStatus($result), JSON_UNESCAPED_UNICODE);

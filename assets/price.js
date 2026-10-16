@@ -68,6 +68,18 @@
   var assets = {};
   FIXED.forEach(function (asset) { assets[asset.id] = Object.assign({}, asset); });
   var latestUpdate = null;
+  /* وضعیت باز یا بسته بودن هر بازار از rates.php. گروه «ارز» در پاسخ
+     «fiat» است؛ انس طلا بازار جهانی دارد و رمزارزها شبانه‌روزی‌اند. */
+  var marketStatus = null;
+  function marketClosed(asset) {
+    if (!marketStatus || !asset || asset.group === "crypto" || asset.id === "goldounce") return false;
+    return marketStatus[asset.group === "currency" ? "fiat" : asset.group] === false;
+  }
+  function closedHint() {
+    var hint = document.createElement("span"); hint.className = "market-closed-hint"; hint.tabIndex = 0; hint.setAttribute("role", "img");
+    var tip = "بازار رسمی این دارایی در حال حاضر بسته است."; hint.setAttribute("aria-label", tip); hint.setAttribute("data-tip", tip); hint.textContent = "؟";
+    return hint;
+  }
 
   function packagedSlug(id) { var match = String(id || "").toLowerCase().match(/^\d+[kmb]_(.+)$/); return match ? match[1] : null; }
   function registerSlug(id) { var slug = packagedSlug(id); if (slug && (!SLUG_TO_ID[slug] || SLUG_TO_ID[slug] === id)) SLUG_TO_ID[slug] = id; }
@@ -177,6 +189,7 @@
   function loadProxy() {
     return loadJson("/api/rates.php?t=" + Date.now(), 9000).then(function (payload) {
       proxyCache = { fetchedUnix: Number(payload && payload.fetched_unix) || 0, ttl: Number(payload && payload.ttl) || 0 };
+      marketStatus = payload && payload.markets && typeof payload.markets === "object" ? payload.markets : null;
       var rows = payload && payload.assets || {}; var at = payload.updated ? new Date(payload.updated) : new Date(); if (!Number.isFinite(at.getTime())) at = new Date();
       Object.keys(rows).forEach(function (id) { if (!assets[id]) return; var row = rows[id]; var usd = Number(row.usd); // انرژی هم مثل انس طلا دلاری معامله می‌شود، پس عدد اصلی دلار است
         // و تومان زیرش می‌آید.
@@ -431,7 +444,7 @@
     text(document.getElementById("asset-crumb"), asset.name); text(document.getElementById("asset-title"), "قیمت " + asset.name); var english = document.getElementById("asset-english"); if (english) { var subtitle = assetSubtitle(asset); english.hidden = !subtitle; text(english, subtitle); }
     var icon = document.getElementById("asset-main-icon"); if (icon) { icon.classList.toggle("is-full-bleed", asset.group === "gold" || asset.group === "commodity" || asset.group === "energy"); icon.replaceChildren(); icon.appendChild(createIcon(asset, "asset-main-icon-inner")); }
     text(document.getElementById("asset-price"), formatPrice(asset.price, asset)); text(document.getElementById("asset-unit"), priceLabel(asset)); var secondary = document.getElementById("asset-secondary"); if (secondary) { var hasToman = Number.isFinite(asset.tomanPrice) && asset.group !== "energy"; secondary.hidden = !hasToman; text(document.getElementById("asset-secondary-price"), hasToman ? formatPrice(asset.tomanPrice) : "—"); var secondaryChange = document.getElementById("asset-secondary-change"); if (secondaryChange) { secondaryChange.className = "price-change secondary-change " + (hasToman ? changeClass(asset.tomanChange) : "neutral"); text(secondaryChange.querySelector("strong"), hasToman ? formatChange(asset.tomanChange) : "—"); } } var changeBox = document.getElementById("asset-change"); if (changeBox) { changeBox.className = "price-change " + changeClass(asset.change); var strong = changeBox.querySelector("strong"); text(strong, formatChange(asset.change)); }
-    var freshness = document.getElementById("asset-freshness"); if (freshness) { var dot = document.createElement("i"); dot.setAttribute("aria-hidden", "true"); freshness.replaceChildren(dot, document.createTextNode(" آخرین به‌روزرسانی " + formatTime(asset.updatedAt || latestUpdate))); }
+    var freshness = document.getElementById("asset-freshness"); if (freshness) { var dot = document.createElement("i"); dot.setAttribute("aria-hidden", "true"); if (marketClosed(asset)) freshness.replaceChildren(dot, document.createTextNode(" آخرین نرخ بازار "), closedHint()); else freshness.replaceChildren(dot, document.createTextNode(" آخرین به‌روزرسانی " + formatTime(asset.updatedAt || latestUpdate))); }
     text(document.getElementById("asset-content-title"), "قیمت " + asset.name + " امروز"); var movement = asset.change > 0 ? "افزایش" : asset.change < 0 ? "کاهش" : "بدون تغییر"; var tomanSentence = Number.isFinite(asset.tomanPrice) && asset.group !== "energy" ? " نرخ آن در بازار تومانی " + formatPrice(asset.tomanPrice) + " تومان است." : ""; text(document.getElementById("asset-content-lead"), "قیمت هر " + unitText(asset) + " " + asset.name + " اکنون " + formattedPrice(asset) + " است." + tomanSentence + " این قیمت در ۲۴ ساعت گذشته " + formatAbsoluteChange(asset.change) + " " + movement + " داشته است.");
     text(document.getElementById("asset-about-title"), "درباره " + asset.name); text(document.getElementById("asset-about-text"), asset.name + (asset.code ? " با نماد " + asset.code : "") + " در دسته " + category.name + " قرار دارد. این صفحه آخرین قیمت قابل دریافت از " + (asset.source || "بازار") + " را نمایش می‌دهد و برای پیگیری ارزش روز این دارایی به‌روزرسانی می‌شود.");
     text(document.getElementById("asset-usage-text"), "با مقایسه قیمت لحظه ای و درصد تغییر ۲۴ ساعته می‌توانید جهت حرکت کوتاه‌مدت قیمت " + asset.name + " را بهتر ببینید. این داده صرفاً برای محاسبه و اطلاع‌رسانی است و پیشنهاد خرید یا فروش محسوب نمی‌شود.");
