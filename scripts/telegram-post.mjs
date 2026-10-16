@@ -7,8 +7,9 @@
  * پس دقیقه‌های Actions برایش رایگان و نامحدود است.
  *
  * کرون گیت‌هاب سر وقت اجرا نمی‌شود (معمولاً چند دقیقه، گاهی بیشتر، تأخیر
- * دارد). پس ورک‌فلو ربع ساعت زودتر بیدار می‌شود و این اسکریپت با
- * WAIT_FOR_SLOT=1 تا راس ساعت تهران صبر می‌کند، بعد قیمت می‌گیرد و می‌فرستد.
+ * دارد و گاهی ساعت‌ها اصلاً اجرا نمی‌شود). پس ورک‌فلو چند دقیقه زودتر از
+ * یک کرون دقیق بیرونی صدا زده می‌شود و این اسکریپت تا راس ساعت (SLOT) صبر
+ * می‌کند. جزئیات و جلوگیری از پست تکراری در telegram-prices.yml است.
  *
  * منابع همان منابع سایت‌اند تا عدد کانال با عدد سایت یکی باشد:
  *   - ارز، طلا، سکه، فلزات، انرژی: https://tabdex.ir/api/rates.php
@@ -19,7 +20,6 @@
 
 const TOKEN = process.env.TELEGRAM_BOT_TOKEN || "";
 const CHAT_ID = process.env.TELEGRAM_CHAT_ID || "@tabdexir";
-const WAIT_FOR_SLOT = process.env.WAIT_FOR_SLOT === "1";
 const UA = "tabdex-telegram/1.0 (+https://tabdex.ir)";
 
 /* علامت راست‌به‌چپ (RLM). تلگرام جهت هر خط را از اولین نویسهٔ «قوی» حدس
@@ -212,25 +212,16 @@ async function send(text) {
   console.log(`منتشر شد: message_id=${body.result.message_id}`);
 }
 
-/* تا راس ساعت بعدی تهران صبر کن. تهران UTC+3:30 است، پس راس ساعت تهران
-   همان دقیقهٔ ۳۰ هر ساعت UTC است. اگر اجرا بیش از ۲۵ دقیقه مانده به راس
-   ساعت بیدار شد، یعنی کرون آن‌قدر دیر آمده که از راس ساعت گذشته‌ایم؛
-   آن‌وقت همان لحظه بفرست، نه یک ساعت بعد. */
-async function waitForSlot() {
-  const now = Date.now();
-  const hour = 3600_000;
-  const offset = 30 * 60_000;
-  const next = Math.ceil((now - offset) / hour) * hour + offset;
-  const wait = next - now;
-  if (wait > 25 * 60_000) {
-    console.log("::notice::اجرا دیر شروع شد؛ بدون صبر منتشر می‌شود.");
-    return;
+/* SLOT (ثانیهٔ یونیکس راس ساعت تهران) را ورک‌فلو حساب می‌کند. اگر در آینده
+   است تا همان لحظه صبر می‌کنیم، بعد قیمت می‌گیریم تا عددها مال راس ساعت باشند. */
+const SLOT = Number(process.env.SLOT || 0);
+if (SLOT > 0) {
+  const wait = SLOT * 1000 - Date.now();
+  if (wait > 0) {
+    console.log(`صبر ${Math.round(wait / 1000)} ثانیه تا راس ساعت تهران`);
+    await new Promise((r) => setTimeout(r, wait));
   }
-  console.log(`صبر ${Math.round(wait / 1000)} ثانیه تا راس ساعت تهران`);
-  await new Promise((r) => setTimeout(r, wait));
 }
-
-if (WAIT_FOR_SLOT) await waitForSlot();
 const text = await buildPost();
 console.log(text);
 if (!TOKEN) {

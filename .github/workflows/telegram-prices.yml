@@ -1,11 +1,18 @@
 name: Telegram price post
 
+# هر ساعت راس ساعت تهران یک پست قیمت در @tabdexir.
+#
+# کرون خود گیت‌هاب قابل اتکا نیست: روز راه‌اندازی بیش از دو ساعت هیچ اجرای
+# زمان‌بندی‌شده‌ای نداد. پس محرک اصلی یک کرون دقیق بیرونی است که در دقیقهٔ ۵۰
+# هر ساعت تهران این ورک‌فلو را با workflow_dispatch و wait=true صدا می‌زند.
+# کرون گیت‌هاب فقط پشتیبان است.
+#
+# چند محرک برای یک ساعت (کرون بیرونی، کرون گیت‌هاب، تلاش دوباره) پست تکراری
+# نمی‌سازند: هر ساعت یک «اسلات» است و بعد از ارسال، یک کلید کش به نام همان
+# اسلات ذخیره می‌شود. اجرای بعدی برای همان اسلات آن را می‌بیند و رد می‌شود.
 on:
-  # هر ساعت راس ساعت تهران. کرون گیت‌هاب سر وقت اجرا نمی‌شود، پس ربع ساعت
-  # زودتر بیدار می‌شویم (دقیقهٔ ۱۵ UTC = دقیقهٔ ۴۵ تهران) و اسکریپت تا راس
-  # ساعت صبر می‌کند. تهران UTC+3:30 است و ساعت تابستانی ندارد.
   schedule:
-    - cron: '15 * * * *'
+    - cron: '20 * * * *'   # دقیقهٔ ۵۰ تهران (پشتیبان)
   workflow_dispatch:
     inputs:
       wait:
@@ -15,28 +22,79 @@ on:
 
 permissions:
   contents: read
+  actions: write   # برای ذخیرهٔ کلید کش اسلات
 
-# اگر دو اجرا برای یک ساعت هم‌پوشانی کنند (مثلاً اجرای دستی و کرون)،
-# تازه‌تر قبلی را لغو می‌کند تا پست تکراری نرود.
 concurrency:
   group: telegram-prices
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   post:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
+      # راس ساعت تهران = دقیقهٔ ۳۰ UTC (تهران +۳:۳۰، بدون ساعت تابستانی).
+      # تا ۱۰ دقیقه بعد از راس ساعت هنوز همان اسلات حساب می‌شود و بلافاصله
+      # فرستاده می‌شود؛ تا ۲۵ دقیقه قبلش صبر می‌کند؛ بیرون از این بازه رد
+      # می‌شود تا پستی با ساعت نامرتب نرود.
+      - name: تعیین اسلات
+        id: slot
+        env:
+          MANUAL_NOW: ${{ github.event_name == 'workflow_dispatch' && !inputs.wait }}
+        run: |
+          now=$(date +%s)
+          if [ "$MANUAL_NOW" = "true" ]; then
+            echo "slot=0" >> "$GITHUB_OUTPUT"; echo "mode=now" >> "$GITHUB_OUTPUT"
+            echo "اجرای دستی فوری"; exit 0
+          fi
+          prev=$(( ( (now - 1800) / 3600 ) * 3600 + 1800 ))
+          next=$(( prev + 3600 ))
+          if [ $(( now - prev )) -le 600 ]; then slot=$prev
+          elif [ $(( next - now )) -le 1500 ]; then slot=$next
+          else
+            echo "mode=skip" >> "$GITHUB_OUTPUT"
+            echo "::notice::بیرون از بازهٔ اسلات؛ پستی نمی‌رود."; exit 0
+          fi
+          echo "slot=$slot" >> "$GITHUB_OUTPUT"; echo "mode=slot" >> "$GITHUB_OUTPUT"
+          echo "اسلات: $(TZ=Asia/Tehran date -d @$slot '+%Y-%m-%d %H:%M') تهران"
+
+      - name: بررسی پست قبلی همین اسلات
+        id: seen
+        if: steps.slot.outputs.mode == 'slot'
+        uses: actions/cache/restore@v4
+        with:
+          path: .tg-slot
+          key: tg-slot-${{ steps.slot.outputs.slot }}
+          lookup-only: true
+
       - uses: actions/checkout@v4
+        if: steps.slot.outputs.mode == 'now' || (steps.slot.outputs.mode == 'slot' && steps.seen.outputs.cache-hit != 'true')
         with:
           sparse-checkout: scripts/telegram-post.mjs
           sparse-checkout-cone-mode: false
+
       - uses: actions/setup-node@v4
+        if: steps.slot.outputs.mode == 'now' || (steps.slot.outputs.mode == 'slot' && steps.seen.outputs.cache-hit != 'true')
         with:
           node-version: 22
+
       - name: ارسال پست قیمت
+        if: steps.slot.outputs.mode == 'now' || (steps.slot.outputs.mode == 'slot' && steps.seen.outputs.cache-hit != 'true')
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ vars.TELEGRAM_CHAT_ID || '@tabdexir' }}
-          WAIT_FOR_SLOT: ${{ (github.event_name == 'schedule' || inputs.wait) && '1' || '0' }}
-        run: node scripts/telegram-post.mjs
+          SLOT: ${{ steps.slot.outputs.slot }}
+        run: |
+          node scripts/telegram-post.mjs
+          mkdir -p .tg-slot && date -u > .tg-slot/sent
+
+      - name: ثبت ارسال این اسلات
+        if: steps.slot.outputs.mode == 'slot' && steps.seen.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: .tg-slot
+          key: tg-slot-${{ steps.slot.outputs.slot }}
+
+      - name: تکراری
+        if: steps.seen.outputs.cache-hit == 'true'
+        run: echo "::notice::پست این ساعت قبلاً رفته؛ رد شد."
