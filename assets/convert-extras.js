@@ -163,43 +163,49 @@
   document.addEventListener("input", function (event) { if (fields.indexOf(event.target) >= 0) fitFields(); });
   window.addEventListener("resize", fitFields);
 
-  /* «تبدیل‌های پرتکرار»: HTML سرور دکمه‌های همان جفت را دارد. اگر کاربر
-     جفت را عوض کرد، دکمه‌های دارایی تازه از همان فایل داده ساخته می‌شوند. */
+  /* «تبدیل‌های پرتکرار»: HTML سرور دکمه‌های همان جفت را دارد. دکمه‌ها مال
+     یک جفت مشخص‌اند (مبدأ و مقصد)؛ اگر کاربر جفت را عوض کرد، فقط وقتی
+     جفت تازه دکمهٔ خودش را دارد بخش ساخته می‌شود و وگرنه پنهان می‌ماند. */
   var frequent = document.getElementById("frequent-conversions");
   var frequentData = null;
-  function frequentLink(id, item) {
+  function frequentLink(key, item) {
     var li = document.createElement("li");
     var link = document.createElement("a"); link.className = "frequent-link";
-    link.href = "/convert/" + frequentData.assets[id].slug + "-to-irt/?amount=" + item.amount;
+    link.href = "/convert/" + key + "/?amount=" + item.amount;
     var title = document.createElement("h2"); title.textContent = item.text;
     var arrow = document.createElement("span"); arrow.className = "icon-chevron"; arrow.setAttribute("aria-hidden", "true");
     link.append(title, arrow); li.appendChild(link); return li;
   }
-  // فقط جفت «دارایی دارای داده → تومان»؛ هر جفت دیگری بخش را پنهان می‌کند.
+  function frequentKeyFor(detail) {
+    var pairs = frequentData && frequentData.pairs; if (!pairs) return "";
+    for (var key in pairs) if (Object.prototype.hasOwnProperty.call(pairs, key) && pairs[key].from === detail.from.id && pairs[key].to === detail.to.id) return key;
+    return "";
+  }
   function paintFrequent(detail) {
     if (!frequent) return;
-    var current = frequent.getAttribute("data-asset") || "";
-    var toToman = detail.to.id === "irt";
-    if (!toToman || (frequentData && !frequentData.assets[detail.from.id])) { frequent.hidden = true; return; }
-    // همان دارایی که سرور رسم کرده: بدون دریافت فایل داده.
-    if (current && current === detail.from.id) { frequent.hidden = false; return; }
+    var current = frequent.getAttribute("data-pair") || "";
+    // همان جفتی که سرور رسم کرده: بدون دریافت فایل داده.
+    if (current && frequent.getAttribute("data-from") === detail.from.id && frequent.getAttribute("data-to") === detail.to.id) { frequent.hidden = false; return; }
+    if (frequentData && !frequentKeyFor(detail)) { frequent.hidden = true; return; }
     if (typeof fetch !== "function") { frequent.hidden = true; return; }
     var render = function () {
-      var id = detail.from.id;
-      if (!frequentData.assets[id]) { frequent.hidden = true; return; }
+      var key = frequentKeyFor(detail);
+      if (!key) { frequent.hidden = true; return; }
       var title = frequent.querySelector("#frequent-title");
       if (!title) { title = document.createElement("h2"); title.id = "frequent-title"; title.textContent = "تبدیل‌های پرتکرار"; frequent.appendChild(title); }
       var list = frequent.querySelector(".frequent-grid");
       if (!list) { list = document.createElement("ul"); list.className = "frequent-grid"; frequent.appendChild(list); }
-      list.replaceChildren.apply(list, frequentData.assets[id].items.map(function (item) { return frequentLink(id, item); }));
-      frequent.setAttribute("data-asset", id);
+      list.replaceChildren.apply(list, frequentData.pairs[key].items.map(function (item) { return frequentLink(key, item); }));
+      frequent.setAttribute("data-pair", key);
+      frequent.setAttribute("data-from", detail.from.id);
+      frequent.setAttribute("data-to", detail.to.id);
       frequent.hidden = false;
     };
     // تا رسیدن داده، دکمه‌های دارایی قبلی نباید زیر جفت تازه بمانند.
     frequent.hidden = true;
     if (frequentData) { render(); return; }
     fetch("/data/frequent-conversions.json").then(function (response) { return response.ok ? response.json() : null; })
-      .then(function (data) { if (data && data.assets) { frequentData = data; render(); } }).catch(function () { /* بخش پنهان می‌ماند */ });
+      .then(function (data) { if (data && data.pairs) { frequentData = data; render(); } }).catch(function () { /* بخش پنهان می‌ماند */ });
   }
 
   document.addEventListener("tabdex:pair", function (event) {

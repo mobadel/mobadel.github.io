@@ -31,23 +31,29 @@ for (const url of urls) {
 {
   const freq = JSON.parse(fs.readFileSync('data/frequent-conversions.json','utf8'));
   let count = 0;
-  for (const [id, entry] of Object.entries(freq.assets)) for (const item of entry.items) {
-    const url = `https://tabdex.ir/convert/${entry.slug}-to-irt/?amount=${item.amount}`;
+  for (const [key, entry] of Object.entries(freq.pairs)) for (const item of entry.items) {
+    const url = `https://tabdex.ir/convert/${key}/?amount=${item.amount}`;
     assert.ok(urls.includes(url), `${url} در سایت‌مپ`);
-    const html = fs.readFileSync(path.join(root,'convert',`${entry.slug}-to-irt`,`amount-${item.amount}.html`),'utf8');
+    const html = fs.readFileSync(path.join(root,'convert',key,`amount-${item.amount}.html`),'utf8');
     assert.ok(html.includes(`<h1 id="page-title">${item.text}؟</h1>`), `${url}: H1`);
     assert.ok(html.includes(`data-amount-page="${item.amount}"`), `${url}: نشان صفحهٔ مقدار`);
-    assert.ok(html.includes(`href="/convert/${entry.slug}-to-irt/?amount=${item.amount}" aria-current="page"`), `${url}: دکمهٔ فعلی`);
+    assert.ok(html.includes(`href="/convert/${key}/?amount=${item.amount}" aria-current="page"`), `${url}: دکمهٔ فعلی`);
     count += 1;
   }
-  assert.equal(count, 143);
+  assert.equal(count, 309);
   const pair = fs.readFileSync(path.join(root,'convert','usd-to-irt','index.html'),'utf8');
   assert.ok(pair.includes('<link rel="canonical" href="https://tabdex.ir/convert/usd-to-irt/">'), 'صفحهٔ مادر canonical خودش');
-  assert.match(pair, /<section class="frequent-conversions" id="frequent-conversions" data-asset="usd"[^>]*><h2 id="frequent-title">تبدیل‌های پرتکرار<\/h2>[\s\S]*?<h2>۱۰۰۰ دلار چند تومان است<\/h2>/, 'بخش و دکمه‌ها تیتر ۲');
+  assert.match(pair, /<section class="frequent-conversions" id="frequent-conversions" data-pair="usd-to-irt"[^>]*><h2 id="frequent-title">تبدیل‌های پرتکرار<\/h2>[\s\S]*?<h2>۱۰۰۰ دلار چند تومان است<\/h2>/, 'بخش و دکمه‌ها تیتر ۲');
   // بخش فقط روی جفت «دارایی دارای داده → تومان»؛ بقیه فقط جای خالی پنهان دارند.
-  for (const slug of ['btc-to-irt','irt-to-usd','usd-to-eur','eur-to-usd']) {
+  // دکمه‌ها مال جفت خودشان‌اند: تومان به دلار و دلار به لیر دکمهٔ خودشان را دارند،
+  // جفت‌های بی‌داده هیچ.
+  assert.match(fs.readFileSync(path.join(root,'convert','irt-to-usd','index.html'),'utf8'), /data-pair="irt-to-usd"[\s\S]*?<h2>۱۰ میلیون تومان چند دلار است<\/h2>/);
+  const usdTry = fs.readFileSync(path.join(root,'convert','usd-to-try','index.html'),'utf8');
+  assert.match(usdTry, /data-pair="usd-to-try"[\s\S]*?href="\/convert\/usd-to-try\/\?amount=100"/);
+  assert.ok(!usdTry.includes('-to-irt/?amount='), 'دلار به لیر دکمهٔ جفت دیگری ندارد');
+  for (const slug of ['btc-to-irt','irt-to-btc','usd-to-gold18','gold18-to-eur']) {
     const other = fs.readFileSync(path.join(root,'convert',slug,'index.html'),'utf8');
-    assert.ok(other.includes('<section class="frequent-conversions" id="frequent-conversions" data-asset="" aria-labelledby="frequent-title" hidden></section>'), `${slug}: بخش پنهان و خالی`);
+    assert.ok(other.includes('<section class="frequent-conversions" id="frequent-conversions" data-pair="" aria-labelledby="frequent-title" hidden></section>'), `${slug}: بخش پنهان و خالی`);
     assert.ok(!other.includes('تبدیل‌های پرتکرار'), `${slug}: بی‌تیتر پرتکرار`);
   }
   assert.match(fs.readFileSync(path.join(root,'convert','index.html'),'utf8'), /id="frequent-conversions"[^>]*hidden><\/section>/, 'صفحهٔ اصلی مبدل (پاسخ جفت‌های ساخته‌نشده) فقط جای خالی دارد');
