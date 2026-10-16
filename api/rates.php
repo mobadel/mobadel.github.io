@@ -109,9 +109,18 @@ const QUOTA_SOFT_LIMIT = 1050;
 const QUOTA_HARD_LIMIT = 1300;
 const TTL_THROTTLED    = 300;
 
+/* یک‌بار، فقط ۲۵ مهر ۱۴۰۵: باگِ قیمت صفر (PR #104) ۱۳۰۰ تماس را بیهوده
+   سوزاند و نفت را تا نیمه‌شب قفل کرد. تا نیمه‌شب با TTL جمعه حدود ۳۰
+   تماس لازم است؛ ۶۰ تا جا، و هنوز بیش از ۱۴۰ تا تا سقف ۱۵۰۰ فاصله.
+   فردا خودبه‌خود بی‌اثر است. */
+function quotaHardLimit(): int
+{
+    return tehranToday() === '2026-10-16' ? QUOTA_HARD_LIMIT + 60 : QUOTA_HARD_LIMIT;
+}
+
 function quotaExhausted(): bool
 {
-    return quotaToday() >= QUOTA_HARD_LIMIT;
+    return quotaToday() >= quotaHardLimit();
 }
 
 function tehranToday(): string
@@ -461,7 +470,7 @@ function serveStale(?array $cached, string $reason): never
     if ($cached !== null) {
         $cached['stale']  = true;
         $cached['reason'] = $reason;
-        $cached['quota']  = ['used' => quotaToday(), 'limit' => QUOTA_HARD_LIMIT];
+        $cached['quota']  = ['used' => quotaToday(), 'limit' => quotaHardLimit()];
         echo json_encode(withMarketStatus($cached), JSON_UNESCAPED_UNICODE);
     } else {
         http_response_code(503);
@@ -469,7 +478,7 @@ function serveStale(?array $cached, string $reason): never
             'updated' => null,
             'stale'   => true,
             'reason'  => $reason,
-            'quota'   => ['used' => quotaToday(), 'limit' => QUOTA_HARD_LIMIT],
+            'quota'   => ['used' => quotaToday(), 'limit' => quotaHardLimit()],
             'assets'  => new stdClass(),
             'markets' => marketStatusMap(time()),
         ], JSON_UNESCAPED_UNICODE);
@@ -488,7 +497,7 @@ if ($blockedUntil > time()) {
 }
 
 if (quotaExhausted()) {
-    serveStale($cached, 'quota_exhausted ' . quotaToday() . '/' . QUOTA_HARD_LIMIT);
+    serveStale($cached, 'quota_exhausted ' . quotaToday() . '/' . quotaHardLimit());
 }
 
 $lock = acquireRefreshLock();
@@ -820,7 +829,7 @@ $result = [
     /* مصرف امروز در خودِ پاسخ می‌آید. پوشهٔ کش از راه وب بسته است و
        وقتی کلید مسدود شد هیچ راهی نبود بفهمیم شمارنده کجاست — بدون
        این عدد، علت فقط حدس می‌ماند. حساس نیست. */
-    'quota'          => ['used' => quotaToday(), 'limit' => QUOTA_HARD_LIMIT],
+    'quota'          => ['used' => quotaToday(), 'limit' => quotaHardLimit()],
     'stale'          => false,
     'carried'        => $carried,
     'assets'         => $assets,
