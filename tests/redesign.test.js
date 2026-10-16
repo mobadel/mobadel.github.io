@@ -26,7 +26,7 @@ for (const [name, html] of Object.entries(templates)) {
   // فوتر کامل، نه فهرست خلاصه، در همهٔ صفحه‌ها
   assert.match(html, /class="site-footer"><?[\s\S]*class="site-shell footer-inner"[\s\S]*class="footer-brand"/, `${name}: فوتر کامل لازم است`);
   for (const label of ["قیمت‌ها", "ابزارها و محتوا", "تبدکس"]) assert.match(html, new RegExp(`<strong>${label}</strong>`), `${name}: ستون «${label}» فوتر`);
-  assert.match(html, /\/assets\/site\.css\?v=20261016-brandfix/, `${name}: site.css`);
+  assert.match(html, /\/assets\/site\.css\?v=20261016-magtabs/, `${name}: site.css`);
   assert.match(html, /\/assets\/site\.js\?v=20261016-fonts/, `${name}: site.js`);
   assert.doesNotMatch(html, /←/, `${name}: فلش متنی نباید باشد`);
   // هدر موبایل: لوگو، دکمهٔ جستجو و دکمهٔ منو که فهرست را باز می‌کند.
@@ -61,6 +61,24 @@ assert.doesNotMatch(css, /\.home-kpis \{[^}]*display: none/, "کارت‌های 
 assert.match(templates.asset, /<!--seo-slot-->/, "دارایی: جای بخش راهنما در ستون اصلی");
 assert.match(templates.category, /class="sort-short" aria-hidden="true">رشد</, "دسته: برچسب کوتاه مرتب‌سازی");
 assert.match(read("assets/convert-extras.js"), /function fitField\(/, "مبدل: عدد بلند در فیلد جا شود");
+
+// هوم: هر تب جدول قیمت‌ها هفت ردیف دارد تا قد جدول با عوض شدن تب ثابت بماند؛
+// جدول و ستون کناری هم‌قدند. مجله سه ستون در چهار ردیف است.
+{
+  const home = read("assets/home.js");
+  const tabs = /var TABS = \{([\s\S]*?)\n  \};/.exec(home)[1];
+  for (const tab of ["all", "fiat", "metal", "crypto"]) {
+    const ids = new RegExp(tab + ': \\[([^\\]]*)\\]').exec(tabs)[1].split(",").map(x => x.trim().replace(/"/g, ""));
+    assert.equal(ids.length, 7, `تب ${tab} باید هفت دارایی داشته باشد`);
+    for (const id of ids) assert.match(home, new RegExp(`\\{ id: "${id}",`), `تعریف ${id} برای تب ${tab}`);
+  }
+  assert.match(home, /var MAG_COUNT = 12;/, "مجله: دوازده مطلب");
+  assert.match(css, /\.home-market-layout \{[^}]*align-items: stretch/, "جدول و ستون کناری هم‌قد");
+  assert.match(css, /\.mag-grid \{[^}]*grid-template-columns: repeat\(3, minmax\(0, 1fr\)\)/, "مجله سه ستونه");
+}
+// صفحهٔ دارایی: دکمهٔ مبدل بخش محتوا و کادر راهنما حذف شده‌اند (تکراری بودند).
+assert.doesNotMatch(templates.asset, /id="asset-converter-link"/, "دکمهٔ مبدل بخش محتوا نباید باشد");
+assert.doesNotMatch(read("scripts/build-pages.mjs"), /GROUP_HELP\[group\]/, "کادر راهنمای دارایی نباید ساخته شود");
 
 // آیکون همهٔ دارایی‌ها گرد است.
 for (const selector of [".round-icon", ".round-icon img"]) {

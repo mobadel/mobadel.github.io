@@ -21,7 +21,8 @@ for (const url of urls) {
     const reverse = pathname.replace(/([a-z0-9]+)-to-([a-z0-9]+)/,'$2-to-$1');
     assert.ok(html.includes(`href="${reverse}"`));
     assert.ok(fs.existsSync(path.join(root,reverse,'index.html')),'reverse destination must exist');
-    assert.ok(html.includes('این مثال نرخ واقعی بازار نیست'));
+    // کادر «روش محاسبه» عمداً حذف شده؛ محتوایش تکراری بود.
+    assert.ok(!html.includes('این مثال نرخ واقعی بازار نیست'),'pair page must not repeat the methodology box');
   }
 }
 for (const slug of ['cake','hype','safe']) {

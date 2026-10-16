@@ -309,6 +309,14 @@ function renderPage(template, meta) {
     html = html.replace(closing, `$1${extra}$2`);
   }
 
+  /* کادر «روش محاسبه» حذف شد چون متنش تکراری بود؛ پیوندهای مفیدش (تبدیل
+     معکوس و صفحهٔ قیمت هر دارایی) در یک سطر کوتاه پایان همین بخش می‌مانند. */
+  const links = [meta.fromSlug, meta.toSlug].filter(slug => slug !== "irt" && assetForSlug(slug)).map(assetLink);
+  links.push(`<a href="/convert/${meta.toSlug}-to-${meta.fromSlug}/">تبدیل ${esc(meta.toName)} به ${esc(meta.fromName)}</a>`);
+  const pairEnd = /(<section class="pair-content"[\s\S]*?)(\s*<\/section>)/;
+  if (!pairEnd.test(html)) throw new Error("پایان بخش pair-content پیدا نشد؛ قالب عوض شده است.");
+  html = html.replace(pairEnd, `$1<p class="pair-links">${links.join(" · ")}</p>$2`);
+
   // مسیرهای نسبی یک سطح عمیق‌تر می‌شوند، پس مطلقشان می‌کنیم.
   return enrichPage(html, meta.path)
     .replace(/(src|href)="assets\//g, '$1="/assets/')
@@ -398,13 +406,6 @@ function esc(value) { return String(value).replaceAll("&", "&amp;").replaceAll("
 function assetForSlug(slug) { return Object.values(ASSETS).find(a => a.slug === slug); }
 function groupFor(slug) { return Object.entries(PRICE_GROUPS).find(([, ids]) => ids.includes(slug))?.[0] || "crypto"; }
 function assetLink(slug) { const a = assetForSlug(slug); return `<a href="/price/${groupFor(slug)}/${slug}/">قیمت ${esc(a?.name || cryptoName([...TOP_CRYPTO, ...INDEXED_CRYPTO].find(id => cryptoSlug(id) === slug) || slug))}</a>`; }
-function savedQuote(slug) {
-  const id = Object.keys(ASSETS).find(id => ASSETS[id].slug === slug) || [...TOP_CRYPTO, ...INDEXED_CRYPTO].find(id => cryptoSlug(id) === slug) || slug;
-  const row = snapshots[id];
-  if (!row || !Number.isFinite(row.toman) || row.toman <= 0 || !Number.isFinite(Date.parse(row.at))) return "";
-  const date = new Intl.DateTimeFormat("fa-IR", {timeZone:"Asia/Tehran", dateStyle:"medium", timeStyle:"short"}).format(new Date(row.at));
-  return `<p class="saved-quote">نرخ ذخیره‌شده: ${new Intl.NumberFormat("fa-IR", {maximumFractionDigits: 4}).format(row.toman)} تومان؛ زمان دریافت یا ثبت داده: <time datetime="${esc(row.at)}">${date}</time>. این عدد نرخ لحظه‌ای نیست؛ نرخ تازه در بالای صفحه نمایش داده می‌شود.</p>`;
-}
 const GROUP_HELP = {
   currency: ["این نرخ متعلق به چه بازاری است؟", "نرخ ارز از سرویس BrsApi دریافت می‌شود. نرخ نمایش‌داده‌شده را با قیمت خرید، فروش، حواله یا نرخ رسمی یکسان نگیرید؛ پیش از پرداخت، نوع نرخ و کارمزد را از ارائه‌دهنده معامله بپرسید. یک تومان برابر ده ریال است. نرخ ین در این سایت برای یکصد ین نمایش داده می‌شود."],
   gold: ["وزن و عیار طلا چه اثری در محاسبه دارد؟", "طلای ۱۸ و ۲۴ عیار به گرم، طلای آب‌شده به مثقال و انس جهانی با واحد انس نمایش داده می‌شوند. محاسبه ارزش وزن طلا با قیمت هر واحد انجام می‌شود؛ این برآورد قیمت نهایی زیورآلات نیست و اجرت، سود فروشنده و هزینه‌های معامله را محاسبه نمی‌کند."],
@@ -422,30 +423,14 @@ function popularIcon(slug) {
   return `/assets/flags/${({ usd: "us", aed: "ae", afn: "af", eur: "eu", gbp: "gb", try: "tr" })[slug] || slug}.svg`;
 }
 function enrichPage(html, path) {
-  // A persistent section is outside the slots refreshed by live JavaScript.
-  let content = "";
-  const match = /^\/price\/(\w+)\/([^/]+)\/$/.exec(path);
-  const pair = /^\/convert\/([a-z0-9]+)-to-([a-z0-9]+)\/$/.exec(path);
-  if (match) {
-    const [, group, slug] = match; const help = GROUP_HELP[group];
-    content = `<h2>${help[0]}</h2><p>${help[1]}</p>${savedQuote(slug)}<p><a href="/convert/${slug}-to-${group === "energy" ? "usd" : "irt"}/">محاسبه ارزش این دارایی</a></p>`;
-    html = html.replace(/(<a class="converter-link" id="asset-converter-link" href=")[^"]*/, `$1/convert/${slug}-to-${group === "energy" ? "usd" : "irt"}/`);
-  } else if (pair) {
-    const [, from, to] = pair; const a = assetForSlug(from), b = assetForSlug(to);
-    const nameA = esc(a.name), nameB = esc(b.name);
-    content = `<h2>روش محاسبه ${nameA} به ${nameB}</h2><p>مقدار مبدأ × نرخ تومانی هر واحد مبدأ ÷ نرخ تومانی هر واحد مقصد = مقدار معادل مقصد. نرخ تومان در این فرمول یک است. برای مثال با نرخ فرضی ۱۰۰ تومان برای مبدأ و ۲۰۰ تومان برای مقصد، ۱۰ واحد مبدأ معادل ۵ واحد مقصد است؛ این مثال نرخ واقعی بازار نیست.</p><p>${GROUP_HELP[groupFor(from === "irt" ? to : from)][1]}</p><p>این ابزار ارزش معادل را محاسبه می‌کند و خرید، فروش یا انتقال دارایی انجام نمی‌دهد. نتیجه شامل اختلاف خرید و فروش و کارمزد معامله نیست. واحد انتخاب‌شده کنار نام دارایی را بررسی کنید.</p><nav aria-label="قیمت‌ها و تبدیل مرتبط"><ul>${[from,to].filter(x=>x!=="irt").map(x=>`<li>${assetLink(x)}</li>`).join("")}<li><a href="/convert/${to}-to-${from}/">تبدیل ${nameB} به ${nameA}</a></li></ul></nav>`;
-  } else if (path.startsWith("/price/")) {
-    // هاب و صفحهٔ دسته‌ها فهرست پیوند «دسترسی به صفحات قیمت» ندارند؛ جدول
-    // و کارت‌های همان صفحه به همهٔ دارایی‌ها پیوند می‌دهند.
-    return html;
-  } else {
-    content = `<h2>تبدیل‌های پرکاربرد</h2><p class="popular-conversions-intro">تبدیل موردنظر را انتخاب کنید و ارزش معادل دارایی‌تان را ببینید.</p><ul class="popular-conversions-grid">${["usd-to-irt","usdt-to-irt","eur-to-irt","emami-to-irt","gold18-to-eur","aed-to-irt","afn-to-irt","irt-to-iqd"].map(slug=>{const [a,b]=slug.split("-to-");return `<li><a class="popular-conversion" href="/convert/${slug}/"><span class="popular-conversion-symbol" aria-hidden="true"><img src="${popularIcon(a)}" alt="" loading="lazy"></span><span class="popular-conversion-label"><strong>${esc(assetForSlug(a).name)} به ${esc(assetForSlug(b).name)}</strong><span>محاسبه و تبدیل</span></span><span class="icon-chevron" aria-hidden="true"></span></a></li>`;}).join("")}</ul>`;
-    return html.replace(/<\/main>/, `<section class="seo-content popular-conversions" aria-label="تبدیل‌های پرکاربرد">${content}</section></main>`);
-  }
-  const section = `<section class="seo-content" aria-label="راهنما و صفحات مرتبط">${content}<p><a href="/methodology/">منابع داده و روش محاسبه تبدکس</a></p></section>`;
-  // صفحهٔ دارایی جای بخش را در ستون اصلی مشخص کرده تا زیر ستون کناری نیفتد.
-  if (html.includes("<!--seo-slot-->")) return html.replace("<!--seo-slot-->", section);
-  return html.replace(/<\/main>/, section + "</main>");
+  // صفحهٔ دارایی و صفحهٔ جفت مبدل کادر راهنمای جدا ندارند: «این نرخ متعلق
+  // به چه بازاری است؟» و «روش محاسبه …» همان محتوای بخش متن صفحه را تکرار
+  // می‌کردند. هاب و صفحهٔ دسته‌ها هم فهرست پیوند ندارند؛ جدول و کارت‌های
+  // همان صفحه به همهٔ دارایی‌ها پیوند می‌دهند.
+  if (/^\/price\//.test(path) || /^\/convert\/[a-z0-9]+-to-[a-z0-9]+\/$/.test(path)) return html.replace("<!--seo-slot-->", "");
+  // صفحهٔ اصلی و صفحهٔ اصلی مبدل: «تبدیل‌های پرکاربرد»
+  const content = `<h2>تبدیل‌های پرکاربرد</h2><p class="popular-conversions-intro">تبدیل موردنظر را انتخاب کنید و ارزش معادل دارایی‌تان را ببینید.</p><ul class="popular-conversions-grid">${["usd-to-irt","usdt-to-irt","eur-to-irt","emami-to-irt","gold18-to-eur","aed-to-irt","afn-to-irt","irt-to-iqd"].map(slug=>{const [a,b]=slug.split("-to-");return `<li><a class="popular-conversion" href="/convert/${slug}/"><span class="popular-conversion-symbol" aria-hidden="true"><img src="${popularIcon(a)}" alt="" loading="lazy"></span><span class="popular-conversion-label"><strong>${esc(assetForSlug(a).name)} به ${esc(assetForSlug(b).name)}</strong><span>محاسبه و تبدیل</span></span><span class="icon-chevron" aria-hidden="true"></span></a></li>`;}).join("")}</ul>`;
+  return html.replace(/<\/main>/, `<section class="seo-content popular-conversions" aria-label="تبدیل‌های پرکاربرد">${content}</section></main>`);
 }
 
 const template = await readFile(resolve(ROOT, "convert", "index.html"), "utf8");

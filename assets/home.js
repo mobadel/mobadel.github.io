@@ -38,8 +38,33 @@
     { id: "eur", name: "یورو", code: "EUR", url: "/price/currency/eur/", icon: "/assets/flags/eu.svg", source: "proxy", group: "fiat", history: true },
     // نفت برنت هم از همان پراکسی می‌آید، ولی بازارش دلاری است و قیمتش
     // هم دلاری نشان داده می‌شود؛ تغییرش هم تغییر دلاری است.
-    { id: "brent", name: "نفت برنت", code: "هر بشکه", url: "/price/energy/brent/", icon: "/assets/crude-oil.svg", source: "proxy", currency: "usd", group: "energy" }
+    { id: "brent", name: "نفت برنت", code: "هر بشکه", url: "/price/energy/brent/", icon: "/assets/crude-oil.svg", source: "proxy", currency: "usd", group: "energy" },
+    // دارایی‌های تکمیلی تب‌ها: هر تب هفت ردیف دارد تا ارتفاع جدول با
+    // عوض شدن تب ثابت بماند.
+    { id: "gbp", name: "پوند", code: "GBP", url: "/price/currency/gbp/", icon: "/assets/flags/gb.svg", source: "proxy", group: "fiat", history: true },
+    { id: "aed", name: "درهم امارات", code: "AED", url: "/price/currency/aed/", icon: "/assets/flags/ae.svg", source: "proxy", group: "fiat", history: true },
+    { id: "try", name: "لیر ترکیه", code: "TRY", url: "/price/currency/try/", icon: "/assets/flags/tr.svg", source: "proxy", group: "fiat", history: true },
+    { id: "cny", name: "یوآن چین", code: "CNY", url: "/price/currency/cny/", icon: "/assets/flags/cn.svg", source: "proxy", group: "fiat", history: true },
+    { id: "cad", name: "دلار کانادا", code: "CAD", url: "/price/currency/cad/", icon: "/assets/flags/ca.svg", source: "proxy", group: "fiat", history: true },
+    { id: "gold24", name: "طلای ۲۴ عیار", code: "هر گرم", url: "/price/gold/gold24/", icon: "/assets/gold-18k.svg", source: "proxy", group: "metal", history: true },
+    { id: "goldmelted", name: "طلای آب‌شده", code: "هر مثقال", url: "/price/gold/melted/", icon: "/assets/gold-18k.svg", source: "proxy", group: "metal", history: true },
+    { id: "bahar", name: "سکه بهار آزادی", code: "هر عدد", url: "/price/coin/baharazadi/", icon: "/assets/coin-emami.webp?v=20260825-2", source: "proxy", group: "metal", history: true },
+    { id: "halfcoin", name: "نیم سکه", code: "هر عدد", url: "/price/coin/nim/", icon: "/assets/coin-emami.webp?v=20260825-2", source: "proxy", group: "metal", history: true },
+    { id: "quartercoin", name: "ربع سکه", code: "هر عدد", url: "/price/coin/rob/", icon: "/assets/coin-emami.webp?v=20260825-2", source: "proxy", group: "metal", history: true },
+    { id: "eth", name: "اتریوم", code: "ETH", url: "/price/crypto/eth/", icon: "/assets/crypto-icons/eth.svg", source: "usdt", group: "crypto" },
+    { id: "xrp", name: "ریپل", code: "XRP", url: "/price/crypto/xrp/", icon: "/assets/crypto-icons/xrp.svg", source: "usdt", group: "crypto" },
+    { id: "sol", name: "سولانا", code: "SOL", url: "/price/crypto/sol/", icon: "/assets/crypto-icons/sol.svg", source: "usdt", group: "crypto" },
+    { id: "doge", name: "دوج کوین", code: "DOGE", url: "/price/crypto/doge/", icon: "/assets/crypto-icons/doge.svg", source: "usdt", group: "crypto" },
+    { id: "trx", name: "ترون", code: "TRX", url: "/price/crypto/trx/", icon: "/assets/crypto-icons/trx.svg", source: "usdt", group: "crypto" }
   ];
+  /* ردیف‌های هر تب، به همین ترتیب. «همه» همان هفت دارایی پربازدید است. */
+  var TABS = {
+    all: ["usd", "usdt", "gold18", "emami", "btc", "eur", "brent"],
+    fiat: ["usd", "eur", "gbp", "aed", "try", "cny", "cad"],
+    metal: ["gold18", "gold24", "goldmelted", "emami", "bahar", "halfcoin", "quartercoin"],
+    crypto: ["usdt", "btc", "eth", "xrp", "sol", "doge", "trx"]
+  };
+  function definitionById(id) { return definitions.filter(function (item) { return item.id === id; })[0]; }
 
   /* «بیشترین تغییر امروز» میان دارایی‌های تومانی پراکسی انتخاب می‌شود.
      رمزارزها عمداً بیرون‌اند: نوسانشان همیشه بالای فهرست می‌نشست و
@@ -128,22 +153,18 @@
     var span = document.createElement("span"); span.className = "num"; span.textContent = value; return span;
   }
   function fillPrice(node, price, unit) {
-    if (Number.isFinite(price) && price > 0) node.replaceChildren(numSpan(number(price, price < 1 ? 6 : unit === "دلار" ? 2 : 0)), document.createTextNode(" " + unit));
+    if (Number.isFinite(price) && price > 0) node.replaceChildren(numSpan(number(price, price < 1 ? 6 : unit === "دلار" || unit === "تتر" ? 2 : 0)), document.createTextNode(" " + unit));
     else node.textContent = "ناموجود";
   }
 
   var activeFilter = "all";
   var lastStats = null; var lastProxy = null; var daily = {};
 
-  function applyFilter() {
-    Array.prototype.forEach.call(rows.querySelectorAll(".home-market-row"), function (row) {
-      row.hidden = activeFilter !== "all" && row.getAttribute("data-group") !== activeFilter;
-    });
-  }
+  function applyFilter() { if (lastStats || lastProxy) paint(lastStats, lastProxy); }
 
   function paint(stats, proxy) {
     rows.replaceChildren();
-    definitions.forEach(function (definition) {
+    (TABS[activeFilter] || TABS.all).map(definitionById).forEach(function (definition) {
       var quote = quoteFor(definition, stats, proxy);
       var price = quote.price; var change = quote.change; var unit = quote.unit;
 
@@ -163,7 +184,6 @@
       trend.appendChild(definition.history ? sparkline(daily[definition.id]) : sparkline(null));
       link.append(identity, priceCell, changeCell, trend); rows.appendChild(link);
     });
-    applyFilter();
     paintKpis(stats, proxy);
     paintMovers(proxy);
   }
@@ -289,12 +309,22 @@
     var doc = new DOMParser().parseFromString("<body>" + String(html || ""), "text/html");
     return (doc.body.textContent || "").trim();
   }
+  // سه ستون در چهار ردیف
+  var MAG_COUNT = 12;
   function paintMag(posts) {
     var section = document.getElementById("home-mag"); var list = document.getElementById("home-mag-list");
     if (!section || !list) return;
-    var valid = posts.filter(function (post) { return post.title && post.link; }).slice(0, 3);
+    var valid = posts.filter(function (post) { return post.title && post.link; }).slice(0, MAG_COUNT);
     if (!valid.length) return;
     var formatter = new Intl.DateTimeFormat("fa-IR-u-ca-persian", { timeZone: "Asia/Tehran", day: "numeric", month: "long", year: "numeric" });
+    // مثل «۱۳ ساعت قبل» و «۲ روز قبل»؛ مطلب قدیمی‌تر از یک هفته تاریخ کامل دارد.
+    var whenText = function (date) {
+      var minutes = Math.max(0, Math.floor((Date.now() - date.getTime()) / 60000));
+      if (minutes < 60) return minutes < 2 ? "لحظاتی قبل" : number(minutes) + " دقیقه قبل";
+      if (minutes < 1440) return number(Math.floor(minutes / 60)) + " ساعت قبل";
+      if (minutes < 7 * 1440) return number(Math.floor(minutes / 1440)) + " روز قبل";
+      return formatter.format(date);
+    };
     list.replaceChildren.apply(list, valid.map(function (post) {
       var li = document.createElement("li");
       var card = document.createElement("a"); card.className = "mag-card"; card.href = post.link;
@@ -303,14 +333,14 @@
       var body = document.createElement("span"); body.className = "mag-card-body";
       var title = document.createElement("strong"); title.textContent = post.title;
       body.appendChild(title);
-      if (post.date && Number.isFinite(post.date.getTime())) { var date = document.createElement("small"); date.textContent = formatter.format(post.date); body.appendChild(date); }
+      if (post.date && Number.isFinite(post.date.getTime())) { var date = document.createElement("time"); date.dateTime = post.date.toISOString(); date.title = formatter.format(post.date); date.textContent = whenText(post.date); body.appendChild(date); }
       card.append(media, body); li.appendChild(card); return li;
     }));
     section.hidden = false;
   }
   function loadMag() {
     if (typeof DOMParser !== "function" || typeof URL !== "function") return;
-    getJson("/mag/wp-json/wp/v2/posts?per_page=3&_embed=wp:featuredmedia", { headers: { Accept: "application/json" } }).then(function (posts) {
+    getJson("/mag/wp-json/wp/v2/posts?per_page=" + MAG_COUNT + "&_embed=wp:featuredmedia", { headers: { Accept: "application/json" } }).then(function (posts) {
       if (!Array.isArray(posts)) throw new Error("shape");
       return posts.map(function (post) {
         var media = post._embedded && post._embedded["wp:featuredmedia"] && post._embedded["wp:featuredmedia"][0];
