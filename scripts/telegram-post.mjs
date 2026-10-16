@@ -1,13 +1,17 @@
 #!/usr/bin/env node
 /*
- * انتشار خودکار قیمت‌ها در کانال تلگرام تبدکس (t.me/tabdexir).
+ * انتشار خودکار قیمت‌ها در کانال تلگرام تبدکس (t.me/tabdexir)، هر ساعت راس ساعت تهران.
  *
  * چرا روی GitHub Actions و نه سرور پارس‌پک: تلگرام در ایران فیلتر است و
  * سرور ایرانی بدون پراکسی به api.telegram.org نمی‌رسد. ریپو عمومی است،
  * پس دقیقه‌های Actions برایش رایگان و نامحدود است.
  *
- * منابع دقیقاً همان منابع سایت‌اند تا عدد کانال با عدد سایت یکی باشد:
- *   - طلا، سکه، ارز فیات: https://tabdex.ir/api/rates.php (کش مشترک BrsApi)
+ * کرون گیت‌هاب سر وقت اجرا نمی‌شود (معمولاً چند دقیقه، گاهی بیشتر، تأخیر
+ * دارد). پس ورک‌فلو ربع ساعت زودتر بیدار می‌شود و این اسکریپت با
+ * WAIT_FOR_SLOT=1 تا راس ساعت تهران صبر می‌کند، بعد قیمت می‌گیرد و می‌فرستد.
+ *
+ * منابع همان منابع سایت‌اند تا عدد کانال با عدد سایت یکی باشد:
+ *   - ارز، طلا، سکه، فلزات، انرژی: https://tabdex.ir/api/rates.php
  *   - ارز دیجیتال: نوبیتکس (apiv2)، مثل assets/app.js
  *
  * بدون TELEGRAM_BOT_TOKEN فقط متن پست را چاپ می‌کند (dry run).
@@ -15,37 +19,82 @@
 
 const TOKEN = process.env.TELEGRAM_BOT_TOKEN || "";
 const CHAT_ID = process.env.TELEGRAM_CHAT_ID || "@tabdexir";
+const WAIT_FOR_SLOT = process.env.WAIT_FOR_SLOT === "1";
 const UA = "tabdex-telegram/1.0 (+https://tabdex.ir)";
 
-/* افزودن/حذف دارایی = یک ردیف. id همان کلید پاسخ rates.php است. */
-const BRS_ITEMS = [
-  { id: "usd", label: "دلار آمریکا", emoji: "🇺🇸" },
-  { id: "eur", label: "یورو", emoji: "🇪🇺" },
-  { id: "gbp", label: "پوند انگلیس", emoji: "🇬🇧" },
-  { id: "aed", label: "درهم امارات", emoji: "🇦🇪" },
-  { id: "gold18", label: "طلای ۱۸ عیار (گرم)", emoji: "🟡" },
-  { id: "emami", label: "سکه امامی", emoji: "🪙" },
-  { id: "halfcoin", label: "نیم‌سکه", emoji: "🪙" },
-  { id: "quartercoin", label: "ربع‌سکه", emoji: "🪙" },
-  { id: "goldounce", label: "انس جهانی طلا", emoji: "🌐", usd: true },
+/* علامت راست‌به‌چپ (RLM). تلگرام جهت هر خط را از اولین نویسهٔ «قوی» حدس
+   می‌زند و پرچم/ایموجی خنثی‌اند، پس خط‌هایی مثل «🇺🇸 دلار» گاهی چپ‌چین
+   می‌شدند. RLM اول هر خط جهت را راست‌به‌چپ قفل می‌کند. */
+const RLM = "‏";
+
+/* هر بخش = یک عنوان و چند ردیف. افزودن/حذف دارایی = یک ردیف.
+   src: "brs" یعنی کلید پاسخ rates.php، "nobitex" یعنی جفت بازار نوبیتکس.
+   usd: true یعنی قیمت دلاری نمایش داده شود. */
+const SECTIONS = [
+  {
+    title: "ارز",
+    items: [
+      { src: "brs", id: "usd", emoji: "🇺🇸", label: "دلار" },
+      { src: "brs", id: "eur", emoji: "🇪🇺", label: "یورو" },
+      { src: "brs", id: "aed", emoji: "🇦🇪", label: "درهم امارات" },
+      { src: "brs", id: "iqd", emoji: "🇮🇶", label: "دینار عراق" },
+      { src: "brs", id: "afn", emoji: "🇦🇫", label: "افغانی" },
+    ],
+  },
+  {
+    title: "طلا و سکه",
+    items: [
+      { src: "brs", id: "gold18", emoji: "🟡", label: "طلای ۱۸ عیار (گرم)" },
+      { src: "brs", id: "goldounce", emoji: "🟡", label: "انس جهانی طلا", usd: true },
+      { src: "brs", id: "emami", emoji: "🪙", label: "سکه امامی" },
+      { src: "brs", id: "halfcoin", emoji: "🪙", label: "نیم‌سکه" },
+      { src: "brs", id: "quartercoin", emoji: "🪙", label: "ربع‌سکه" },
+    ],
+  },
+  {
+    title: "فلزات",
+    items: [
+      { src: "brs", id: "silver", emoji: "🥈", label: "نقره ۹۹۹ (گرم)" },
+      { src: "brs", id: "copper", emoji: "🥉", label: "مس (کیلوگرم)" },
+    ],
+  },
+  {
+    title: "ارز دیجیتال",
+    items: [
+      { src: "nobitex", id: "usdt-rls", emoji: "🔸", label: "تتر" },
+      { src: "nobitex", id: "btc-usdt", emoji: "🔸", label: "بیت‌کوین", usd: true },
+      { src: "nobitex", id: "eth-usdt", emoji: "🔸", label: "اتریوم", usd: true },
+    ],
+  },
+  {
+    title: "نفت و بنزین",
+    items: [
+      { src: "brs", id: "brent", emoji: "🛢", label: "نفت برنت", usd: true },
+      { src: "brs", id: "gasoline", emoji: "⛽️", label: "بنزین آمریکا", usd: true },
+    ],
+  },
 ];
 
-/* ارز دیجیتال از نوبیتکس. تتر به تومان، بقیه به دلار (تتر). */
-const CRYPTO_ITEMS = [
-  { pair: "usdt-rls", label: "تتر", emoji: "💵" },
-  { pair: "btc-usdt", label: "بیت‌کوین", emoji: "₿" },
-  { pair: "eth-usdt", label: "اتریوم", emoji: "💠" },
-];
+/* ارقام فارسی با جداکنندهٔ «,» و ممیز «.»، مطابق نمونهٔ پست. */
+const FA_DIGITS = "۰۱۲۳۴۵۶۷۸۹";
+function fa(n, maxDecimals = 0) {
+  let [int, dec] = Number(n).toFixed(maxDecimals).split(".");
+  dec = dec ? dec.replace(/0+$/, "") : "";
+  const grouped = int.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  const out = dec ? `${grouped}.${dec}` : grouped;
+  return out.replace(/\d/g, (d) => FA_DIGITS[d]);
+}
 
-const fa = (n, digits = 0) =>
-  Number(n).toLocaleString("fa-IR", { maximumFractionDigits: digits, minimumFractionDigits: 0 });
+/* زیر ۱۰۰۰ دو رقم اعشار (دینار، نفت)، بالاتر عدد صحیح. */
+const amount = (v) => fa(v, Math.abs(v) < 1000 ? 2 : 0);
 
+/* قالب «(٪۱.۲-)» همان‌طور که در نمونه آمده. */
 function change(pct) {
-  if (pct === null || pct === undefined || !Number.isFinite(Number(pct))) return "";
   const v = Number(pct);
-  if (Math.abs(v) < 0.005) return " ⚪️ ۰٪";
-  const arrow = v > 0 ? "🟢 ▲" : "🔴 ▼";
-  return ` ${arrow}${fa(Math.abs(v), 2)}٪`;
+  if (pct === null || pct === undefined || !Number.isFinite(v)) return "";
+  const r = Math.round(v * 10) / 10;
+  if (r === 0) return " (٪۰)";
+  return ` (٪${fa(Math.abs(r), 1)}${r > 0 ? "+" : "-"})`;
 }
 
 async function getJson(url) {
@@ -79,15 +128,16 @@ async function nobitex(src, dst) {
   return {};
 }
 
-function tehranStamp() {
-  const d = new Date();
-  const date = new Intl.DateTimeFormat("fa-IR-u-ca-persian", {
-    timeZone: "Asia/Tehran", weekday: "long", day: "numeric", month: "long", year: "numeric",
-  }).format(d);
-  const time = new Intl.DateTimeFormat("fa-IR", {
-    timeZone: "Asia/Tehran", hour: "2-digit", minute: "2-digit", hour12: false,
-  }).format(d);
-  return `${date} — ساعت ${time}`;
+/* «جمعه ۲۴ مهر ۱۴۰۵ - ساعت ۱۴:۰۰» به وقت تهران. */
+function tehranStamp(d = new Date()) {
+  const parts = Object.fromEntries(
+    new Intl.DateTimeFormat("fa-IR-u-ca-persian-nu-arabext", {
+      timeZone: "Asia/Tehran", weekday: "long", day: "numeric", month: "long", year: "numeric",
+      hour: "2-digit", minute: "2-digit", hourCycle: "h23",
+    }).formatToParts(d).map((p) => [p.type, p.value]),
+  );
+  const toFa = (s) => String(s).replace(/[0-9]/g, (x) => FA_DIGITS[x]).replace(/[٠-٩]/g, (x) => FA_DIGITS["٠١٢٣٤٥٦٧٨٩".indexOf(x)]);
+  return `${parts.weekday} ${toFa(parts.day)} ${parts.month} ${toFa(parts.year)} - ساعت ${toFa(parts.hour)}:${toFa(parts.minute)}`;
 }
 
 async function buildPost() {
@@ -98,38 +148,49 @@ async function buildPost() {
   ]);
   const stats = { ...rls, ...usdt };
 
-  const fiatGold = [];
-  for (const item of BRS_ITEMS) {
-    const a = assets[item.id];
-    if (!a || !(a.toman > 0)) continue;
-    const pct = a.toman_change ?? a.change;
-    const value = item.usd && a.usd ? `${fa(a.usd, 2)} دلار` : `${fa(a.toman)} تومان`;
-    fiatGold.push(`${item.emoji} ${item.label}: <b>${value}</b>${change(pct)}`);
+  const lines = [`${RLM}📊 <b>قیمت‌های مهم بازار</b>`, ""];
+  let count = 0;
+
+  for (const section of SECTIONS) {
+    const rows = [];
+    for (const item of section.items) {
+      let value = null;
+      let pct = null;
+      if (item.src === "brs") {
+        const a = assets[item.id];
+        if (!a || !(a.toman > 0)) continue;
+        if (item.usd) {
+          if (!(a.usd > 0)) continue;
+          value = `${amount(a.usd)} دلار`;
+          pct = a.change;
+        } else {
+          value = `${amount(a.toman)} تومان`;
+          pct = a.toman_change ?? a.change;
+        }
+      } else {
+        const s = stats[item.id];
+        const latest = s && Number(s.latest);
+        if (!(latest > 0)) continue;
+        value = item.id.endsWith("-rls") ? `${amount(latest / 10)} تومان` : `${amount(latest)} دلار`;
+        pct = s.dayChange;
+      }
+      rows.push(`${RLM}${item.emoji} ${item.label}: ${value}${change(pct)}`);
+    }
+    if (!rows.length) continue;
+    count += rows.length;
+    lines.push(`${RLM}<b>${section.title}</b>`, "", ...rows, "");
   }
 
-  const crypto = [];
-  for (const item of CRYPTO_ITEMS) {
-    const s = stats[item.pair];
-    const latest = s && Number(s.latest);
-    if (!(latest > 0)) continue;
-    const value = item.pair.endsWith("-rls")
-      ? `${fa(latest / 10)} تومان`
-      : `${fa(latest, 2)} دلار`;
-    crypto.push(`${item.emoji} ${item.label}: <b>${value}</b>${change(s.dayChange)}`);
+  if (count < 5) {
+    throw new Error(`فقط ${count} قیمت آمد؛ پست منتشر نمی‌شود تا کانال عدد ناقص نبیند.`);
   }
 
-  if (fiatGold.length + crypto.length < 3) {
-    throw new Error("دادهٔ کافی نیامد؛ پست منتشر نمی‌شود تا کانال عدد ناقص نبیند.");
-  }
-
-  const parts = [`📊 <b>قیمت لحظه‌ای بازار</b>`, `🗓 ${tehranStamp()}`, ""];
-  if (fiatGold.length) parts.push("💱 <b>ارز، طلا و سکه</b>", ...fiatGold, "");
-  if (crypto.length) parts.push("🪙 <b>ارز دیجیتال</b>", ...crypto, "");
-  parts.push(
-    "🔄 تبدیل لحظه‌ای و نمودار: <a href=\"https://tabdex.ir/?utm_source=telegram&amp;utm_medium=channel\">tabdex.ir</a>",
-    "🆔 @tabdexir",
+  lines.push(
+    `${RLM}⏰ ${tehranStamp()}`,
+    "",
+    `${RLM}📲 <a href="https://tabdex.ir/?utm_source=telegram&amp;utm_medium=channel">Tabdex.ir</a>`,
   );
-  return parts.join("\n");
+  return lines.join("\n");
 }
 
 async function send(text) {
@@ -151,6 +212,25 @@ async function send(text) {
   console.log(`منتشر شد: message_id=${body.result.message_id}`);
 }
 
+/* تا راس ساعت بعدی تهران صبر کن. تهران UTC+3:30 است، پس راس ساعت تهران
+   همان دقیقهٔ ۳۰ هر ساعت UTC است. اگر اجرا بیش از ۲۵ دقیقه مانده به راس
+   ساعت بیدار شد، یعنی کرون آن‌قدر دیر آمده که از راس ساعت گذشته‌ایم؛
+   آن‌وقت همان لحظه بفرست، نه یک ساعت بعد. */
+async function waitForSlot() {
+  const now = Date.now();
+  const hour = 3600_000;
+  const offset = 30 * 60_000;
+  const next = Math.ceil((now - offset) / hour) * hour + offset;
+  const wait = next - now;
+  if (wait > 25 * 60_000) {
+    console.log("::notice::اجرا دیر شروع شد؛ بدون صبر منتشر می‌شود.");
+    return;
+  }
+  console.log(`صبر ${Math.round(wait / 1000)} ثانیه تا راس ساعت تهران`);
+  await new Promise((r) => setTimeout(r, wait));
+}
+
+if (WAIT_FOR_SLOT) await waitForSlot();
 const text = await buildPost();
 console.log(text);
 if (!TOKEN) {

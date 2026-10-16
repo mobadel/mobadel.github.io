@@ -1,23 +1,31 @@
 name: Telegram price post
 
 on:
-  # هر نیم ساعت. دقیقه‌های ۷ و ۳۷ به‌جای ۰ و ۳۰ چون کرون‌های سر ساعت در
-  # گیت‌هاب شلوغ‌ترند و بیشتر تأخیر می‌خورند.
+  # هر ساعت راس ساعت تهران. کرون گیت‌هاب سر وقت اجرا نمی‌شود، پس ربع ساعت
+  # زودتر بیدار می‌شویم (دقیقهٔ ۱۵ UTC = دقیقهٔ ۴۵ تهران) و اسکریپت تا راس
+  # ساعت صبر می‌کند. تهران UTC+3:30 است و ساعت تابستانی ندارد.
   schedule:
-    - cron: '7,37 * * * *'
+    - cron: '15 * * * *'
   workflow_dispatch:
+    inputs:
+      wait:
+        description: 'صبر تا راس ساعت بعدی تهران (خاموش = همین حالا بفرست)'
+        type: boolean
+        default: false
 
 permissions:
   contents: read
 
+# اگر دو اجرا برای یک ساعت هم‌پوشانی کنند (مثلاً اجرای دستی و کرون)،
+# تازه‌تر قبلی را لغو می‌کند تا پست تکراری نرود.
 concurrency:
   group: telegram-prices
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   post:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
         with:
@@ -30,4 +38,5 @@ jobs:
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ vars.TELEGRAM_CHAT_ID || '@tabdexir' }}
+          WAIT_FOR_SLOT: ${{ (github.event_name == 'schedule' || inputs.wait) && '1' || '0' }}
         run: node scripts/telegram-post.mjs
