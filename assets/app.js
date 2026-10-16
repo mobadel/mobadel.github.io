@@ -592,7 +592,7 @@
         : state.live ? "آخرین به‌روزرسانی " + formatTime(state.updatedAt) : "نمایش آخرین نرخ ذخیره‌شده");
   }
 
-  var MARKET_CLOSED_HINT = ' <span class="market-closed-hint" tabindex="0" role="img" aria-label="بازار رسمی این دارایی در حال حاضر بسته است." data-tip="بازار رسمی این دارایی در حال حاضر بسته است.">؟</span>';
+  var MARKET_CLOSED_HINT = ' <span class="market-closed-hint" tabindex="0" role="img" aria-label="بازار رسمی این دارایی در حال حاضر بسته است." data-tip="بازار رسمی این دارایی در حال حاضر بسته است."><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg></span>';
   /* گروه هر دارایی در پاسخ rates.php: ارز فیات «fiat» است. انس طلا بازار
      جهانی دارد و تقویم بازار ایران رویش اعمال نمی‌شود. */
   function marketClosedFor(id) {
