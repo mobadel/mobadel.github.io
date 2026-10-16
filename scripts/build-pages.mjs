@@ -529,7 +529,7 @@ await writeFile(resolve(SITE,"methodology/index.html"), methodology);
 addSitemapUrl("/methodology/", "0.5");
 for (const [path, title, body] of [
   ["/about/", "درباره تبدکس", "<p>تبدکس توسط تیمی متشکل از جوانان علاقه‌مند به اقتصاد و بازارهای مالی گردانده می‌شود.</p><p>هدف ما فراهم کردن دسترسی ساده به نرخ دارایی‌ها و محاسبه ارزش معادل آن‌هاست. تبدکس نرخ‌های منابع بیرونی را نمایش می‌دهد و خدمات خرید، فروش یا انتقال وجه ارائه نمی‌کند.</p><p><a href='/methodology/'>منابع داده و روش محاسبه</a> · <a href='/contact/'>تماس با ما</a></p>"],
-  ["/contact/", "تماس با تبدکس", "<p>برای ارتباط با تیم تبدکس، ارسال پیشنهاد یا گزارش خطا در قیمت‌ها و ابزار تبدیل، از راه‌های زیر استفاده کنید.</p><ul><li>ایمیل: <a href='mailto:info@tabdex.ir' dir='ltr'>info@tabdex.ir</a></li></ul><p>برای گزارش خطا، آدرس صفحه و زمان مشاهده مشکل را همراه توضیح ارسال کنید.</p>"]
+  ["/contact/", "تماس با تبدکس", "<p>برای ارتباط با تیم تبدکس، ارسال پیشنهاد یا گزارش خطا در قیمت‌ها و ابزار تبدیل، از نشانی زیر استفاده کنید.</p><ul><li>ایمیل: <a href='mailto:info@tabdex.ir' dir='ltr'>info@tabdex.ir</a></li></ul><p>برای گزارش خطا، آدرس صفحه و زمان مشاهده مشکل را همراه توضیح ارسال کنید.</p>"]
 ]) {
   let html = methodology.replace(/<main[\s\S]*?<\/main>/, `<main class="wide-shell price-main static-main" id="price-main">${crumbs(title)}<section class="seo-content"><h1>${title}</h1>${body}</section></main>`);
   html = html.replace(/منابع داده و روش محاسبه \| تبدکس/g, `${title} | تبدکس`).replaceAll("https://tabdex.ir/methodology/", ORIGIN + path).replace(/منابع نرخ، واحد دارایی‌ها و روش محاسبه ارزش معادل در تبدکس\./g, title + "؛ معرفی و راه‌های ارتباط با تیم تبدکس.");
