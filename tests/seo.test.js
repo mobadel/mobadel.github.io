@@ -44,8 +44,13 @@ for (const url of urls) {
   const pair = fs.readFileSync(path.join(root,'convert','usd-to-irt','index.html'),'utf8');
   assert.ok(pair.includes('<link rel="canonical" href="https://tabdex.ir/convert/usd-to-irt/">'), 'صفحهٔ مادر canonical خودش');
   assert.match(pair, /<section class="frequent-conversions" id="frequent-conversions" data-asset="usd"[^>]*><h2 id="frequent-title">تبدیل‌های پرتکرار<\/h2>[\s\S]*?<h2>۱۰۰۰ دلار چند تومان است<\/h2>/, 'بخش و دکمه‌ها تیتر ۲');
-  assert.match(fs.readFileSync(path.join(root,'convert','btc-to-irt','index.html'),'utf8'), /data-asset=""[\s\S]*?\?amount=1000/, 'جفت بدون داده: مجموعهٔ عمومی');
-  assert.match(fs.readFileSync(path.join(root,'convert','index.html'),'utf8'), /id="frequent-conversions"/, 'صفحهٔ اصلی مبدل هم بخش را دارد');
+  // بخش فقط روی جفت «دارایی دارای داده → تومان»؛ بقیه فقط جای خالی پنهان دارند.
+  for (const slug of ['btc-to-irt','irt-to-usd','usd-to-eur','eur-to-usd']) {
+    const other = fs.readFileSync(path.join(root,'convert',slug,'index.html'),'utf8');
+    assert.ok(other.includes('<section class="frequent-conversions" id="frequent-conversions" data-asset="" aria-labelledby="frequent-title" hidden></section>'), `${slug}: بخش پنهان و خالی`);
+    assert.ok(!other.includes('تبدیل‌های پرتکرار'), `${slug}: بی‌تیتر پرتکرار`);
+  }
+  assert.match(fs.readFileSync(path.join(root,'convert','index.html'),'utf8'), /id="frequent-conversions"[^>]*hidden><\/section>/, 'صفحهٔ اصلی مبدل (پاسخ جفت‌های ساخته‌نشده) فقط جای خالی دارد');
   if (fs.existsSync(path.join(root,'.htaccess'))) {
     const ht = fs.readFileSync(path.join(root,'.htaccess'),'utf8');
     assert.ok(ht.includes('RewriteCond %{QUERY_STRING} ^amount=0\\.5$\n  RewriteRule ^convert/gold18-to-irt/?$ convert/gold18-to-irt/amount-0.5.html [L]'), '.htaccess قاعدهٔ مقدار اعشاری');
