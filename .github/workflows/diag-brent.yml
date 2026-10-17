@@ -7,27 +7,15 @@ permissions:
 jobs:
   diag:
     runs-on: ubuntu-latest
-    environment: production
-    timeout-minutes: 8
+    timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: fix/gold-fiat-from-tgju
-      - name: run new rates.php live
-        env:
-          BRSAPI_KEY: ${{ secrets.BRSAPI_KEY }}
+      - name: tgju freshness per host
         run: |
           set +e
-          php -v | head -1
-          summary() {
-            jq -c '{stale,reason,source_updated,carried,sources,quota,n:(.assets|length),
-              usd:.assets.usd.toman, usd_ch:.assets.usd.change, gold18:.assets.gold18.toman, emami:.assets.emami.toman, jpy:.assets.jpy.toman,
-              ounce:.assets.goldounce.usd, ounce_t:.assets.goldounce.toman, brent_t:.assets.brent.toman, silver:.assets.silver.toman, copper:.assets.copper.toman}' "$1"
-          }
-          php api/rates.php > r1.json; echo "::notice::run1 $(summary r1.json)"
-          php api/rates.php > r2.json; echo "::notice::run2_cached $(jq -c '{n:(.assets|length),carried}' r2.json)"
-          # کش تازه را کهنه کن، بی‌کلید و با TGJU بسته: همه باید از کش بیایند
-          jq '.fetched_unix=0' api/cache/rates.json > x && mv x api/cache/rates.json
-          echo '127.0.0.1 call1.tgju.org call2.tgju.org call3.tgju.org call4.tgju.org' | sudo tee -a /etc/hosts >/dev/null
-          BRSAPI_KEY= php api/rates.php > r3.json; echo "::notice::run3_no_tgju_no_key $(jq -c '{stale,n:(.assets|length),carried:(.carried|length),sources}' r3.json)"
-          jq -r '.assets|keys|join(",")' r1.json | sed 's/^/::notice::ids=/'
+          echo "::notice::now_tehran=$(TZ=Asia/Tehran date +%T)"
+          for h in call1 call2 call3 call4; do
+            curl -sS -m 20 -A 'Mozilla/5.0' -o t.json "https://$h.tgju.org/ajax.json"
+            echo "::notice::$h $(jq -c '[.current.price_dollar_rl.ts,.current.price_dollar_rl.p,.current.geram18.ts,.current.sekee.ts,([.current[]|.ts?]|max)]' t.json)"
+          done
+          curl -sS -m 20 -A 'Mozilla/5.0' -o t.json "https://call1.tgju.org/ajax.json?rev=$(date +%s)"
+          echo "::notice::call1_bust $(jq -c '[.current.price_dollar_rl.ts,([.current[]|.ts?]|max)]' t.json)"
