@@ -12,14 +12,17 @@ jobs:
       - name: probe tgju
         run: |
           set +e
-          for u in https://call1.tgju.org/ajax.json https://call2.tgju.org/ajax.json https://api.tgju.org/v1/market/indicator/summary-table-data/price_dollar_rl; do
-            code=$(curl -sS -m 30 -A 'Mozilla/5.0' -o t.json -w '%{http_code}' "$u")
-            echo "::notice::$u http=$code bytes=$(wc -c < t.json) top=$(jq -c 'keys?' t.json 2>/dev/null | head -c 300)"
-          done
           curl -sS -m 30 -A 'Mozilla/5.0' -o t.json https://call1.tgju.org/ajax.json
-          jq -c '.current|length' t.json | sed 's/^/::notice::current_count=/'
-          for k in price_dollar_rl price_eur geram18 geram24 mesghal sekee sekeb nim rob gerami price_aed price_gel price_amd price_azn price_syp price_iqd price_myr price_thb ons; do
-            jq -c --arg k "$k" '.current[$k]' t.json | sed "s/^/::notice::k_$k=/"
-          done
-          jq -r '.current|keys[]' t.json | grep -E '^price_[a-z]{3}$' | paste -sd' ' | sed 's/^/::notice::price_keys=/'
-          jq -r '.current|keys[]' t.json | grep -viE '^price_' | grep -iE 'sek|geram|mesghal|gold|ons|abshode|coin|rob|nim' | paste -sd' ' | sed 's/^/::notice::gold_keys=/'
+          curl -sS -m 30 -A 'Mozilla/5.0' -o s.json https://tabdex.ir/api/rates.php
+          cat > m.json <<'J'
+          {"gold18":"geram18","gold24":"geram24","goldmelted":"mesghal","emami":"sekee","bahar":"sekeb","halfcoin":"nim","quartercoin":"rob","gramcoin":"gerami",
+           "usd":"price_dollar_rl","eur":"price_eur","gbp":"price_gbp","chf":"price_chf","aed":"price_aed","try":"price_try","jpy":"price_jpy","cny":"price_cny","aud":"price_aud","cad":"price_cad","rub":"price_rub","sek":"price_sek","inr":"price_inr","pkr":"price_pkr","afn":"price_afn","myr":"price_myr","thb":"price_thb","sar":"price_sar","qar":"price_qar","kwd":"price_kwd","bhd":"price_bhd","omr":"price_omr","iqd":"price_iqd","syp":"price_syp","azn":"price_azn","amd":"price_amd","gel":"price_gel"}
+          J
+          jq -rn --slurpfile t t.json --slurpfile s s.json --slurpfile m m.json '
+            $m[0] | to_entries[] | . as $e
+            | ($t[0].current[$e.value]) as $c
+            | ($s[0].assets[$e.key].toman) as $old
+            | "\($e.key) \($e.value) p=\($c.p // "MISSING") ts=\($c.ts // "-") old=\($old) ratio=\(if $c and $old then ((($c.p|gsub(",";"")|tonumber)/10)/$old*1000|round/1000) else "-" end)"' > out.txt
+          split -l 8 out.txt part_
+          for f in part_*; do echo "::notice::$(paste -sd'|' $f)"; done
+          jq -r '.current|keys[]' t.json | grep -iE 'sek|geram|mesghal|gerami|abshode|ons|^nim|^rob|silver|nogh|copper' | paste -sd' ' | sed 's/^/::notice::gold_keys=/'
