@@ -20,9 +20,6 @@ jobs:
           jq -c '{updated,source_updated,stale,reason,quota,carried:(.carried|length),ttl,n:(.assets|length)}' site.json | sed 's/^/::notice::site_meta=/'
           jq -c '{brent:.assets.brent.usd,usd:.assets.usd.toman,gold18:.assets.gold18.toman,ounce:.assets.goldounce.usd,silver:.assets.silver.toman,silver_traded:.assets.silver.traded}' site.json | sed 's/^/::notice::site_assets=/'
           jq -c '[.assets|to_entries[]|select(.value.group=="commodity" or .value.group=="energy")|{k:.key,t:.value.toman,tr:.value.traded}]' site.json | sed 's/^/::notice::site_metals=/'
-          curl -sS -m 30 -A 'Mozilla/5.0' -o i.json "https://api.brsapi.ir/IME/Certificate.php?key=$K"
-          jq -c 'if type=="object" then keys else ["ARRAY",length] end' i.json | sed 's/^/::notice::ime_top=/'
-          jq -c '[..|objects|select((.symbol//.contract_code//"")|IN("SilverBar","CopperCthd"))]' i.json | sed 's/^/::notice::ime_rows=/'
-          curl -sS -m 30 -A 'Mozilla/5.0' -o g.json "https://api.brsapi.ir/Market/Gold_Currency.php?key=$K"
-          jq -c 'if type=="object" then (to_entries|map({k:.key,n:(.value|length?)})) else ["ARRAY",length] end' g.json | sed 's/^/::notice::gc_top=/'
-          jq -c '[..|objects|select(.symbol=="USD")]' g.json | sed 's/^/::notice::gc_usd=/'
+          curl -sS -m 30 -A 'Mozilla/5.0' -D h.txt -o g.json "https://api.brsapi.ir/Market/Gold_Currency.php?key=$K"
+          grep -i 'date\|cache\|age\|x-' h.txt | tr -d '\r' | paste -sd' ' | sed 's/^/::notice::gc_headers=/'
+          jq -c '[.gold[0],.currency[0],.cryptocurrency[0]]|map({date,time,price})' g.json | sed 's/^/::notice::gc_first=/'
