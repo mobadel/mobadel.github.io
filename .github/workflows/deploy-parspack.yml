@@ -214,14 +214,17 @@ jobs:
             # این صفحه‌ها را هم‌اندازه نگه می‌داشت و mirror ردشان می‌کرد؛ سرور
             # همان HTML قدیمی با CSS/JS قدیمی را می‌داد. پس همهٔ HTMLهای
             # ساخته‌شده بی‌قیدوشرط فرستاده می‌شوند.
-            if grep -qE '^(index\.html|convert/index\.html|price/[^/]+\.html|scripts/build-pages\.mjs|data/.*|\.github/workflows/deploy-parspack\.yml)$' changed-files.txt; then
-              # با ~۹۰۰ صفحه، put تک‌تک و پشت سر هم از سقف زمان گام رد شد؛ mirror با
-              # --transfer-all همان «بی‌قیدوشرط فرستادن» را موازی انجام می‌دهد.
-              echo "mirror --reverse --verbose --parallel=8 --transfer-all --include-glob '*.html' _site/ \"$FTP_DIRECTORY\""
-              # قاعده‌های ?amount= (تبدیل‌های پرتکرار) هنگام ساخت به _site/.htaccess
-              # افزوده می‌شوند، پس با تغییر داده یا قالب باید دوباره فرستاده شود.
-              echo "put -O \"$FTP_DIRECTORY\" \"_site/.htaccess\""
-            fi
+            #
+            # از PR #103 این صفحه‌ها نرخ لحظهٔ ساخت را هم در خود دارند، پس محتوایشان
+            # در هر دیپلوی عوض می‌شود حتی وقتی قالب دست نخورده. شرطِ «فقط وقتی
+            # قالب عوض شد» یعنی HTML تازه فقط وقتی می‌رفت که طول عددها اتفاقاً
+            # فرق کند؛ ۲۵ مهر هم‌طول ماند، جا ماند و گام تأیید شکست. پس همیشه.
+            # با ~۹۰۰ صفحه، put تک‌تک و پشت سر هم از سقف زمان گام رد شد؛ mirror با
+            # --transfer-all همان «بی‌قیدوشرط فرستادن» را موازی انجام می‌دهد.
+            echo "mirror --reverse --verbose --parallel=8 --transfer-all --include-glob '*.html' _site/ \"$FTP_DIRECTORY\""
+            # قاعده‌های ?amount= (تبدیل‌های پرتکرار) هنگام ساخت به _site/.htaccess
+            # افزوده می‌شوند، پس با همین صفحه‌ها فرستاده می‌شود.
+            echo "put -O \"$FTP_DIRECTORY\" \"_site/.htaccess\""
 
             echo bye
           } | lftp -u "$FTP_USERNAME","$FTP_PASSWORD" -p "$FTP_PORT" "$FTP_SERVER"

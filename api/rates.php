@@ -282,6 +282,9 @@ if (!is_dir($cacheDir)) {
 require_once __DIR__ . '/market-history.php';
 function withMarketStatus(array $payload): array {
     $payload['markets'] = marketStatusMap(time());
+    /* کدام کرون آخرین بار refresh.php را زد (refresh.php ثبتش می‌کند). */
+    $cron = json_decode((string) @file_get_contents(__DIR__ . '/cache/cron.json'), true);
+    $payload['cron'] = is_array($cron) ? $cron : null;
     return $payload;
 }
 
