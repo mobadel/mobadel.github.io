@@ -108,7 +108,9 @@ async function getJson(url) {
 
 async function brsRates() {
   try {
-    const data = await getJson("https://tabdex.ir/api/rates.php");
+    /* t= تا هیچ کش میانی (CDN، پراکسی) نسخهٔ قدیمی ندهد؛ خود سرور هر دقیقه
+       تازه می‌شود، پس عدد راس ساعت حداکثر یک دقیقه کهنه است. */
+    const data = await getJson(`https://tabdex.ir/api/rates.php?t=${Date.now()}`);
     return data && data.assets ? data.assets : {};
   } catch (err) {
     console.warn("::warning::rates.php پاسخ نداد:", err.message);
