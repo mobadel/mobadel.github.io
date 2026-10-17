@@ -374,8 +374,18 @@ function backoffUntil(string $key): array
 
 function recordFailure(string $reason, int $code, string $key): void
 {
-    /* ۴۰۳ و ۴۲۹ یعنی سهمیه؛ اینها با تلاش دوباره درست نمی‌شوند. */
-    $cooldown = in_array($code, [401, 403, 429], true) ? BACKOFF_BLOCKED : BACKOFF_TRANSIENT;
+    /* ۴۰۳ و ۴۲۹ یعنی سهمیه؛ اینها با تلاش دوباره درست نمی‌شوند.
+
+       ۴۰۲ (payment_required) یعنی «دسترسی رایگان امروز تمام شد» (۲۵ مهر
+       دیده شد). تا نیمه‌شب تهران که سهمیه باز می‌شود هیچ تلاشی جواب
+       نمی‌دهد، و قبلاً خطای گذرا حساب می‌شد و هر دو دقیقه دوباره کوبیده
+       می‌شد. حالا تا نیمه‌شب صبر می‌کنیم. */
+    if ($code === 402) {
+        $midnight = (new DateTimeImmutable('tomorrow', new DateTimeZone('Asia/Tehran')))->getTimestamp();
+        $cooldown = max(BACKOFF_TRANSIENT, $midnight - time() + 60);
+    } else {
+        $cooldown = in_array($code, [401, 403, 429], true) ? BACKOFF_BLOCKED : BACKOFF_TRANSIENT;
+    }
     @file_put_contents(
         BACKOFF_FILE,
         json_encode([
