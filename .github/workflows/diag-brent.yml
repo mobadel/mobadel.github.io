@@ -7,15 +7,19 @@ permissions:
 jobs:
   diag:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    environment: production
+    timeout-minutes: 8
     steps:
-      - name: tgju freshness per host
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/gold-fiat-from-tgju
+      - name: run new rates.php live
+        env:
+          BRSAPI_KEY: ${{ secrets.BRSAPI_KEY }}
         run: |
           set +e
           echo "::notice::now_tehran=$(TZ=Asia/Tehran date +%T)"
-          for h in call1 call2 call3 call4; do
-            curl -sS -m 20 -A 'Mozilla/5.0' -o t.json "https://$h.tgju.org/ajax.json"
-            echo "::notice::$h $(jq -c '[.current.price_dollar_rl.ts,.current.price_dollar_rl.p,.current.geram18.ts,.current.sekee.ts,([.current[]|.ts?]|max)]' t.json)"
-          done
-          curl -sS -m 20 -A 'Mozilla/5.0' -o t.json "https://call1.tgju.org/ajax.json?rev=$(date +%s)"
-          echo "::notice::call1_bust $(jq -c '[.current.price_dollar_rl.ts,([.current[]|.ts?]|max)]' t.json)"
+          php api/rates.php > r1.json
+          echo "::notice::run1 $(jq -c '{source_updated,carried,sources,n:(.assets|length),usd:.assets.usd.toman,gold18:.assets.gold18.toman,silver:.assets.silver.toman,ounce:.assets.goldounce.usd,brent:.assets.brent.usd}' r1.json)"
+          code=$(curl -sS -m 20 -o n.json -w '%{http_code}' 'https://api.nobitex.ir/market/stats?srcCurrency=usdt,btc&dstCurrency=rls')
+          echo "::notice::nobitex http=$code $(jq -c '{status, usdt:.stats["usdt-rls"].latest, btc:.stats["btc-rls"].latest}' n.json)"
