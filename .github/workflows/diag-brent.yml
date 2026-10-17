@@ -7,14 +7,9 @@ permissions:
 jobs:
   diag:
     runs-on: ubuntu-latest
-    timeout-minutes: 8
+    timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: feat/metals-energy-tgju
-      - name: run new rates.php live (no key)
+      - name: gasoline keys
         run: |
-          set +e
-          BRSAPI_KEY= php api/rates.php > r.json
-          echo "::notice::$(jq -c '{carried,sources,n:(.assets|length),silver:.assets.silver.toman,ounce:.assets.goldounce.usd,ounce_t:.assets.goldounce.toman,brent:.assets.brent.usd,gas:.assets.gasoline.usd,gas_ch:.assets.gasoline.change,usd:.assets.usd.toman}' r.json)"
-          echo "::notice::ids=$(jq -r '.assets|keys|join(",")' r.json)"
+          curl -sS -m 30 -A 'Mozilla/5.0' -o t.json "https://call1.tgju.org/ajax.json?rev=$(date +%s)"
+          echo "::notice::$(jq -c '{a:.current.energy_gasoline_rbob,b:.current.energy_commodities_gasoline_rbob,brent:.current.oil_brent.ts}' t.json)"
