@@ -7,22 +7,27 @@ permissions:
 jobs:
   diag:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    environment: production
+    timeout-minutes: 8
     steps:
-      - name: probe tgju
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/gold-fiat-from-tgju
+      - name: run new rates.php live
+        env:
+          BRSAPI_KEY: ${{ secrets.BRSAPI_KEY }}
         run: |
           set +e
-          curl -sS -m 30 -A 'Mozilla/5.0' -o t.json https://call1.tgju.org/ajax.json
-          curl -sS -m 30 -A 'Mozilla/5.0' -o s.json https://tabdex.ir/api/rates.php
-          cat > m.json <<'J'
-          {"gold18":"geram18","gold24":"geram24","goldmelted":"mesghal","emami":"sekee","bahar":"sekeb","halfcoin":"nim","quartercoin":"rob","gramcoin":"gerami",
-           "usd":"price_dollar_rl","eur":"price_eur","gbp":"price_gbp","chf":"price_chf","aed":"price_aed","try":"price_try","jpy":"price_jpy","cny":"price_cny","aud":"price_aud","cad":"price_cad","rub":"price_rub","sek":"price_sek","inr":"price_inr","pkr":"price_pkr","afn":"price_afn","myr":"price_myr","thb":"price_thb","sar":"price_sar","qar":"price_qar","kwd":"price_kwd","bhd":"price_bhd","omr":"price_omr","iqd":"price_iqd","syp":"price_syp","azn":"price_azn","amd":"price_amd","gel":"price_gel"}
-          J
-          jq -rn --slurpfile t t.json --slurpfile s s.json --slurpfile m m.json '
-            $m[0] | to_entries[] | . as $e
-            | ($t[0].current[$e.value]) as $c
-            | ($s[0].assets[$e.key].toman) as $old
-            | "\($e.key) \($e.value) p=\($c.p // "MISSING") ts=\($c.ts // "-") old=\($old) ratio=\(if $c and $old then ((($c.p|gsub(",";"")|tonumber)/10)/$old*1000|round/1000) else "-" end)"' > out.txt
-          split -l 8 out.txt part_
-          for f in part_*; do echo "::notice::$(paste -sd'|' $f)"; done
-          jq -r '.current|keys[]' t.json | grep -iE 'sek|geram|mesghal|gerami|abshode|ons|^nim|^rob|silver|nogh|copper' | paste -sd' ' | sed 's/^/::notice::gold_keys=/'
+          php -v | head -1
+          summary() {
+            jq -c '{stale,reason,source_updated,carried,sources,quota,n:(.assets|length),
+              usd:.assets.usd.toman, usd_ch:.assets.usd.change, gold18:.assets.gold18.toman, emami:.assets.emami.toman, jpy:.assets.jpy.toman,
+              ounce:.assets.goldounce.usd, ounce_t:.assets.goldounce.toman, brent_t:.assets.brent.toman, silver:.assets.silver.toman, copper:.assets.copper.toman}' "$1"
+          }
+          php api/rates.php > r1.json; echo "::notice::run1 $(summary r1.json)"
+          php api/rates.php > r2.json; echo "::notice::run2_cached $(jq -c '{n:(.assets|length),carried}' r2.json)"
+          # کش تازه را کهنه کن، بی‌کلید و با TGJU بسته: همه باید از کش بیایند
+          jq '.fetched_unix=0' api/cache/rates.json > x && mv x api/cache/rates.json
+          echo '127.0.0.1 call1.tgju.org call2.tgju.org call3.tgju.org call4.tgju.org' | sudo tee -a /etc/hosts >/dev/null
+          BRSAPI_KEY= php api/rates.php > r3.json; echo "::notice::run3_no_tgju_no_key $(jq -c '{stale,n:(.assets|length),carried:(.carried|length),sources}' r3.json)"
+          jq -r '.assets|keys|join(",")' r1.json | sed 's/^/::notice::ids=/'
