@@ -49,9 +49,9 @@
     { id: "quartercoin", name: "ربع سکه",           englishName: "Quarter Coin",    decimals: 4, group: "coin", unit: "piece",   localIcon: COIN_ICON },
     { id: "gramcoin",    name: "سکه یک گرمی",       englishName: "One Gram Coin",   decimals: 4, group: "coin", unit: "piece",   localIcon: COIN_ICON },
 
-    /* فلزات از گواهی سپردهٔ بورس کالا می‌آیند، نه از بازار آزاد. به‌جای
-       نماد لاتین، منبعشان نوشته می‌شود تا کاربر بداند قیمت از کجاست. */
-    { id: "silver", code: "بورس کالا", name: "نقره ۹۹۹", englishName: "Silver 999",     decimals: 4, group: "commodity", unit: "gram",     localIcon: "/assets/silver.svg" },
+    /* مس از گواهی سپردهٔ بورس کالا می‌آید؛ به‌جای نماد لاتین، منبعش نوشته
+       می‌شود. نقره قیمت بازار آزاد است و مثل طلای ۱۸ عیار برچسب ندارد. */
+    { id: "silver", name: "نقره ۹۹۹", englishName: "Silver 999",     decimals: 4, group: "commodity", unit: "gram",     localIcon: "/assets/silver.svg" },
     { id: "copper", code: "بورس کالا", name: "مس",       englishName: "Copper Cathode", decimals: 4, group: "commodity", unit: "kilogram", localIcon: "/assets/copper.svg" },
 
     /* انرژی در بازار آتی آمریکا معامله می‌شود و قیمتش دلاری است؛ مثل

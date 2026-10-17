@@ -148,7 +148,7 @@ assert.match(script, /CATEGORY_ORDER = \["fiat", "gold", "coin", "commodity", "e
 assert.match(ratesApi, /'oil_brent'\s*=> \['id' => 'brent'/, "نفت برنت باید از TGJU بیاید");
 assert.match(ratesApi, /'energy_gasoline_rbob' => \['id' => 'gasoline'/, "بنزین باید از TGJU بیاید");
 assert.match(ratesApi, /'ons'\s*=> \['id' => 'goldounce'/, "انس طلا باید از TGJU بیاید");
-assert.match(ratesApi, /'ime_certificate_silver_bars' => \['id' => 'silver'/, "نقره (گواهی بورس کالا) باید از TGJU بیاید");
+assert.match(ratesApi, /'silver_999' => \['id' => 'silver'/, "نقره ۹۹۹ باید قیمت بازار آزاد TGJU باشد");
 assert.match(ratesApi, /'CopperCthd' => \['id' => 'copper'/, "مس باید از بورس کالای BrsApi بیاید");
 assert.doesNotMatch(ratesApi, /Commodity\.php/, "Commodity سهمیهٔ ده‌تایی را می‌سوزاند و نباید صدا زده شود");
 assert.match(ratesApi, /const QUOTA_HARD_LIMIT = 9;/, "سقف خودمان باید زیر سقف ده‌تایی BrsApi بماند");
@@ -213,7 +213,7 @@ assert.match(styles, /@media\(max-width:600px\)[^\n]*\.price-unit\{font-size:16p
 assert.match(script, /secondaryChange\.className = "price-change secondary-change " \+ \(hasToman \? changeClass\(asset\.tomanChange\) : "neutral"\)/, "درصد تومانی باید کلاس رنگ را از جهت تغییر تومانی بگیرد");
 assert.match(styles, /\.price-secondary \.price-change\.positive strong\{color:var\(--green-dark\)!important\}/, "درصد تومانی مثبت باید سبز باشد");
 assert.match(styles, /\.price-secondary \.price-change\.negative strong\{color:var\(--danger\)!important\}/, "درصد تومانی منفی باید قرمز باشد");
-assert.match(script, /asset\.id === "silver"\) return "هر گرم در بورس کالا"/, "زیرعنوان نقره باید واحد گرم و بورس کالا باشد");
+assert.match(script, /asset\.id === "silver"\) return "هر گرم";/, "زیرعنوان نقره مثل طلای ۱۸ عیار فقط «هر گرم» است");
 assert.match(script, /asset\.id === "copper"\) return "هر کیلوگرم در بورس کالا"/, "زیرعنوان مس باید واحد کیلوگرم و بورس کالا باشد");
 assert.match(script, /asset\.id === "gold18" \|\| asset\.id === "gold24"\) return "هر گرم"/, "زیرعنوان طلای ۱۸ و ۲۴ عیار باید هر گرم باشد");
 assert.match(script, /asset\.id === "goldmelted"\) return "هر مثقال"/, "زیرعنوان طلای آب‌شده باید هر مثقال باشد");

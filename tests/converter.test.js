@@ -406,12 +406,11 @@ setTimeout(async () => {
   assert.equal(location.pathname, "/convert/usd-to-irt/", "دلار به تومان باید آدرس مستقل خودش را نشان دهد");
   assert.equal(headTags['link[rel="canonical"]'].attributes.href, "https://tabdex.ir/convert/usd-to-irt/");
 
-  /* ── فلزات: منبع به‌جای نماد لاتین ────────────────────────── */
+  /* ── فلزات: مس منبع به‌جای نماد لاتین؛ نقره بازار آزاد، مثل طلا ── */
   openDialog("from");
   clickChip("commodity");
   const silverOption = elements["asset-list"].children.find((item) => item.dataset.currency === "silver");
-  assert.equal(silverOption.children.length, 3, "نقره باید ستون سوم داشته باشد");
-  assert.equal(silverOption.children[2].textContent, "بورس کالا", "به‌جای نماد لاتین باید منبع نوشته شود");
+  assert.equal(silverOption.children.length, 2, "نقره مثل طلای ۱۸ عیار ستون نماد ندارد");
   assert.equal(silverOption.children[1].children[0].textContent, "نقره ۹۹۹");
   assert.equal(silverOption.children[1].children[1].textContent, "هر گرم");
 
