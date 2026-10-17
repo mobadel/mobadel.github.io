@@ -5,9 +5,13 @@ declare(strict_types=1);
  * پراکسی نرخ طلا، سکه، ارز فیات، فلزات و انرژی — بین مرورگر و منابع می‌نشیند.
  *
  * منابع (از ۲۵ مهر ۱۴۰۵):
- *   طلا، سکه و ارز فیات  ← TGJU (call*.tgju.org/ajax.json)
- *   انس طلا، نفت، بنزین   ← BrsApi Commodity
- *   نقره و مس             ← BrsApi IME/Certificate (بورس کالا)
+ *   طلا، سکه، ارز فیات، نقره، انس طلا، نفت، بنزین  ← TGJU (call*.tgju.org/ajax.json)
+ *   مس (گواهی سپردهٔ مس کاتد بورس کالا)              ← BrsApi IME/Certificate
+ *
+ * BrsApi سهمیهٔ رایگان را از ۱۵۰۰ به ۱۰ درخواست در روز رساند (۲۵ مهر،
+ * usage_today_limit=10 در پاسخ ۴۰۲). پس هر چه TGJU دارد از آنجا می‌آید و
+ * BrsApi فقط برای مس می‌ماند که TGJU گواهی‌اش را ندارد — حدود ۷ تماس در
+ * روزهای معاملاتی، صفر در پنجشنبه و جمعه.
  *
  * BrsApi اعلام کرد Gold_Currency را دیگر برای طلا و ارز سرویس نمی‌دهد؛
  * از بامداد پنجشنبه ۲۴ مهر همهٔ ردیف‌هایش قیمت صفر داشت. پس طلا و ارز
@@ -39,29 +43,45 @@ const TGJU_TIMEOUT = 8;
 const TGJU_TRIES   = 2;
 const TGJU_UA      = 'Mozilla/5.0 (compatible; tabdex-rates/2.0; +https://tabdex.ir)';
 
-/* گواهی سپردهٔ بورس کالا (نقره و مس) اندپوینت جداست و روزی یک‌بار
-   تسویه می‌شود، نه لحظه‌ای. پس کش خیلی طولانی‌تری می‌گیرد.
+/* گواهی سپردهٔ مس کاتد از بورس کالا. با سقف ۱۰ تماس در روز، فقط وقتی
+   پرسیده می‌شود که چیزی برای تغییر هست: ساعتی یک بار در پنجرهٔ معاملات
+   (شنبه تا چهارشنبه ۱۲ تا ۱۸، یعنی ۶ تا ۷ تماس) و یک بار بعد از بسته شدن
+   برای قیمت پایانی. بیرون از بازار تا جلسهٔ بعد هیچ تماسی نیست. */
+const IME_TTL_OPEN = 3600;
+const IME_URL      = 'https://api.brsapi.ir/IME/Certificate.php';
 
-   سهمیهٔ رایگان BrsApi روی همهٔ سرویس‌هایش روی‌هم ۱۵۰۰ درخواست در روز
-   است و این عدد از همان بودجه کم می‌کند.
+function imeSessionOpen(DateTimeImmutable $at): bool
+{
+    /* شنبه=۶، یکشنبه=۷، دوشنبه=۱ … چهارشنبه=۳ */
+    return in_array((int) $at->format('N'), [6, 7, 1, 2, 3], true)
+        && (int) $at->format('G') >= 12
+        && (int) $at->format('G') < 18;
+}
 
-   نیم‌ساعتِ ثابت شبانه‌روز ۴۸ درخواست می‌برد، ولی بورس کالا فقط شنبه
-   تا چهارشنبه ۱۲ تا ۱۸ باز است. بیرون از آن پنجره گواهی سپرده اصلاً
-   تغییر نمی‌کند، پس پرسیدنش فقط بودجهٔ نرخ‌های لحظه‌ای را می‌خورد.
-   با پنجره‌آگاه شدن حدود ۱۵ درخواست می‌شود. */
-const IME_TTL_OPEN   = 1800;
-const IME_TTL_CLOSED = 21600;
-const IME_URL        = 'https://api.brsapi.ir/IME/Certificate.php';
+/* آخرین لحظه‌ای که جلسهٔ معاملاتی بسته شد (۱۸:۰۵ آخرین روز معاملاتی). */
+function imeLastClose(DateTimeImmutable $now): int
+{
+    $day = $now->setTime(18, 5);
+    for ($i = 0; $i < 8; $i++) {
+        if (in_array((int) $day->format('N'), [6, 7, 1, 2, 3], true) && $day <= $now) {
+            return $day->getTimestamp();
+        }
+        $day = $day->modify('-1 day');
+    }
 
-function imeTtl(): int
+    return 0;
+}
+
+/* کش مس تازه است؟ در بازار: کمتر از یک ساعت. بیرون بازار: بعد از
+   بسته‌شدنِ آخرین جلسه گرفته شده باشد. */
+function imeFresh(int $fetchedUnix): bool
 {
     $now = new DateTimeImmutable('now', new DateTimeZone('Asia/Tehran'));
-    /* شنبه=۶، یکشنبه=۷، دوشنبه=۱ … چهارشنبه=۳ */
-    $open = in_array((int) $now->format('N'), [6, 7, 1, 2, 3], true)
-        && (int) $now->format('G') >= 12
-        && (int) $now->format('G') < 18;
+    if (imeSessionOpen($now)) {
+        return time() - $fetchedUnix < IME_TTL_OPEN;
+    }
 
-    return $open ? IME_TTL_OPEN : IME_TTL_CLOSED;
+    return $fetchedUnix >= imeLastClose($now);
 }
 
 /* ── عمر کش بر اساس ساعت بازار ───────────────────────────────────
@@ -126,17 +146,13 @@ const QUOTA_FILE       = __DIR__ . '/cache/quota.json';
    هیچ تماسی با بالادست گرفته نمی‌شود و کش سرو می‌شود. قیمتِ کمی کهنه
    بی‌نهایت بهتر از کلیدِ مسدود است: مسدودی با ریست روزانه باز نمی‌شود
    و فقط پشتیبانی BrsApi رفعش می‌کند — دو بار این را دیدیم. */
-const QUOTA_SOFT_LIMIT = 1050;
-const QUOTA_HARD_LIMIT = 1300;
-const TTL_THROTTLED    = 300;
+/* ۲۵ مهر BrsApi سقف رایگان را به ۱۰ رساند. ۹ تا خودمان، یکی جا برای
+   خطا؛ با برنامهٔ مس (حدود ۷ در روز معاملاتی) معمولاً به آن نمی‌رسیم. */
+const QUOTA_HARD_LIMIT = 9;
 
-/* یک‌بار، فقط ۲۵ مهر ۱۴۰۵: باگِ قیمت صفر (PR #104) ۱۳۰۰ تماس را بیهوده
-   سوزاند و نفت را تا نیمه‌شب قفل کرد. تا نیمه‌شب با TTL جمعه حدود ۳۰
-   تماس لازم است؛ ۶۰ تا جا، و هنوز بیش از ۱۴۰ تا تا سقف ۱۵۰۰ فاصله.
-   فردا خودبه‌خود بی‌اثر است. */
 function quotaHardLimit(): int
 {
-    return tehranToday() === '2026-10-16' ? QUOTA_HARD_LIMIT + 60 : QUOTA_HARD_LIMIT;
+    return QUOTA_HARD_LIMIT;
 }
 
 function quotaExhausted(): bool
@@ -175,39 +191,16 @@ function countUpstreamCall(): void
     );
 }
 
+/* سهمیهٔ BrsApi دیگر ربطی به عمر کش ندارد: نرخ‌های اصلی از TGJU می‌آیند
+   که سهمیه ندارد، و مس برنامهٔ جدای خودش را دارد. */
 function effectiveTtl(): int
 {
-    return quotaToday() >= QUOTA_SOFT_LIMIT
-        ? max(TTL_THROTTLED, marketTtl())
-        : marketTtl();
+    return marketTtl();
 }
 
-/* ── انرژی ────────────────────────────────────────────────────────
-   نفت و فرآورده‌هایش از اندپوینت Commodity می‌آیند، نه Gold_Currency.
-   قیمت‌ها دلاری‌اند و مثل انس طلا با نرخ دلار به تومان تبدیل می‌شوند.
-
-   بازارشان بازار آتی آمریکاست، پس ساعت کاری‌اش هیچ ربطی به بازار
-   ایران ندارد: تقریباً شبانه‌روز باز است و فقط آخر هفتهٔ غربی و یک
-   وقفهٔ روزانه تعطیل می‌شود. جزئیاتش در market-history.php. */
-const COMMODITY_URL = 'https://api.brsapi.ir/Market/Commodity.php';
-
-/* بازار باز ده دقیقه، بسته یک ساعت. نفت آن‌قدر پرنوسان نیست که ارزش
-   تازه‌سازی دقیقه‌ای داشته باشد، و سهمیه هم باید برای نرخ‌های ایرانی
-   بماند که کاربر لحظه‌ای دنبالشان است. */
-const ENERGY_TTL_OPEN   = 900;
-const ENERGY_TTL_CLOSED = 3600;
-
-/* انس طلا هم از همین پاسخ می‌آید (زیر metal_precious). نرخ جهانی است و
-   Gold_Currency دیگر آن را نمی‌دهد. */
-const ENERGY_MAP = [
-    'XAUUSD' => ['id' => 'goldounce', 'group' => 'gold',   'unit' => 'ounce'],
-    'BRENT' => ['id' => 'brent',    'group' => 'energy', 'unit' => 'barrel'],
-    'RBOB'  => ['id' => 'gasoline', 'group' => 'energy', 'unit' => 'gallon'],
-];
-
-/* نمادهای بورس کالا. قیمت‌ها به ریال‌اند. */
+/* نماد بورس کالا. قیمت ریالی است. نقره هم اینجا بود ولی حالا از TGJU
+   می‌آید (ime_certificate_silver_bars، همان گواهی با همان واحد). */
 const IME_MAP = [
-    'SilverBar'  => ['id' => 'silver', 'group' => 'commodity', 'unit' => 'gram'],
     'CopperCthd' => ['id' => 'copper', 'group' => 'commodity', 'unit' => 'kilogram'],
 ];
 
@@ -258,6 +251,18 @@ const TGJU_MAP = [
     'price_azn' => ['id' => 'azn', 'group' => 'fiat', 'unit' => 'unit'],
     'price_amd' => ['id' => 'amd', 'group' => 'fiat', 'unit' => 'unit'],
     'price_gel' => ['id' => 'gel', 'group' => 'fiat', 'unit' => 'unit'],
+
+    // بورس کالا: گواهی سپردهٔ شمش نقره، ریال برای هر گرم (مثل SilverBar)
+    'ime_certificate_silver_bars' => ['id' => 'silver', 'group' => 'commodity', 'unit' => 'gram'],
+];
+
+/* اقلام دلاری TGJU. با دلار همین پاسخ به تومان تبدیل می‌شوند و تغییر
+   تومانی‌شان تغییر دلار را هم در خود دارد. عددها با آخرین نرخ BrsApi
+   یکی بودند (انس ۴۱۶۶٫۳۹، برنت ۱۰۹٫۸۶). */
+const TGJU_USD_MAP = [
+    'ons'                  => ['id' => 'goldounce', 'group' => 'gold',   'unit' => 'ounce'],
+    'oil_brent'            => ['id' => 'brent',     'group' => 'energy', 'unit' => 'barrel'],
+    'energy_gasoline_rbob' => ['id' => 'gasoline',  'group' => 'energy', 'unit' => 'gallon'],
 ];
 
 header('Content-Type: application/json; charset=utf-8');
@@ -346,7 +351,9 @@ if ($key === '' && is_readable(__DIR__ . '/config.php')) {
    پس عقب‌نشینی‌اش بلند است؛ خطای گذرا زود دوباره امتحان می‌شود. */
 const BACKOFF_FILE       = __DIR__ . '/cache/backoff.json';
 const BACKOFF_BLOCKED    = 1800;
-const BACKOFF_TRANSIENT  = 120;
+/* با سقف ۱۰ تماس در روز، تلاش دوبارهٔ دودقیقه‌ای بعد از یک خطای گذرا
+   می‌توانست در نیم ساعت کل سهمیهٔ روز را بسوزاند. */
+const BACKOFF_TRANSIENT  = 900;
 
 /* اثرانگشت کلید، نه خود کلید: فایل عقب‌نشینی نباید هیچ‌وقت کلید را
    روی دیسک نگه دارد. */
@@ -667,13 +674,34 @@ foreach (TGJU_MAP as $tgjuKey => $meta) {
 $usdToman  = (float) ($assets['usd']['toman'] ?? 0);
 $usdChange = (float) ($assets['usd']['change'] ?? 0);
 
+foreach (TGJU_USD_MAP as $tgjuKey => $meta) {
+    $row      = is_array($tgjuRows) && is_array($tgjuRows[$tgjuKey] ?? null) ? $tgjuRows[$tgjuKey] : null;
+    $usdPrice = $row !== null ? tgjuNumber($row['p'] ?? '') : 0.0;
+    // بدون نرخ دلار نمی‌شود تومانی داد، و عدد دلاری در گراف تومانی
+    // هزاران برابر غلط می‌شد. پس آخرین نرخ معتبر می‌ماند.
+    if ($usdPrice <= 0 || $usdToman <= 0) {
+        $carry($meta['id']);
+        continue;
+    }
+    $rowChange = tgjuChange($row);
+    $tomanChange = ((1 + $rowChange / 100) * (1 + $usdChange / 100) - 1) * 100;
+    $assets[$meta['id']] = [
+        'toman'  => $usdPrice * $usdToman,
+        'usd'    => $usdPrice,
+        'group'  => $meta['group'],
+        'unit'   => $meta['unit'],
+        'name'   => (string) ($cachedAssets[$meta['id']]['name'] ?? $meta['id']),
+        'change' => $rowChange,
+        'toman_change' => $tomanChange,
+    ];
+}
+
 if ($assets === []) {
     serveStale($cached, 'no_mapped_assets tgju=' . $sources['tgju']);
 }
 
-/* ── BrsApi: فقط بورس کالا و Commodity ──────────────────────────
-   همان کلید، همان سهمیه، همان عقب‌نشینی. بی‌کلید هم سایت بالا می‌ماند:
-   طلا و ارز از TGJU می‌آیند و این دو بخش از کش خودشان سرو می‌شوند. */
+/* ── BrsApi: فقط مس ─────────────────────────────────────────────
+   بی‌کلید هم سایت بالا می‌ماند: بقیه از TGJU می‌آیند و مس از کش خودش. */
 function brsBlocked(string $key): bool
 {
     if ($key === '' || quotaExhausted()) {
@@ -713,15 +741,15 @@ function brsGet(string $url, string $key): array
     return $res;
 }
 
-/* ── بورس کالا: نقره و مس ─────────────────────────────────────
+/* ── بورس کالا: مس ────────────────────────────────────────────
    کش مستقل با عمر طولانی‌تر. اگر این بخش شکست بخورد، بقیهٔ نرخ‌ها
    نباید از دست بروند، پس هیچ خطایی اینجا کل پاسخ را متوقف نمی‌کند.
 
    ۲۵ مهر نقره و مس یک‌باره از پاسخ افتادند در حالی که BrsApi سالم
    می‌داد: حلقه ردیفِ بی‌قیمت را دور می‌انداخت و جایگزینی از کش
    نداشت. حالا مثل طلا و ارز آخرین نرخ معتبر می‌ماند، پاسخ بی‌قیمت
-   ردیف‌های سالم قبلی را در کش پاک نمی‌کند، و بعدش نیم‌ساعته دوباره
-   پرسیده می‌شود نه شش‌ساعته. */
+   ردیف‌های سالم قبلی را در کش پاک نمی‌کند، و تا نوبت بعدی (imeFresh)
+   دوباره پرسیده نمی‌شود. */
 $imeCacheFile = $cacheDir . '/ime.json';
 $imeRows      = null;
 $imeDecoded   = null;
@@ -746,11 +774,8 @@ if (is_readable($imeCacheFile)) {
     if ($imeRaw !== false) {
         $imeDecoded = json_decode($imeRaw, true);
         if (is_array($imeDecoded) && isset($imeDecoded['data'])) {
-            $imeAge = time() - (int) ($imeDecoded['fetched_unix'] ?? 0);
-            /* تلاشِ بی‌قیمت هم زمانش ثبت می‌شود تا هر درخواست دوباره
-               نپرسد؛ ولی نیم‌ساعته دوباره امتحان می‌شود، نه شش‌ساعته. */
-            $imeFreshFor = empty($imeDecoded['unpriced']) ? imeTtl() : min(imeTtl(), IME_TTL_OPEN);
-            if ($imeAge >= 0 && $imeAge < $imeFreshFor) {
+            /* تلاشِ بی‌قیمت هم زمانش ثبت می‌شود تا هر درخواست دوباره نپرسد. */
+            if (imeFresh((int) ($imeDecoded['fetched_unix'] ?? 0))) {
                 $imeRows = $imeDecoded['data'];
             }
         }
@@ -829,102 +854,6 @@ if (is_array($imeRows)) {
     }
 }
 foreach (IME_MAP as $meta) {
-    $carry($meta['id']);
-}
-
-/* ── Commodity: انس طلا، نفت برنت و بنزین ────────────────────────
-   کش مستقل، چون عمرش با نرخ‌های ایرانی فرق دارد: بازار آتی آمریکا
-   شبانه‌روز باز است ولی آن‌قدر پرنوسان نیست که ارزش تازه‌سازی دقیقه‌ای
-   داشته باشد. وقتی هم بسته است اصلاً ارزش پرسیدن ندارد.
-
-   مثل بورس کالا، شکست این بخش نباید بقیهٔ نرخ‌ها را از بین ببرد. */
-$energyCacheFile = $cacheDir . '/energy.json';
-$energyRows      = null;
-$energyDecoded   = null;
-$sources['commodity'] = 'cache';
-
-require_once __DIR__ . '/market-history.php';
-$energyTtl = energyMarketIsOpen(time()) ? ENERGY_TTL_OPEN : ENERGY_TTL_CLOSED;
-
-if (is_readable($energyCacheFile)) {
-    $energyRaw = @file_get_contents($energyCacheFile);
-    if ($energyRaw !== false) {
-        $energyDecoded = json_decode($energyRaw, true);
-        if (is_array($energyDecoded) && isset($energyDecoded['data'])) {
-            $energyAge = time() - (int) ($energyDecoded['fetched_unix'] ?? 0);
-            if ($energyAge >= 0 && $energyAge < $energyTtl) {
-                $energyRows = $energyDecoded['data'];
-            }
-        }
-    }
-}
-
-if ($energyRows === null) {
-    if (brsBlocked($key)) {
-        $sources['commodity'] = brsBlockedReason($key);
-    } else {
-        $energyResult = brsGet(COMMODITY_URL, $key);
-        if ($energyResult['body'] !== false && $energyResult['code'] === 200) {
-            $energyPayload = json_decode((string) $energyResult['body'], true);
-            if (is_array($energyPayload)) {
-                // پاسخ Commodity بخش‌بندی‌شده است؛ مسطح‌سازی هر سه شکل را می‌پذیرد.
-                $energyRows = flattenSymbolRows($energyPayload);
-                $sources['commodity'] = 'fetched';
-                $energyEncoded = json_encode(
-                    ['fetched_unix' => time(), 'data' => $energyRows],
-                    JSON_UNESCAPED_UNICODE
-                );
-                $energyTemp = $energyCacheFile . '.' . getmypid() . '.tmp';
-                if (@file_put_contents($energyTemp, $energyEncoded) !== false) {
-                    @rename($energyTemp, $energyCacheFile);
-                }
-            } else {
-                $sources['commodity'] = 'upstream_not_json';
-            }
-        } else {
-            $sources['commodity'] = upstreamReason($energyResult);
-        }
-    }
-
-    // اگر تازه‌سازی نشد، کش قدیمی بهتر از هیچ است.
-    if ($energyRows === null && is_array($energyDecoded) && isset($energyDecoded['data'])) {
-        $energyRows = $energyDecoded['data'];
-    }
-}
-
-if (is_array($energyRows)) {
-    // کشی که نسخهٔ قبلی نوشته هنوز بخش‌بندی‌شده است؛ مسطح‌سازی روی ردیف
-    // تخت بی‌اثر است، پس کش قدیم و جدید هر دو درست خوانده می‌شوند.
-    foreach (flattenSymbolRows($energyRows) as $row) {
-        if (!is_array($row) || !isset($row['symbol'])) {
-            continue;
-        }
-        $symbol = (string) $row['symbol'];
-        if (!isset(ENERGY_MAP[$symbol])) {
-            continue;
-        }
-        $usdPrice = (float) ($row['price'] ?? 0);
-        // بدون نرخ دلار نمی‌شود تومانی داد، و عدد دلاری در گراف تومانی
-        // هزاران برابر غلط می‌شد. پس قلم را می‌اندازیم بیرون.
-        if ($usdPrice <= 0 || $usdToman <= 0) {
-            continue;
-        }
-        $meta = ENERGY_MAP[$symbol];
-        $rowChange = (float) ($row['change_percent'] ?? 0);
-        // تغییر تومانی، تغییر دلار را هم در خود دارد.
-        $tomanChange = ((1 + $rowChange / 100) * (1 + $usdChange / 100) - 1) * 100;
-        $assets[$meta['id']] = [
-            'toman'  => $usdPrice * $usdToman,
-            'usd'    => $usdPrice,
-            'group'  => $meta['group'],
-            'unit'   => $meta['unit'],
-            'name'   => (string) ($row['name'] ?? $meta['id']),
-            'change' => $rowChange,
-            'toman_change' => $tomanChange,
-        ];
-    }
-}
-foreach (ENERGY_MAP as $meta) {
     $carry($meta['id']);
 }
 

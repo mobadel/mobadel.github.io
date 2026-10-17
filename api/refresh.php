@@ -15,18 +15,26 @@ declare(strict_types=1);
  */
 const TABDEX_CRON = true;
 
-/* آخرین صدازننده از هر نوع، تا از بیرون معلوم باشد کدام کرون کار می‌کند:
-   local یعنی کرون خود سرور (پارس‌پک)، external یعنی سرویس بیرونی. فقط
-   زمان ثبت می‌شود، نه آی‌پی. */
+/* آخرین صدازننده از هر نوع، تا از بیرون معلوم باشد کدام کرون کار می‌کند.
+   آی‌پی به کار نمی‌آمد: کرون خود سرور هم از آی‌پی عمومی‌اش می‌آید.
+   پس از User-Agent: curl و php خط فرمان یعنی کرون پارس‌پک، cron-job.org
+   یعنی سرویس بیرونی. فقط زمان ثبت می‌شود. */
 (static function (): void {
-    $file = __DIR__ . '/cache/cron.json';
-    $remote = (string) ($_SERVER['REMOTE_ADDR'] ?? '');
-    $server = (string) ($_SERVER['SERVER_ADDR'] ?? '');
-    $local  = PHP_SAPI === 'cli' || $remote === '' || $remote === $server
-        || $remote === '127.0.0.1' || $remote === '::1';
+    $file  = __DIR__ . '/cache/cron.json';
+    $agent = strtolower((string) ($_SERVER['HTTP_USER_AGENT'] ?? ''));
+    if (PHP_SAPI === 'cli') {
+        $kind = 'server_php';
+    } elseif (str_starts_with($agent, 'curl/') || str_starts_with($agent, 'wget/')) {
+        $kind = 'server_curl';
+    } elseif (str_contains($agent, 'cron-job.org')) {
+        $kind = 'cron_job_org';
+    } else {
+        $kind = 'other';
+    }
     $seen = json_decode((string) @file_get_contents($file), true);
     $seen = is_array($seen) ? $seen : [];
-    $seen[$local ? 'local' : 'external'] = gmdate('c');
+    unset($seen['local'], $seen['external']);
+    $seen[$kind] = gmdate('c');
     if (!is_dir(dirname($file))) {
         @mkdir(dirname($file), 0775, true);
     }
