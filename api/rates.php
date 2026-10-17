@@ -5,7 +5,7 @@ declare(strict_types=1);
  * پراکسی نرخ طلا، سکه، ارز فیات، فلزات و انرژی — بین مرورگر و منابع می‌نشیند.
  *
  * منابع (از ۲۵ مهر ۱۴۰۵):
- *   طلا، سکه، ارز فیات، نقره، انس طلا، نفت، بنزین  ← TGJU (call*.tgju.org/ajax.json)
+ *   طلا، سکه، ارز فیات، نقره ۹۹۹، انس طلا، نفت، بنزین  ← TGJU (call*.tgju.org/ajax.json)
  *   مس (گواهی سپردهٔ مس کاتد بورس کالا)              ← BrsApi IME/Certificate
  *
  * BrsApi سهمیهٔ رایگان را از ۱۵۰۰ به ۱۰ درخواست در روز رساند (۲۵ مهر،
@@ -198,8 +198,8 @@ function effectiveTtl(): int
     return marketTtl();
 }
 
-/* نماد بورس کالا. قیمت ریالی است. نقره هم اینجا بود ولی حالا از TGJU
-   می‌آید (ime_certificate_silver_bars، همان گواهی با همان واحد). */
+/* نماد بورس کالا. قیمت ریالی است. نقره هم اینجا بود ولی حالا قیمت بازار
+   آزادش از TGJU می‌آید (silver_999). */
 const IME_MAP = [
     'CopperCthd' => ['id' => 'copper', 'group' => 'commodity', 'unit' => 'kilogram'],
 ];
@@ -252,8 +252,10 @@ const TGJU_MAP = [
     'price_amd' => ['id' => 'amd', 'group' => 'fiat', 'unit' => 'unit'],
     'price_gel' => ['id' => 'gel', 'group' => 'fiat', 'unit' => 'unit'],
 
-    // بورس کالا: گواهی سپردهٔ شمش نقره، ریال برای هر گرم (مثل SilverBar)
-    'ime_certificate_silver_bars' => ['id' => 'silver', 'group' => 'commodity', 'unit' => 'gram'],
+    // نقره ۹۹۹ بازار آزاد، ریال برای هر گرم (tgju.org/profile/silver_999).
+    // گواهی بورس کالا (ime_certificate_silver_bars) فقط در ساعات معامله
+    // تکان می‌خورد و از بازار عقب می‌ماند؛ ۲۵ مهر ۴۹۲ هزار در برابر ۵۰۴ هزار.
+    'silver_999' => ['id' => 'silver', 'group' => 'commodity', 'unit' => 'gram'],
 ];
 
 /* اقلام دلاری TGJU. با دلار همین پاسخ به تومان تبدیل می‌شوند و تغییر

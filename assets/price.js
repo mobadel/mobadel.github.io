@@ -6,7 +6,7 @@
     crypto: { name: "ارزهای دیجیتال", singular: "ارز دیجیتال", description: "قیمت لحظه ای ارزهای دیجیتال در بازار تتری و تومانی ایران", icon: "/assets/crypto-icons/btc.svg" },
     gold: { name: "طلا", singular: "طلا", description: "قیمت طلای ۱۸ و ۲۴ عیار، طلای آب‌شده و انس جهانی", icon: "/assets/gold-18k.svg" },
     coin: { name: "سکه", singular: "سکه", description: "قیمت لحظه ای انواع سکه در بازار ایران", icon: "/assets/coin-emami.webp?v=20260825-2" },
-    commodity: { name: "فلزات", singular: "فلز", description: "قیمت لحظه ای نقره و مس بر پایه داده‌های بورس کالا", icon: "/assets/silver.svg" },
+    commodity: { name: "فلزات", singular: "فلز", description: "قیمت لحظه ای نقره ۹۹۹ و مس کاتد بورس کالا", icon: "/assets/silver.svg" },
     energy: { name: "انرژی", singular: "حامل انرژی", description: "قیمت لحظه ای نفت برنت و بنزین در بازارهای جهانی", icon: "/assets/crude-oil.svg" },
     fiat: { name: "ارز", singular: "ارز", description: "قیمت لحظه ای دلار، یورو و دیگر ارزهای رایج به تومان", icon: "/assets/flags/us.svg" }
   };
@@ -32,7 +32,7 @@
     { id: "halfcoin", name: "نیم سکه", englishName: "Half Coin", group: "coin", unit: "piece", icon: "/assets/coin-emami.webp?v=20260825-2" },
     { id: "quartercoin", name: "ربع سکه", englishName: "Quarter Coin", group: "coin", unit: "piece", icon: "/assets/coin-emami.webp?v=20260825-2" },
     { id: "gramcoin", name: "سکه یک گرمی", englishName: "One Gram Coin", group: "coin", unit: "piece", icon: "/assets/coin-emami.webp?v=20260825-2" },
-    { id: "silver", name: "نقره ۹۹۹", englishName: "Silver 999", code: "بورس کالا", group: "commodity", unit: "gram", icon: "/assets/silver.svg" },
+    { id: "silver", name: "نقره ۹۹۹", englishName: "Silver 999", group: "commodity", unit: "gram", icon: "/assets/silver.svg" },
     { id: "copper", name: "مس", englishName: "Copper Cathode", code: "بورس کالا", group: "commodity", unit: "kilogram", icon: "/assets/copper.svg" },
     { id: "brent", name: "نفت برنت", englishName: "Brent Crude", code: "BRENT", group: "energy", unit: "barrel", icon: "/assets/crude-oil.svg" },
     { id: "gasoline", name: "بنزین آمریکا", englishName: "RBOB Gasoline", code: "RBOB", group: "energy", unit: "gallon", icon: "/assets/gasoline.svg" },
@@ -193,7 +193,7 @@
       var rows = payload && payload.assets || {}; var at = payload.updated ? new Date(payload.updated) : new Date(); if (!Number.isFinite(at.getTime())) at = new Date();
       Object.keys(rows).forEach(function (id) { if (!assets[id]) return; var row = rows[id]; var usd = Number(row.usd); // انرژی هم مثل انس طلا دلاری معامله می‌شود، پس عدد اصلی دلار است
         // و تومان زیرش می‌آید.
-        var dollarPrimary = (id === "goldounce" || assets[id].group === "energy") && Number.isFinite(usd) && usd > 0; assets[id].price = dollarPrimary ? usd : Number(row.toman); assets[id].priceCurrency = dollarPrimary ? "USD" : "IRT"; assets[id].tomanPrice = dollarPrimary ? Number(row.toman) : null; assets[id].tomanChange = dollarPrimary ? Number(row.toman_change) : null; assets[id].change = Number(row.change); assets[id].source = assets[id].group === "energy" ? "بازار جهانی انرژی" : dollarPrimary ? "بازار جهانی طلا" : id === "silver" || id === "copper" ? "بورس کالا" : "بازار ایران"; assets[id].updatedAt = at; });
+        var dollarPrimary = (id === "goldounce" || assets[id].group === "energy") && Number.isFinite(usd) && usd > 0; assets[id].price = dollarPrimary ? usd : Number(row.toman); assets[id].priceCurrency = dollarPrimary ? "USD" : "IRT"; assets[id].tomanPrice = dollarPrimary ? Number(row.toman) : null; assets[id].tomanChange = dollarPrimary ? Number(row.toman_change) : null; assets[id].change = Number(row.change); assets[id].source = assets[id].group === "energy" ? "بازار جهانی انرژی" : dollarPrimary ? "بازار جهانی طلا" : id === "copper" ? "بورس کالا" : "بازار ایران"; assets[id].updatedAt = at; });
       if (!latestUpdate || at > latestUpdate) latestUpdate = at;
     });
   }
@@ -427,7 +427,7 @@
 
   function descriptionFor(asset) { var units = priceLabel(asset) + (Number.isFinite(asset.tomanPrice) ? " و تومان" : ""); return "قیمت لحظه ای " + asset.name + " امروز " + todayLabel() + " به " + units + "، میزان تغییر قیمت و اطلاعات بازار " + asset.name + "."; }
   function assetSubtitle(asset) {
-    if (asset.id === "silver") return "هر گرم در بورس کالا";
+    if (asset.id === "silver") return "هر گرم";
     if (asset.id === "copper") return "هر کیلوگرم در بورس کالا";
     if (asset.id === "gold18" || asset.id === "gold24") return "هر گرم";
     if (asset.id === "goldmelted") return "هر مثقال";
