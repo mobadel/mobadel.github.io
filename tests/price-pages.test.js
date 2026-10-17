@@ -331,6 +331,12 @@ console.log("price page tests passed");
 // BrsApi گاهی همهٔ نرخ‌های طلا و ارز را صفر می‌دهد. قلم صفر باید از کش
 // بماند و کش تمدید شود؛ وگرنه هر بازدید به بالادست می‌زند، سهمیه می‌سوزد
 // و نفت (که اندپوینت سالمی دارد) هم قفل می‌شود.
-assert.match(ratesApi, /\$carried\[\] = \$carryId/, "قلم با قیمت صفر باید آخرین نرخ کش را نگه دارد");
+assert.match(ratesApi, /\$carried\[\]\s*= \$id/, "قلم با قیمت صفر باید آخرین نرخ کش را نگه دارد");
+assert.match(ratesApi, /'price_dollar_rl' => \['id' => 'usd'/, "دلار باید از TGJU بیاید");
+assert.match(ratesApi, /'geram18' => \['id' => 'gold18'/, "طلای ۱۸ عیار باید از TGJU بیاید");
+assert.doesNotMatch(ratesApi, /Gold_Currency\.php/, "Gold_Currency دیگر برای طلا و ارز سرویس نمی‌دهد و نباید صدا زده شود");
+assert.match(ratesApi, /'XAUUSD' => \['id' => 'goldounce'/, "انس طلا باید از Commodity بیاید");
+assert.match(ratesApi, /foreach \(IME_MAP as \$meta\) \{\s*\$carry\(\$meta\['id'\]\);/, "نقره و مس نباید با یک پاسخ بی‌قیمت از سایت حذف شوند");
+assert.match(ratesApi, /'sources'\s*=> \$sources/, "پاسخ باید بگوید هر منبع چه شد");
 assert.match(ratesApi, /'carried'\s*=> \$carried/, "پاسخ باید بگوید کدام قلم‌ها از کش آمده‌اند");
 assert.match(ratesApi, /array_diff_key\(\$assets, array_flip\(\$carried\)\)/, "نرخ منتقل‌شده نباید نقطهٔ نمودار شود");

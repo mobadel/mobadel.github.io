@@ -2,7 +2,16 @@
 declare(strict_types=1);
 
 /*
- * پراکسی نرخ طلا، سکه و ارز فیات — بین مرورگر و BrsApi می‌نشیند.
+ * پراکسی نرخ طلا، سکه، ارز فیات، فلزات و انرژی — بین مرورگر و منابع می‌نشیند.
+ *
+ * منابع (از ۲۵ مهر ۱۴۰۵):
+ *   طلا، سکه و ارز فیات  ← TGJU (call*.tgju.org/ajax.json)
+ *   انس طلا، نفت، بنزین   ← BrsApi Commodity
+ *   نقره و مس             ← BrsApi IME/Certificate (بورس کالا)
+ *
+ * BrsApi اعلام کرد Gold_Currency را دیگر برای طلا و ارز سرویس نمی‌دهد؛
+ * از بامداد پنجشنبه ۲۴ مهر همهٔ ردیف‌هایش قیمت صفر داشت. پس طلا و ارز
+ * کامل به TGJU رفت و BrsApi فقط برای بورس کالا و Commodity می‌ماند.
  *
  * چرا اصلاً وجود دارد: سهمیهٔ رایگان BrsApi روزی ۱۵۰۰ درخواست است و
  * کلید هم نباید در جاوااسکریپت عمومی دیده شود. اگر مرورگرِ هر
@@ -16,7 +25,19 @@ declare(strict_types=1);
  */
 
 const UPSTREAM_TIMEOUT = 12;
-const UPSTREAM_URL     = 'https://api.brsapi.ir/Market/Gold_Currency.php';
+
+/* ── TGJU برای طلا، سکه و ارز ───────────────────────────────────
+   فید عمومی همان چیزی است که صفحات خود tgju.org با آن زنده می‌شوند.
+   کلید و سهمیه ندارد، ولی چند میزبان دارد که هر کدام ممکن است لحظه‌ای
+   نرسد؛ پس به ترتیب امتحان می‌شوند. قیمت‌ها ریالی‌اند و رشته با جداکنندهٔ
+   هزارگان ("2,648,000"). زمان (ts) به وقت تهران است.
+
+   سمت جهت تغییر: dp همیشه مثبت است و جهت در dt می‌آید ("low" یعنی افت). */
+const TGJU_HOSTS   = ['https://call1.tgju.org', 'https://call2.tgju.org', 'https://call3.tgju.org', 'https://call4.tgju.org'];
+const TGJU_PATH    = '/ajax.json';
+const TGJU_TIMEOUT = 8;
+const TGJU_TRIES   = 2;
+const TGJU_UA      = 'Mozilla/5.0 (compatible; tabdex-rates/2.0; +https://tabdex.ir)';
 
 /* گواهی سپردهٔ بورس کالا (نقره و مس) اندپوینت جداست و روزی یک‌بار
    تسویه می‌شود، نه لحظه‌ای. پس کش خیلی طولانی‌تری می‌گیرد.
@@ -176,7 +197,10 @@ const COMMODITY_URL = 'https://api.brsapi.ir/Market/Commodity.php';
 const ENERGY_TTL_OPEN   = 900;
 const ENERGY_TTL_CLOSED = 3600;
 
+/* انس طلا هم از همین پاسخ می‌آید (زیر metal_precious). نرخ جهانی است و
+   Gold_Currency دیگر آن را نمی‌دهد. */
 const ENERGY_MAP = [
+    'XAUUSD' => ['id' => 'goldounce', 'group' => 'gold',   'unit' => 'ounce'],
     'BRENT' => ['id' => 'brent',    'group' => 'energy', 'unit' => 'barrel'],
     'RBOB'  => ['id' => 'gasoline', 'group' => 'energy', 'unit' => 'gallon'],
 ];
@@ -187,53 +211,53 @@ const IME_MAP = [
     'CopperCthd' => ['id' => 'copper', 'group' => 'commodity', 'unit' => 'kilogram'],
 ];
 
-/* افزودن دارایی جدید = یک ردیف در همین جدول. هیچ جای دیگری لازم
-   نیست عوض شود. نمادها از پاسخ واقعی BrsApi گرفته شده‌اند.
+/* افزودن دارایی جدید = یک ردیف در همین جدول. کلید، نام نماد در فید TGJU
+   است. واحدها با آخرین نرخ سالم BrsApi مقایسه شدند (نسبت ۰٫۹۷ تا ۱٫۰۳،
+   یعنی همان دارایی با همان واحد)؛ ین مثل قبل برای ۱۰۰ واحد است.
 
    USDT_IRT عمداً اینجا نیست: تتر از نوبیتکس می‌آید و دو منبع برای یک
    دارایی یعنی دو نرخ ناسازگار در یک گراف. */
-const ASSET_MAP = [
+const TGJU_MAP = [
     // طلا
-    'IR_GOLD_18K'     => ['id' => 'gold18',      'group' => 'gold', 'unit' => 'gram'],
-    'IR_GOLD_24K'     => ['id' => 'gold24',      'group' => 'gold', 'unit' => 'gram'],
-    'IR_GOLD_MELTED'  => ['id' => 'goldmelted',  'group' => 'gold', 'unit' => 'mesghal'],
-    'XAUUSD'          => ['id' => 'goldounce',   'group' => 'gold', 'unit' => 'ounce'],
+    'geram18' => ['id' => 'gold18',      'group' => 'gold', 'unit' => 'gram'],
+    'geram24' => ['id' => 'gold24',      'group' => 'gold', 'unit' => 'gram'],
+    'mesghal' => ['id' => 'goldmelted',  'group' => 'gold', 'unit' => 'mesghal'],
 
     // سکه
-    'IR_COIN_EMAMI'   => ['id' => 'emami',       'group' => 'coin', 'unit' => 'piece'],
-    'IR_COIN_BAHAR'   => ['id' => 'bahar',       'group' => 'coin', 'unit' => 'piece'],
-    'IR_COIN_HALF'    => ['id' => 'halfcoin',    'group' => 'coin', 'unit' => 'piece'],
-    'IR_COIN_QUARTER' => ['id' => 'quartercoin', 'group' => 'coin', 'unit' => 'piece'],
-    'IR_COIN_1G'      => ['id' => 'gramcoin',    'group' => 'coin', 'unit' => 'piece'],
+    'sekee'   => ['id' => 'emami',       'group' => 'coin', 'unit' => 'piece'],
+    'sekeb'   => ['id' => 'bahar',       'group' => 'coin', 'unit' => 'piece'],
+    'nim'     => ['id' => 'halfcoin',    'group' => 'coin', 'unit' => 'piece'],
+    'rob'     => ['id' => 'quartercoin', 'group' => 'coin', 'unit' => 'piece'],
+    'gerami'  => ['id' => 'gramcoin',    'group' => 'coin', 'unit' => 'piece'],
 
     // ارز فیات
-    'USD' => ['id' => 'usd', 'group' => 'fiat', 'unit' => 'unit'],
-    'EUR' => ['id' => 'eur', 'group' => 'fiat', 'unit' => 'unit'],
-    'GBP' => ['id' => 'gbp', 'group' => 'fiat', 'unit' => 'unit'],
-    'CHF' => ['id' => 'chf', 'group' => 'fiat', 'unit' => 'unit'],
-    'AED' => ['id' => 'aed', 'group' => 'fiat', 'unit' => 'unit'],
-    'TRY' => ['id' => 'try', 'group' => 'fiat', 'unit' => 'unit'],
-    'JPY' => ['id' => 'jpy', 'group' => 'fiat', 'unit' => 'unit'],
-    'CNY' => ['id' => 'cny', 'group' => 'fiat', 'unit' => 'unit'],
-    'AUD' => ['id' => 'aud', 'group' => 'fiat', 'unit' => 'unit'],
-    'CAD' => ['id' => 'cad', 'group' => 'fiat', 'unit' => 'unit'],
-    'RUB' => ['id' => 'rub', 'group' => 'fiat', 'unit' => 'unit'],
-    'SEK' => ['id' => 'sek', 'group' => 'fiat', 'unit' => 'unit'],
-    'INR' => ['id' => 'inr', 'group' => 'fiat', 'unit' => 'unit'],
-    'PKR' => ['id' => 'pkr', 'group' => 'fiat', 'unit' => 'unit'],
-    'AFN' => ['id' => 'afn', 'group' => 'fiat', 'unit' => 'unit'],
-    'MYR' => ['id' => 'myr', 'group' => 'fiat', 'unit' => 'unit'],
-    'THB' => ['id' => 'thb', 'group' => 'fiat', 'unit' => 'unit'],
-    'SAR' => ['id' => 'sar', 'group' => 'fiat', 'unit' => 'unit'],
-    'QAR' => ['id' => 'qar', 'group' => 'fiat', 'unit' => 'unit'],
-    'KWD' => ['id' => 'kwd', 'group' => 'fiat', 'unit' => 'unit'],
-    'BHD' => ['id' => 'bhd', 'group' => 'fiat', 'unit' => 'unit'],
-    'OMR' => ['id' => 'omr', 'group' => 'fiat', 'unit' => 'unit'],
-    'IQD' => ['id' => 'iqd', 'group' => 'fiat', 'unit' => 'unit'],
-    'SYP' => ['id' => 'syp', 'group' => 'fiat', 'unit' => 'unit'],
-    'AZN' => ['id' => 'azn', 'group' => 'fiat', 'unit' => 'unit'],
-    'AMD' => ['id' => 'amd', 'group' => 'fiat', 'unit' => 'unit'],
-    'GEL' => ['id' => 'gel', 'group' => 'fiat', 'unit' => 'unit'],
+    'price_dollar_rl' => ['id' => 'usd', 'group' => 'fiat', 'unit' => 'unit'],
+    'price_eur' => ['id' => 'eur', 'group' => 'fiat', 'unit' => 'unit'],
+    'price_gbp' => ['id' => 'gbp', 'group' => 'fiat', 'unit' => 'unit'],
+    'price_chf' => ['id' => 'chf', 'group' => 'fiat', 'unit' => 'unit'],
+    'price_aed' => ['id' => 'aed', 'group' => 'fiat', 'unit' => 'unit'],
+    'price_try' => ['id' => 'try', 'group' => 'fiat', 'unit' => 'unit'],
+    'price_jpy' => ['id' => 'jpy', 'group' => 'fiat', 'unit' => 'unit'],
+    'price_cny' => ['id' => 'cny', 'group' => 'fiat', 'unit' => 'unit'],
+    'price_aud' => ['id' => 'aud', 'group' => 'fiat', 'unit' => 'unit'],
+    'price_cad' => ['id' => 'cad', 'group' => 'fiat', 'unit' => 'unit'],
+    'price_rub' => ['id' => 'rub', 'group' => 'fiat', 'unit' => 'unit'],
+    'price_sek' => ['id' => 'sek', 'group' => 'fiat', 'unit' => 'unit'],
+    'price_inr' => ['id' => 'inr', 'group' => 'fiat', 'unit' => 'unit'],
+    'price_pkr' => ['id' => 'pkr', 'group' => 'fiat', 'unit' => 'unit'],
+    'price_afn' => ['id' => 'afn', 'group' => 'fiat', 'unit' => 'unit'],
+    'price_myr' => ['id' => 'myr', 'group' => 'fiat', 'unit' => 'unit'],
+    'price_thb' => ['id' => 'thb', 'group' => 'fiat', 'unit' => 'unit'],
+    'price_sar' => ['id' => 'sar', 'group' => 'fiat', 'unit' => 'unit'],
+    'price_qar' => ['id' => 'qar', 'group' => 'fiat', 'unit' => 'unit'],
+    'price_kwd' => ['id' => 'kwd', 'group' => 'fiat', 'unit' => 'unit'],
+    'price_bhd' => ['id' => 'bhd', 'group' => 'fiat', 'unit' => 'unit'],
+    'price_omr' => ['id' => 'omr', 'group' => 'fiat', 'unit' => 'unit'],
+    'price_iqd' => ['id' => 'iqd', 'group' => 'fiat', 'unit' => 'unit'],
+    'price_syp' => ['id' => 'syp', 'group' => 'fiat', 'unit' => 'unit'],
+    'price_azn' => ['id' => 'azn', 'group' => 'fiat', 'unit' => 'unit'],
+    'price_amd' => ['id' => 'amd', 'group' => 'fiat', 'unit' => 'unit'],
+    'price_gel' => ['id' => 'gel', 'group' => 'fiat', 'unit' => 'unit'],
 ];
 
 header('Content-Type: application/json; charset=utf-8');
@@ -380,14 +404,15 @@ function acquireRefreshLock()
    خطا داد بشود از بیرون فهمید چرا. بدون این، `upstream_http_302`
    تنها چیزی بود که می‌دیدیم و فرقی بین «سهمیه تمام شد» و «آی‌پی
    بلاک شد» نمی‌گذاشت. */
-function upstreamGet(string $url): array
+function upstreamGet(string $url, int $timeout = UPSTREAM_TIMEOUT, string $agent = 'tabdex-rates/1.0 (+https://tabdex.ir)'): array
 {
     $channel = curl_init($url);
     curl_setopt_array($channel, [
         CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_TIMEOUT        => UPSTREAM_TIMEOUT,
-        CURLOPT_CONNECTTIMEOUT => 8,
-        CURLOPT_USERAGENT      => 'tabdex-rates/1.0 (+https://tabdex.ir)',
+        CURLOPT_TIMEOUT        => $timeout,
+        CURLOPT_CONNECTTIMEOUT => min(8, $timeout),
+        CURLOPT_USERAGENT      => $agent,
+        CURLOPT_ENCODING       => '',
         CURLOPT_FOLLOWLOCATION => true,
         CURLOPT_MAXREDIRS      => 3,
     ]);
@@ -486,20 +511,70 @@ function serveStale(?array $cached, string $reason): never
     exit;
 }
 
-if ($key === '') {
-    serveStale($cached, 'missing_key');
+/* ── TGJU ─────────────────────────────────────────────────────── */
+
+/* "2,648,000" → 2648000. ارقام فارسی هم پذیرفته می‌شود که اگر روزی فید
+   فارسی شد بی‌صدا صفر نشویم. */
+function tgjuNumber($value): float
+{
+    $text = strtr((string) $value, ['۰' => '0', '۱' => '1', '۲' => '2', '۳' => '3', '۴' => '4',
+        '۵' => '5', '۶' => '6', '۷' => '7', '۸' => '8', '۹' => '9', ',' => '', '٬' => '', ' ' => '']);
+
+    return is_numeric($text) ? (float) $text : 0.0;
 }
 
-/* ── گرفتن از بالادست ────────────────────────────────────────── */
-[$blockedUntil, $blockedReason] = backoffUntil($key);
-if ($blockedUntil > time()) {
-    serveStale($cached, 'backoff ' . $blockedReason);
+/* dp بدون علامت است؛ dt جهت را می‌گوید. */
+function tgjuChange(array $row): float
+{
+    $percent = abs((float) ($row['dp'] ?? 0));
+
+    return ((string) ($row['dt'] ?? '')) === 'low' ? -$percent : $percent;
 }
 
-if (quotaExhausted()) {
-    serveStale($cached, 'quota_exhausted ' . quotaToday() . '/' . quotaHardLimit());
+function tgjuTime(array $row): int
+{
+    $ts = (string) ($row['ts'] ?? '');
+    if ($ts === '') {
+        return 0;
+    }
+    try {
+        return (new DateTimeImmutable($ts, new DateTimeZone('Asia/Tehran')))->getTimestamp();
+    } catch (Throwable $error) {
+        return 0;
+    }
 }
 
+/* [ردیف‌ها, شرح]. ردیف‌ها null یعنی هیچ میزبانی پاسخ قابل‌استفاده نداد. */
+function fetchTgju(): array
+{
+    $hosts = TGJU_HOSTS;
+    /* شروع از میزبانی تصادفی تا بار روی یکی نیفتد و اگر یکی کند شد همه‌ی
+       درخواست‌ها پشتش نمانند. */
+    $offset = random_int(0, count($hosts) - 1);
+    $hosts  = array_merge(array_slice($hosts, $offset), array_slice($hosts, 0, $offset));
+
+    $reasons = [];
+    foreach (array_slice($hosts, 0, TGJU_TRIES) as $host) {
+        $res = upstreamGet($host . TGJU_PATH, TGJU_TIMEOUT, TGJU_UA);
+        $label = parse_url($host, PHP_URL_HOST);
+        if ($res['body'] === false || $res['code'] !== 200) {
+            $reasons[] = $label . ' ' . upstreamReason($res);
+            continue;
+        }
+        $decoded = json_decode((string) $res['body'], true);
+        $current = is_array($decoded) ? ($decoded['current'] ?? null) : null;
+        if (!is_array($current) || count($current) < 50) {
+            $reasons[] = $label . ' not_tgju_json';
+            continue;
+        }
+
+        return [$current, 'ok ' . $label];
+    }
+
+    return [null, implode(' | ', $reasons)];
+}
+
+/* قفل پیش از هر تماس بیرونی؛ حالا TGJU هم پشت همین قفل است. */
 $lock = acquireRefreshLock();
 if ($lock === false) {
     serveStale($cached, 'refresh_in_progress');
@@ -512,131 +587,123 @@ if ($lock === null && $cached !== null) {
     serveStale($cached, 'refresh_lock_unavailable');
 }
 
-countUpstreamCall();
-$upstream = upstreamGet(UPSTREAM_URL . '?key=' . urlencode($key));
-$body     = $upstream['body'];
-
-if ($body === false || $upstream['code'] !== 200) {
-    $reason = upstreamReason($upstream);
-    recordFailure($reason, $upstream['code'], $key);
-    serveStale($cached, $reason);
-}
-
-clearBackoff();
-
-$payload = json_decode((string) $body, true);
-if (!is_array($payload)) {
-    serveStale($cached, 'upstream_not_json');
-}
-
-/* ── نرمال‌سازی به قرارداد خودمان ──────────────────────────────
-
-   همهٔ نرخ‌ها باید تومانی باشند چون گراف تبدیل در مرورگر بر پایهٔ
-   تومان است. ولی BrsApi انس طلا (XAUUSD) را به دلار می‌دهد، پس اول
-   نرخ دلار را پیدا می‌کنیم تا بتوانیم تبدیلش کنیم. بدون این، انس طلا
-   با عدد ۴۵۸۲ به‌عنوان تومان وارد گراف می‌شد. */
-$usdToman = 0.0;
-$usdChange = 0.0;
-foreach ($payload as $section) {
-    if (!is_array($section)) {
-        continue;
-    }
-    foreach ($section as $row) {
-        if (is_array($row) && ($row['symbol'] ?? '') === 'USD') {
-            $usdToman = (float) ($row['price'] ?? 0);
-            $usdChange = (float) ($row['change_percent'] ?? 0);
-            break 2;
-        }
-    }
-}
-
-/* ── قیمت صفر از بالادست ─────────────────────────────────────
-   BrsApi گاهی (مثلاً از بامداد پنجشنبه تا شنبه) همهٔ ردیف‌های طلا و ارز
-   را با price=0 می‌دهد. قبلاً این یعنی $assets خالی و serveStale بدون
-   نوشتن کش؛ پس عمر کش هیچ‌وقت تمدید نمی‌شد و هر بازدید دوباره به
-   بالادست می‌زد، تا سهمیه سوخت. سوختن سهمیه هم نفت را — که اندپوینت
-   جدا و سالمی دارد — قفل کرد. حالا قلمِ صفر آخرین نرخ معتبرش را از کش
-   نگه می‌دارد، کش با زمان تازه نوشته می‌شود و انرژی و بورس کالا مستقل
-   تازه می‌شوند. فهرست این قلم‌ها در carried می‌آید. */
 $cachedAssets = (is_array($cached) && is_array($cached['assets'] ?? null)) ? $cached['assets'] : [];
-if ($usdToman <= 0 && (float) ($cachedAssets['usd']['toman'] ?? 0) > 0) {
-    $usdToman  = (float) $cachedAssets['usd']['toman'];
-    $usdChange = (float) ($cachedAssets['usd']['change'] ?? 0);
-}
-
-$assets = [];
+$assets  = [];
 $carried = [];
-$latest = 0;
+$latest  = 0;
+/* هر منبع چه شد، در خود پاسخ. پوشهٔ کش از راه وب بسته است و بدون این،
+   علت حذف یا کهنه‌ماندن یک دسته فقط حدس می‌ماند. */
+$sources = [];
 
-foreach ($payload as $section) {
-    if (!is_array($section)) {
+/* قلمی که این بار نرخ تازه نگرفت، آخرین نرخ معتبرش را از کش نگه می‌دارد
+   و در carried می‌آید. نمایش نرخ کمی کهنه بهتر از حذف ناگهانی قلم است. */
+$carry = static function (string $id) use (&$assets, &$carried, $cachedAssets): void {
+    if (!isset($assets[$id]) && is_array($cachedAssets[$id] ?? null)) {
+        $assets[$id] = $cachedAssets[$id];
+        $carried[]   = $id;
+    }
+};
+
+[$tgjuRows, $sources['tgju']] = fetchTgju();
+
+foreach (TGJU_MAP as $tgjuKey => $meta) {
+    $row  = is_array($tgjuRows) && is_array($tgjuRows[$tgjuKey] ?? null) ? $tgjuRows[$tgjuKey] : null;
+    $rial = $row !== null ? tgjuNumber($row['p'] ?? '') : 0.0;
+    if ($rial <= 0) {
+        $carry($meta['id']);
         continue;
     }
-    foreach ($section as $row) {
-        if (!is_array($row) || !isset($row['symbol'])) {
-            continue;
-        }
-        $symbol = (string) $row['symbol'];
-        if (!isset(ASSET_MAP[$symbol])) {
-            continue;
-        }
-        $price = (float) ($row['price'] ?? 0);
-        if ($price <= 0) {
-            $carryId = ASSET_MAP[$symbol]['id'];
-            if (is_array($cachedAssets[$carryId] ?? null) && !isset($assets[$carryId])) {
-                $assets[$carryId] = $cachedAssets[$carryId];
-                $carried[] = $carryId;
-            }
-            continue;
-        }
-        $rowUnit = (string) ($row['unit'] ?? '');
-        $rowChange = (float) ($row['change_percent'] ?? 0);
-        $usdPrice = str_contains($rowUnit, 'دلار') ? $price : null;
-
-        // BrsApi اقلام ایرانی را به تومان می‌دهد، ولی اگر روزی واحد را
-        // به ریال عوض کرد، بی‌سروصدا صد برابر غلط نشویم.
-        if (str_contains($rowUnit, 'ریال')) {
-            $price /= 10;
-        }
-
-        // اقلام دلاری (فعلاً فقط انس طلا) به تومان تبدیل می‌شوند.
-        // اگر نرخ دلار در دسترس نباشد، قلم را می‌اندازیم بیرون؛ نمایش
-        // نشدن خیلی بهتر از نمایشِ عددی است که هزاران برابر غلط است.
-        if (str_contains($rowUnit, 'دلار')) {
-            if ($usdToman <= 0) {
-                continue;
-            }
-            $price *= $usdToman;
-        }
-
-        $tomanChange = $rowChange;
-        if ($symbol === 'XAUUSD') {
-            $tomanChange = ((1 + $rowChange / 100) * (1 + $usdChange / 100) - 1) * 100;
-        }
-
-        $meta = ASSET_MAP[$symbol];
-        $assets[$meta['id']] = [
-            'toman'  => $price,
-            'usd'    => $usdPrice,
-            'group'  => $meta['group'],
-            'unit'   => $meta['unit'],
-            'name'   => (string) ($row['name'] ?? $meta['id']),
-            'change' => $rowChange,
-            'toman_change' => $tomanChange,
-        ];
-        $latest = max($latest, (int) ($row['time_unix'] ?? 0));
-    }
+    $change = tgjuChange($row);
+    $assets[$meta['id']] = [
+        // TGJU همیشه ریال می‌دهد؛ گراف تبدیل تومانی است.
+        'toman'  => $rial / 10,
+        'usd'    => null,
+        'group'  => $meta['group'],
+        'unit'   => $meta['unit'],
+        'name'   => (string) ($cachedAssets[$meta['id']]['name'] ?? $meta['id']),
+        'change' => $change,
+        'toman_change' => $change,
+    ];
+    $latest = max($latest, tgjuTime($row));
 }
+
+/* دلار برای تبدیل اقلام دلاری (انس، نفت، بنزین) لازم است. */
+$usdToman  = (float) ($assets['usd']['toman'] ?? 0);
+$usdChange = (float) ($assets['usd']['change'] ?? 0);
 
 if ($assets === []) {
-    serveStale($cached, 'no_mapped_assets');
+    serveStale($cached, 'no_mapped_assets tgju=' . $sources['tgju']);
+}
+
+/* ── BrsApi: فقط بورس کالا و Commodity ──────────────────────────
+   همان کلید، همان سهمیه، همان عقب‌نشینی. بی‌کلید هم سایت بالا می‌ماند:
+   طلا و ارز از TGJU می‌آیند و این دو بخش از کش خودشان سرو می‌شوند. */
+function brsBlocked(string $key): bool
+{
+    if ($key === '' || quotaExhausted()) {
+        return true;
+    }
+    [$until] = backoffUntil($key);
+
+    return $until > time();
+}
+
+function brsBlockedReason(string $key): string
+{
+    if ($key === '') {
+        return 'missing_key';
+    }
+    if (quotaExhausted()) {
+        return 'quota_exhausted ' . quotaToday() . '/' . quotaHardLimit();
+    }
+    [, $reason] = backoffUntil($key);
+
+    return 'backoff ' . $reason;
+}
+
+/* هر تماس BrsApi نتیجه‌اش را در عقب‌نشینی ثبت می‌کند. تا امروز این کار
+   را فقط تماس Gold_Currency می‌کرد؛ حالا که آن تماس نیست، بدون این،
+   کلیدِ مسدود هر ربع ساعت دوباره کوبیده می‌شد. */
+function brsGet(string $url, string $key): array
+{
+    countUpstreamCall();
+    $res = upstreamGet($url . '?key=' . urlencode($key));
+    if ($res['body'] !== false && $res['code'] === 200) {
+        clearBackoff();
+    } else {
+        recordFailure(upstreamReason($res), $res['code'], $key);
+    }
+
+    return $res;
 }
 
 /* ── بورس کالا: نقره و مس ─────────────────────────────────────
    کش مستقل با عمر طولانی‌تر. اگر این بخش شکست بخورد، بقیهٔ نرخ‌ها
-   نباید از دست بروند، پس هیچ خطایی اینجا کل پاسخ را متوقف نمی‌کند. */
+   نباید از دست بروند، پس هیچ خطایی اینجا کل پاسخ را متوقف نمی‌کند.
+
+   ۲۵ مهر نقره و مس یک‌باره از پاسخ افتادند در حالی که BrsApi سالم
+   می‌داد: حلقه ردیفِ بی‌قیمت را دور می‌انداخت و جایگزینی از کش
+   نداشت. حالا مثل طلا و ارز آخرین نرخ معتبر می‌ماند، پاسخ بی‌قیمت
+   ردیف‌های سالم قبلی را در کش پاک نمی‌کند، و بعدش نیم‌ساعته دوباره
+   پرسیده می‌شود نه شش‌ساعته. */
 $imeCacheFile = $cacheDir . '/ime.json';
 $imeRows      = null;
+$imeDecoded   = null;
+$sources['ime'] = 'cache';
+
+function imeHasPrice($rows): bool
+{
+    if (!is_array($rows)) {
+        return false;
+    }
+    foreach ($rows as $row) {
+        if (is_array($row) && isset(IME_MAP[(string) ($row['contract_code'] ?? '')]) && (float) ($row['pl'] ?? 0) > 0) {
+            return true;
+        }
+    }
+
+    return false;
+}
 
 if (is_readable($imeCacheFile)) {
     $imeRaw = @file_get_contents($imeCacheFile);
@@ -644,7 +711,10 @@ if (is_readable($imeCacheFile)) {
         $imeDecoded = json_decode($imeRaw, true);
         if (is_array($imeDecoded) && isset($imeDecoded['data'])) {
             $imeAge = time() - (int) ($imeDecoded['fetched_unix'] ?? 0);
-            if ($imeAge >= 0 && $imeAge < imeTtl()) {
+            /* تلاشِ بی‌قیمت هم زمانش ثبت می‌شود تا هر درخواست دوباره
+               نپرسد؛ ولی نیم‌ساعته دوباره امتحان می‌شود، نه شش‌ساعته. */
+            $imeFreshFor = empty($imeDecoded['unpriced']) ? imeTtl() : min(imeTtl(), IME_TTL_OPEN);
+            if ($imeAge >= 0 && $imeAge < $imeFreshFor) {
                 $imeRows = $imeDecoded['data'];
             }
         }
@@ -652,36 +722,46 @@ if (is_readable($imeCacheFile)) {
 }
 
 if ($imeRows === null) {
-    /* همان کلید و همان سهمیه؛ پس همان عقب‌نشینی. */
-    [$imeBlockedUntil] = backoffUntil($key);
-    $imeBlockedUntil = quotaExhausted() ? PHP_INT_MAX : $imeBlockedUntil;
-    $imeResult = $imeBlockedUntil > time()
-        ? ['body' => false, 'code' => 0, 'effective' => '', 'hops' => 0, 'error' => 'backoff']
-        : (static function () use ($key) {
-            countUpstreamCall();
-
-            return upstreamGet(IME_URL . '?key=' . urlencode($key));
-        })();
-    $imeBody   = $imeResult['body'];
-    $imeCode   = $imeResult['code'];
-
-    if ($imeBody !== false && $imeCode === 200) {
-        $imePayload = json_decode((string) $imeBody, true);
-        if (is_array($imePayload) && !empty($imePayload['data'])) {
-            $imeRows = $imePayload['data'];
-            $imeEncoded = json_encode(
-                ['fetched_unix' => time(), 'data' => $imeRows],
-                JSON_UNESCAPED_UNICODE
-            );
-            $imeTemp = $imeCacheFile . '.' . getmypid() . '.tmp';
-            if (@file_put_contents($imeTemp, $imeEncoded) !== false) {
-                @rename($imeTemp, $imeCacheFile);
+    if (brsBlocked($key)) {
+        $sources['ime'] = brsBlockedReason($key);
+    } else {
+        $imeResult = brsGet(IME_URL, $key);
+        if ($imeResult['body'] !== false && $imeResult['code'] === 200) {
+            $imePayload = json_decode((string) $imeResult['body'], true);
+            $imeData    = is_array($imePayload) ? ($imePayload['data'] ?? null) : null;
+            if (imeHasPrice($imeData)) {
+                $imeRows = $imeData;
+                $sources['ime'] = 'fetched';
+                $imeEncoded = json_encode(
+                    ['fetched_unix' => time(), 'data' => $imeRows],
+                    JSON_UNESCAPED_UNICODE
+                );
+                $imeTemp = $imeCacheFile . '.' . getmypid() . '.tmp';
+                if (@file_put_contents($imeTemp, $imeEncoded) !== false) {
+                    @rename($imeTemp, $imeCacheFile);
+                }
+            } else {
+                $sources['ime'] = 'no_priced_rows rows=' . (is_array($imeData) ? count($imeData) : 'none');
+                /* ردیف‌های قیمت‌دار قبلی می‌مانند؛ فقط زمان تلاش ثبت می‌شود. */
+                $keep = (is_array($imeDecoded) && imeHasPrice($imeDecoded['data'] ?? null))
+                    ? $imeDecoded['data']
+                    : (is_array($imeData) ? $imeData : []);
+                $imeEncoded = json_encode(
+                    ['fetched_unix' => time(), 'unpriced' => true, 'data' => $keep],
+                    JSON_UNESCAPED_UNICODE
+                );
+                $imeTemp = $imeCacheFile . '.' . getmypid() . '.tmp';
+                if (@file_put_contents($imeTemp, $imeEncoded) !== false) {
+                    @rename($imeTemp, $imeCacheFile);
+                }
             }
+        } else {
+            $sources['ime'] = upstreamReason($imeResult);
         }
     }
 
     // اگر تازه‌سازی نشد، کش قدیمی بهتر از هیچ است.
-    if ($imeRows === null && isset($imeDecoded['data'])) {
+    if ($imeRows === null && is_array($imeDecoded) && is_array($imeDecoded['data'] ?? null)) {
         $imeRows = $imeDecoded['data'];
     }
 }
@@ -712,8 +792,11 @@ if (is_array($imeRows)) {
         ];
     }
 }
+foreach (IME_MAP as $meta) {
+    $carry($meta['id']);
+}
 
-/* ── انرژی: نفت برنت و بنزین ─────────────────────────────────────
+/* ── Commodity: انس طلا، نفت برنت و بنزین ────────────────────────
    کش مستقل، چون عمرش با نرخ‌های ایرانی فرق دارد: بازار آتی آمریکا
    شبانه‌روز باز است ولی آن‌قدر پرنوسان نیست که ارزش تازه‌سازی دقیقه‌ای
    داشته باشد. وقتی هم بسته است اصلاً ارزش پرسیدن ندارد.
@@ -722,6 +805,7 @@ if (is_array($imeRows)) {
 $energyCacheFile = $cacheDir . '/energy.json';
 $energyRows      = null;
 $energyDecoded   = null;
+$sources['commodity'] = 'cache';
 
 require_once __DIR__ . '/market-history.php';
 $energyTtl = energyMarketIsOpen(time()) ? ENERGY_TTL_OPEN : ENERGY_TTL_CLOSED;
@@ -740,30 +824,29 @@ if (is_readable($energyCacheFile)) {
 }
 
 if ($energyRows === null) {
-    /* همان کلید و همان سهمیه، پس همان عقب‌نشینی. */
-    [$energyBlockedUntil] = backoffUntil($key);
-    $energyBlockedUntil = quotaExhausted() ? PHP_INT_MAX : $energyBlockedUntil;
-    $energyResult = $energyBlockedUntil > time()
-        ? ['body' => false, 'code' => 0, 'effective' => '', 'hops' => 0, 'error' => 'backoff']
-        : (static function () use ($key) {
-            countUpstreamCall();
-
-            return upstreamGet(COMMODITY_URL . '?key=' . urlencode($key));
-        })();
-
-    if ($energyResult['body'] !== false && $energyResult['code'] === 200) {
-        $energyPayload = json_decode((string) $energyResult['body'], true);
-        if (is_array($energyPayload)) {
-            // پاسخ Commodity بخش‌بندی‌شده است؛ مسطح‌سازی هر سه شکل را می‌پذیرد.
-            $energyRows = flattenSymbolRows($energyPayload);
-            $energyEncoded = json_encode(
-                ['fetched_unix' => time(), 'data' => $energyRows],
-                JSON_UNESCAPED_UNICODE
-            );
-            $energyTemp = $energyCacheFile . '.' . getmypid() . '.tmp';
-            if (@file_put_contents($energyTemp, $energyEncoded) !== false) {
-                @rename($energyTemp, $energyCacheFile);
+    if (brsBlocked($key)) {
+        $sources['commodity'] = brsBlockedReason($key);
+    } else {
+        $energyResult = brsGet(COMMODITY_URL, $key);
+        if ($energyResult['body'] !== false && $energyResult['code'] === 200) {
+            $energyPayload = json_decode((string) $energyResult['body'], true);
+            if (is_array($energyPayload)) {
+                // پاسخ Commodity بخش‌بندی‌شده است؛ مسطح‌سازی هر سه شکل را می‌پذیرد.
+                $energyRows = flattenSymbolRows($energyPayload);
+                $sources['commodity'] = 'fetched';
+                $energyEncoded = json_encode(
+                    ['fetched_unix' => time(), 'data' => $energyRows],
+                    JSON_UNESCAPED_UNICODE
+                );
+                $energyTemp = $energyCacheFile . '.' . getmypid() . '.tmp';
+                if (@file_put_contents($energyTemp, $energyEncoded) !== false) {
+                    @rename($energyTemp, $energyCacheFile);
+                }
+            } else {
+                $sources['commodity'] = 'upstream_not_json';
             }
+        } else {
+            $sources['commodity'] = upstreamReason($energyResult);
         }
     }
 
@@ -781,25 +864,6 @@ if (is_array($energyRows)) {
             continue;
         }
         $symbol = (string) $row['symbol'];
-        /* انس طلا در Gold_Currency صفر شده و از کش آمده؟ همین پاسخ
-           Commodity انس را زیر metal_precious دارد؛ نرخ جهانی است و
-           نباید با تعطیلی بازار ایران کهنه بماند. */
-        if ($symbol === 'XAUUSD' && in_array('goldounce', $carried, true) && $usdToman > 0) {
-            $ouncePrice = (float) ($row['price'] ?? 0);
-            if ($ouncePrice > 0) {
-                $ounceChange = (float) ($row['change_percent'] ?? 0);
-                $assets['goldounce'] = array_merge($assets['goldounce'] ?? [], [
-                    'toman'  => $ouncePrice * $usdToman,
-                    'usd'    => $ouncePrice,
-                    'group'  => 'gold',
-                    'unit'   => 'ounce',
-                    'change' => $ounceChange,
-                    'toman_change' => ((1 + $ounceChange / 100) * (1 + $usdChange / 100) - 1) * 100,
-                ]);
-                $carried = array_values(array_diff($carried, ['goldounce']));
-            }
-            continue;
-        }
         if (!isset(ENERGY_MAP[$symbol])) {
             continue;
         }
@@ -811,6 +875,8 @@ if (is_array($energyRows)) {
         }
         $meta = ENERGY_MAP[$symbol];
         $rowChange = (float) ($row['change_percent'] ?? 0);
+        // تغییر تومانی، تغییر دلار را هم در خود دارد.
+        $tomanChange = ((1 + $rowChange / 100) * (1 + $usdChange / 100) - 1) * 100;
         $assets[$meta['id']] = [
             'toman'  => $usdPrice * $usdToman,
             'usd'    => $usdPrice,
@@ -818,10 +884,12 @@ if (is_array($energyRows)) {
             'unit'   => $meta['unit'],
             'name'   => (string) ($row['name'] ?? $meta['id']),
             'change' => $rowChange,
-            // تغییر تومانی، مثل انس طلا، تغییر دلار را هم در خود دارد.
-            'toman_change' => ((1 + $rowChange / 100) * (1 + $usdChange / 100) - 1) * 100,
+            'toman_change' => $tomanChange,
         ];
     }
+}
+foreach (ENERGY_MAP as $meta) {
+    $carry($meta['id']);
 }
 
 /* ── زمانی که به کاربر نشان داده می‌شود ──────────────────────────
@@ -851,6 +919,7 @@ $result = [
     'quota'          => ['used' => quotaToday(), 'limit' => quotaHardLimit()],
     'stale'          => false,
     'carried'        => $carried,
+    'sources'        => $sources,
     'assets'         => $assets,
 ];
 
