@@ -7,18 +7,13 @@ permissions:
 jobs:
   diag:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 5
     steps:
-      - name: final live check
+      - name: silver live
         run: |
-          set +e
-          out=""
-          for i in $(seq 1 7); do
-            r=$(curl -sS -m 20 -A 'Mozilla/5.0' "https://tabdex.ir/api/rates.php?x=$RANDOM")
-            out="$out|$(TZ=Asia/Tehran date +%T) upd=$(echo "$r" | jq -r '.updated' | cut -c12-19) cron=$(echo "$r" | jq -c '.cron')"
-            sleep 30
-          done
-          echo "::notice::$out"
+          sleep 65
           r=$(curl -sS -m 20 -A 'Mozilla/5.0' "https://tabdex.ir/api/rates.php?x=$RANDOM")
-          echo "::notice::meta $(echo "$r" | jq -c '{source_updated,carried,sources,quota,n:(.assets|length)}')"
-          echo "::notice::assets $(echo "$r" | jq -c '{usd:.assets.usd.toman,gold18:.assets.gold18.toman,silver:.assets.silver.toman,copper:.assets.copper.toman,ounce:.assets.goldounce.usd,brent:.assets.brent.usd,gas:.assets.gasoline.usd}')"
+          t=$(curl -sS -m 20 -A 'Mozilla/5.0' "https://call1.tgju.org/ajax.json?rev=$(date +%s)" | jq -c '.current.silver_999|{p,ts}')
+          echo "::notice::site silver=$(echo "$r" | jq -c '{toman:.assets.silver.toman,change:.assets.silver.change,updated}') tgju=$t"
+          p=$(curl -sS -m 20 -A 'Mozilla/5.0' "https://tabdex.ir/assets/price.js?x=$RANDOM" | grep -o 'asset.id === "silver") return "[^"]*"')
+          echo "::notice::price.js $p"
