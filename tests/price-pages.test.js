@@ -338,6 +338,8 @@ assert.doesNotMatch(ratesApi, /Gold_Currency\.php/, "Gold_Currency دیگر بر
 assert.match(ratesApi, /'XAUUSD' => \['id' => 'goldounce'/, "انس طلا باید از Commodity بیاید");
 assert.match(ratesApi, /foreach \(IME_MAP as \$meta\) \{\s*\$carry\(\$meta\['id'\]\);/, "نقره و مس نباید با یک پاسخ بی‌قیمت از سایت حذف شوند");
 assert.match(ratesApi, /TGJU_PATH \. '\?rev=' \. time\(\)/, "بدون rev، CDN نرخ نیم‌ساعته کهنه می‌دهد");
+assert.match(read("api/refresh.php"), /const TABDEX_CRON = true;\s*require __DIR__ \. '\/rates\.php';/, "کرون باید از refresh.php همان rates.php را اجرا کند");
+assert.match(ratesApi, /\$age < \$ttl - cronMargin\(\$ttl\)/, "کرون دقیقه‌ای باید کش را کمی پیش از انقضا تازه کند");
 assert.match(ratesApi, /'sources'\s*=> \$sources/, "پاسخ باید بگوید هر منبع چه شد");
 assert.match(ratesApi, /'carried'\s*=> \$carried/, "پاسخ باید بگوید کدام قلم‌ها از کش آمده‌اند");
 assert.match(ratesApi, /array_diff_key\(\$assets, array_flip\(\$carried\)\)/, "نرخ منتقل‌شده نباید نقطهٔ نمودار شود");

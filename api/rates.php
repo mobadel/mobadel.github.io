@@ -285,6 +285,26 @@ function withMarketStatus(array $payload): array {
     return $payload;
 }
 
+/* ── تازه‌سازی زمان‌بندی‌شده ──────────────────────────────────────
+   نرخ نباید منتظر بازدید بماند. refresh.php (یا اجرای خط فرمانِ همین
+   فایل) را یک کرون هر دقیقه صدا می‌زند و آن، کش را کمی زودتر از انقضا
+   تازه می‌کند. بدون این حاشیه، کرون دقیقه‌ای با کش ۶۰ ثانیه‌ای اغلب
+   کشِ ۵۹ ثانیه‌ای را «هنوز تازه» می‌دید و تازه‌سازی عملاً دو دقیقه‌ای
+   می‌شد. بیرون از بازار (کش ۱۵ دقیقه) همان کرون دقیقه‌ای کاری نمی‌کند
+   تا ربع ساعت پر شود.
+
+   بی‌خطر است حتی اگر هر کسی صدایش بزند: باز هم حداکثر هر ۴۰ ثانیه
+   یک‌بار تازه می‌شود، و BrsApi کش‌های طولانی خودش را دارد. */
+function isCronRefresh(): bool
+{
+    return PHP_SAPI === 'cli' || (defined('TABDEX_CRON') && TABDEX_CRON);
+}
+
+function cronMargin(int $ttl): int
+{
+    return isCronRefresh() ? min(20, intdiv($ttl, 3)) : 0;
+}
+
 /* ── کش تازه؟ همان را بده و تمام ─────────────────────────────── */
 $cached = null;
 if (is_readable($cacheFile)) {
@@ -294,7 +314,7 @@ if (is_readable($cacheFile)) {
         if (is_array($decoded) && !empty($decoded['assets'])) {
             $cached = $decoded;
             $age = time() - (int) ($decoded['fetched_unix'] ?? 0);
-            if ($age >= 0 && $age < $ttl) {
+            if ($age >= 0 && $age < $ttl - cronMargin($ttl)) {
                 echo json_encode(withMarketStatus($decoded), JSON_UNESCAPED_UNICODE);
                 exit;
             }
