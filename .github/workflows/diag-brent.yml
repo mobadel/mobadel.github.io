@@ -7,9 +7,18 @@ permissions:
 jobs:
   diag:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 10
     steps:
-      - name: gasoline keys
+      - name: final live check
         run: |
-          curl -sS -m 30 -A 'Mozilla/5.0' -o t.json "https://call1.tgju.org/ajax.json?rev=$(date +%s)"
-          echo "::notice::$(jq -c '{a:.current.energy_gasoline_rbob,b:.current.energy_commodities_gasoline_rbob,brent:.current.oil_brent.ts}' t.json)"
+          set +e
+          out=""
+          for i in $(seq 1 7); do
+            r=$(curl -sS -m 20 -A 'Mozilla/5.0' "https://tabdex.ir/api/rates.php?x=$RANDOM")
+            out="$out|$(TZ=Asia/Tehran date +%T) upd=$(echo "$r" | jq -r '.updated' | cut -c12-19) cron=$(echo "$r" | jq -c '.cron')"
+            sleep 30
+          done
+          echo "::notice::$out"
+          r=$(curl -sS -m 20 -A 'Mozilla/5.0' "https://tabdex.ir/api/rates.php?x=$RANDOM")
+          echo "::notice::meta $(echo "$r" | jq -c '{source_updated,carried,sources,quota,n:(.assets|length)}')"
+          echo "::notice::assets $(echo "$r" | jq -c '{usd:.assets.usd.toman,gold18:.assets.gold18.toman,silver:.assets.silver.toman,copper:.assets.copper.toman,ounce:.assets.goldounce.usd,brent:.assets.brent.usd,gas:.assets.gasoline.usd}')"
