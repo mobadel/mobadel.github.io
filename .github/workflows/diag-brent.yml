@@ -7,14 +7,14 @@ permissions:
 jobs:
   diag:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 8
     steps:
-      - name: tgju metals energy
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/metals-energy-tgju
+      - name: run new rates.php live (no key)
         run: |
           set +e
-          curl -sS -m 30 -A 'Mozilla/5.0' -o t.json "https://call1.tgju.org/ajax.json?rev=$(date +%s)"
-          jq -r '.current|keys[]' t.json | grep -iE 'brent|oil|wti|gasol|rbob|benzin|naft|energy|crude' | paste -sd' ' | sed 's/^/::notice::energy_keys=/'
-          jq -r '.current|keys[]' t.json | grep -iE 'copper|mes|cathod|katod' | paste -sd' ' | sed 's/^/::notice::copper_keys=/'
-          for k in ons silver silver_999 ime_certificate_silver_bars copper copperp base_global_copper base_global_copper2 base-us-copper oil_brent oil energy_brent; do
-            jq -c --arg k "$k" '{($k): (.current[$k]|if . then {p,ts,dp,dt} else null end)}' t.json
-          done | paste -sd' ' | fold -w 900 | sed 's/^/::notice::/'
+          BRSAPI_KEY= php api/rates.php > r.json
+          echo "::notice::$(jq -c '{carried,sources,n:(.assets|length),silver:.assets.silver.toman,ounce:.assets.goldounce.usd,ounce_t:.assets.goldounce.toman,brent:.assets.brent.usd,gas:.assets.gasoline.usd,gas_ch:.assets.gasoline.change,usd:.assets.usd.toman}' r.json)"
+          echo "::notice::ids=$(jq -r '.assets|keys|join(",")' r.json)"
