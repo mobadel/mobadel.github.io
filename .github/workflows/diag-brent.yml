@@ -7,19 +7,12 @@ permissions:
 jobs:
   diag:
     runs-on: ubuntu-latest
-    environment: production
-    timeout-minutes: 8
+    timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: fix/gold-fiat-from-tgju
-      - name: run new rates.php live
-        env:
-          BRSAPI_KEY: ${{ secrets.BRSAPI_KEY }}
+      - name: live site check
         run: |
           set +e
           echo "::notice::now_tehran=$(TZ=Asia/Tehran date +%T)"
-          php api/rates.php > r1.json
-          echo "::notice::run1 $(jq -c '{source_updated,carried,sources,n:(.assets|length),usd:.assets.usd.toman,gold18:.assets.gold18.toman,silver:.assets.silver.toman,ounce:.assets.goldounce.usd,brent:.assets.brent.usd}' r1.json)"
-          code=$(curl -sS -m 20 -o n.json -w '%{http_code}' 'https://api.nobitex.ir/market/stats?srcCurrency=usdt,btc&dstCurrency=rls')
-          echo "::notice::nobitex http=$code $(jq -c '{status, usdt:.stats["usdt-rls"].latest, btc:.stats["btc-rls"].latest}' n.json)"
+          curl -sS -m 30 -A 'Mozilla/5.0' -o s.json "https://tabdex.ir/api/rates.php?x=$(date +%s)"
+          echo "::notice::meta $(jq -c '{stale,reason,source_updated,carried,sources,quota,n:(.assets|length)}' s.json)"
+          echo "::notice::assets $(jq -c '{usd:.assets.usd.toman,eur:.assets.eur.toman,gold18:.assets.gold18.toman,emami:.assets.emami.toman,ounce:.assets.goldounce.usd,silver:.assets.silver.toman,copper:.assets.copper.toman,brent:.assets.brent.usd,gasoline:.assets.gasoline.usd}' s.json)"
