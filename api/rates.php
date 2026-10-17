@@ -555,7 +555,10 @@ function fetchTgju(): array
 
     $reasons = [];
     foreach (array_slice($hosts, 0, TGJU_TRIES) as $host) {
-        $res = upstreamGet($host . TGJU_PATH, TGJU_TIMEOUT, TGJU_UA);
+        /* بدون rev، CDN میزبان‌ها نسخهٔ ۳۰ تا ۵۵ دقیقه کهنه می‌دهد (۲۵ مهر
+           دیده شد: call4 ساعت ۱۲:۰۱ را می‌داد وقتی ساعت ۱۲:۵۶ بود). با rev
+           نرخ چندثانیه‌ای می‌آید. */
+        $res = upstreamGet($host . TGJU_PATH . '?rev=' . time(), TGJU_TIMEOUT, TGJU_UA);
         $label = parse_url($host, PHP_URL_HOST);
         if ($res['body'] === false || $res['code'] !== 200) {
             $reasons[] = $label . ' ' . upstreamReason($res);
