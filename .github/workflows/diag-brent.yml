@@ -7,17 +7,14 @@ permissions:
 jobs:
   diag:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    environment: production
+    timeout-minutes: 5
     steps:
-      - name: watch cron refreshes
+      - name: brs 402 message
+        env:
+          K: ${{ secrets.BRSAPI_KEY }}
         run: |
           set +e
-          out=""
-          for i in $(seq 1 9); do
-            r=$(curl -sS -m 20 -A 'Mozilla/5.0' "https://tabdex.ir/api/rates.php?x=$RANDOM")
-            line="$(TZ=Asia/Tehran date +%T) upd=$(echo "$r" | jq -r '.updated' | cut -c12-19) usd=$(echo "$r" | jq -r '.assets.usd.toman') cron=$(echo "$r" | jq -c '.cron')"
-            out="$out|$line"
-            sleep 30
-          done
-          echo "::notice::$out"
-          echo "::notice::sources $(curl -sS -m 20 "https://tabdex.ir/api/rates.php?x=$RANDOM" | jq -c '{sources,carried:(.carried|length),quota}')"
+          curl -sS -m 30 -A 'Mozilla/5.0' -o b.json "https://api.brsapi.ir/IME/Certificate.php?key=$K"
+          jq -r '.message_error' b.json | fold -w 200 | sed 's/^/::notice::msg=/'
+          jq -c 'del(.message_error)|del(.data)' b.json | sed 's/^/::notice::rest=/'
