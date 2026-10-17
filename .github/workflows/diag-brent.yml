@@ -7,12 +7,17 @@ permissions:
 jobs:
   diag:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 10
     steps:
-      - name: refresh.php live
+      - name: watch cron refreshes
         run: |
           set +e
-          echo "::notice::now_tehran=$(TZ=Asia/Tehran date +%T)"
-          a=$(curl -sS -m 30 -A 'Mozilla/5.0' "https://tabdex.ir/api/rates.php?x=$RANDOM" | jq -c '{updated,ttl}')
-          code=$(curl -sS -m 30 -A 'Mozilla/5.0' -o r.json -w '%{http_code}' "https://tabdex.ir/api/refresh.php")
-          echo "::notice::before=$a refresh_http=$code after=$(jq -c '{updated,source_updated,ttl,carried:(.carried|length),sources,n:(.assets|length)}' r.json)"
+          out=""
+          for i in $(seq 1 9); do
+            r=$(curl -sS -m 20 -A 'Mozilla/5.0' "https://tabdex.ir/api/rates.php?x=$RANDOM")
+            line="$(TZ=Asia/Tehran date +%T) upd=$(echo "$r" | jq -r '.updated' | cut -c12-19) usd=$(echo "$r" | jq -r '.assets.usd.toman') cron=$(echo "$r" | jq -c '.cron')"
+            out="$out|$line"
+            sleep 30
+          done
+          echo "::notice::$out"
+          echo "::notice::sources $(curl -sS -m 20 "https://tabdex.ir/api/rates.php?x=$RANDOM" | jq -c '{sources,carried:(.carried|length),quota}')"
