@@ -9,10 +9,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - name: live site check
+      - name: refresh.php live
         run: |
           set +e
           echo "::notice::now_tehran=$(TZ=Asia/Tehran date +%T)"
-          curl -sS -m 30 -A 'Mozilla/5.0' -o s.json "https://tabdex.ir/api/rates.php?x=$(date +%s)"
-          echo "::notice::meta $(jq -c '{stale,reason,source_updated,carried,sources,quota,n:(.assets|length)}' s.json)"
-          echo "::notice::assets $(jq -c '{usd:.assets.usd.toman,eur:.assets.eur.toman,gold18:.assets.gold18.toman,emami:.assets.emami.toman,ounce:.assets.goldounce.usd,silver:.assets.silver.toman,copper:.assets.copper.toman,brent:.assets.brent.usd,gasoline:.assets.gasoline.usd}' s.json)"
+          a=$(curl -sS -m 30 -A 'Mozilla/5.0' "https://tabdex.ir/api/rates.php?x=$RANDOM" | jq -c '{updated,ttl}')
+          code=$(curl -sS -m 30 -A 'Mozilla/5.0' -o r.json -w '%{http_code}' "https://tabdex.ir/api/refresh.php")
+          echo "::notice::before=$a refresh_http=$code after=$(jq -c '{updated,source_updated,ttl,carried:(.carried|length),sources,n:(.assets|length)}' r.json)"
