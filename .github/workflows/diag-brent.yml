@@ -7,14 +7,14 @@ permissions:
 jobs:
   diag:
     runs-on: ubuntu-latest
-    environment: production
     timeout-minutes: 5
     steps:
-      - name: brs 402 message
-        env:
-          K: ${{ secrets.BRSAPI_KEY }}
+      - name: tgju metals energy
         run: |
           set +e
-          curl -sS -m 30 -A 'Mozilla/5.0' -o b.json "https://api.brsapi.ir/IME/Certificate.php?key=$K"
-          jq -r '.message_error' b.json | fold -w 200 | sed 's/^/::notice::msg=/'
-          jq -c 'del(.message_error)|del(.data)' b.json | sed 's/^/::notice::rest=/'
+          curl -sS -m 30 -A 'Mozilla/5.0' -o t.json "https://call1.tgju.org/ajax.json?rev=$(date +%s)"
+          jq -r '.current|keys[]' t.json | grep -iE 'brent|oil|wti|gasol|rbob|benzin|naft|energy|crude' | paste -sd' ' | sed 's/^/::notice::energy_keys=/'
+          jq -r '.current|keys[]' t.json | grep -iE 'copper|mes|cathod|katod' | paste -sd' ' | sed 's/^/::notice::copper_keys=/'
+          for k in ons silver silver_999 ime_certificate_silver_bars copper copperp base_global_copper base_global_copper2 base-us-copper oil_brent oil energy_brent; do
+            jq -c --arg k "$k" '{($k): (.current[$k]|if . then {p,ts,dp,dt} else null end)}' t.json
+          done | paste -sd' ' | fold -w 900 | sed 's/^/::notice::/'
