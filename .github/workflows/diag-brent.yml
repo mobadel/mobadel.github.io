@@ -7,19 +7,19 @@ permissions:
 jobs:
   diag:
     runs-on: ubuntu-latest
-    environment: production
     timeout-minutes: 5
     steps:
-      - name: probe
-        env:
-          K: ${{ secrets.BRSAPI_KEY }}
+      - name: probe tgju
         run: |
           set +e
-          echo "::notice::now_utc=$(date -u +%FT%TZ)"
-          curl -sS -m 30 -A 'Mozilla/5.0' https://tabdex.ir/api/rates.php -o site.json; echo "::notice::site_http_exit=$?"
-          jq -c '{updated,source_updated,stale,reason,quota,carried:(.carried|length),ttl,n:(.assets|length)}' site.json | sed 's/^/::notice::site_meta=/'
-          jq -c '{brent:.assets.brent.usd,usd:.assets.usd.toman,gold18:.assets.gold18.toman,ounce:.assets.goldounce.usd,silver:.assets.silver.toman,silver_traded:.assets.silver.traded}' site.json | sed 's/^/::notice::site_assets=/'
-          jq -c '[.assets|to_entries[]|select(.value.group=="commodity" or .value.group=="energy")|{k:.key,t:.value.toman,tr:.value.traded}]' site.json | sed 's/^/::notice::site_metals=/'
-          curl -sS -m 30 -A 'Mozilla/5.0' -D h.txt -o g.json "https://api.brsapi.ir/Market/Gold_Currency.php?key=$K"
-          grep -i 'date\|cache\|age\|x-' h.txt | tr -d '\r' | paste -sd' ' | sed 's/^/::notice::gc_headers=/'
-          jq -c '[.gold[0],.currency[0],.cryptocurrency[0]]|map({date,time,price})' g.json | sed 's/^/::notice::gc_first=/'
+          for u in https://call1.tgju.org/ajax.json https://call2.tgju.org/ajax.json https://api.tgju.org/v1/market/indicator/summary-table-data/price_dollar_rl; do
+            code=$(curl -sS -m 30 -A 'Mozilla/5.0' -o t.json -w '%{http_code}' "$u")
+            echo "::notice::$u http=$code bytes=$(wc -c < t.json) top=$(jq -c 'keys?' t.json 2>/dev/null | head -c 300)"
+          done
+          curl -sS -m 30 -A 'Mozilla/5.0' -o t.json https://call1.tgju.org/ajax.json
+          jq -c '.current|length' t.json | sed 's/^/::notice::current_count=/'
+          for k in price_dollar_rl price_eur geram18 geram24 mesghal sekee sekeb nim rob gerami price_aed price_gel price_amd price_azn price_syp price_iqd price_myr price_thb ons; do
+            jq -c --arg k "$k" '.current[$k]' t.json | sed "s/^/::notice::k_$k=/"
+          done
+          jq -r '.current|keys[]' t.json | grep -E '^price_[a-z]{3}$' | paste -sd' ' | sed 's/^/::notice::price_keys=/'
+          jq -r '.current|keys[]' t.json | grep -viE '^price_' | grep -iE 'sek|geram|mesghal|gold|ons|abshode|coin|rob|nim' | paste -sd' ' | sed 's/^/::notice::gold_keys=/'
