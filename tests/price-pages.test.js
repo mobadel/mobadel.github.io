@@ -143,17 +143,18 @@ assert.doesNotMatch(hub, /دارایی‌های پرکاربرد|featured-assets
 assert.match(script, /className = "category-card-details"/, "نام و تعداد هر دسته باید در یک ستون جمع‌وجور باشند");
 assert.match(script, /CATEGORY_ORDER = \["fiat", "gold", "coin", "commodity", "energy", "crypto"\]/, "ترتیب هاب باید ارز، طلا، سکه، فلزات، انرژی و ارز دیجیتال باشد");
 
-// دستهٔ انرژی از اندپوینت Commodity می‌آید و بازارش آمریکایی است، نه
-// ایرانی؛ اگر هر کدام از این‌ها بیفتد یا نرخ غلط می‌شود یا سهمیه هدر
-// می‌رود.
-assert.match(ratesApi, /'BRENT'\s*=>\s*\['id' => 'brent'/, "نفت برنت باید از Commodity نگاشت شود");
-assert.match(ratesApi, /'RBOB'\s*=>\s*\['id' => 'gasoline'/, "بنزین باید از Commodity نگاشت شود");
-assert.match(ratesApi, /ENERGY_TTL_OPEN\s*=\s*900/, "در ساعات باز بازار انرژی هر پانزده دقیقه کافی است");
-assert.match(ratesApi, /ENERGY_TTL_CLOSED\s*=\s*3600/, "بازار بستهٔ انرژی نباید سهمیه مصرف کند");
-// پاسخ Commodity بخش‌بندی‌شده است (metal_precious، metal_base، energy) و
-// نه تخت. یک‌بار همین باعث شد دستهٔ انرژی خالی منتشر شود.
+// از ۲۵ مهر سقف رایگان BrsApi ده درخواست در روز است؛ انرژی، انس و نقره از
+// TGJU می‌آیند و BrsApi فقط برای مس با برنامهٔ صرفه‌جو می‌ماند.
+assert.match(ratesApi, /'oil_brent'\s*=> \['id' => 'brent'/, "نفت برنت باید از TGJU بیاید");
+assert.match(ratesApi, /'energy_gasoline_rbob' => \['id' => 'gasoline'/, "بنزین باید از TGJU بیاید");
+assert.match(ratesApi, /'ons'\s*=> \['id' => 'goldounce'/, "انس طلا باید از TGJU بیاید");
+assert.match(ratesApi, /'ime_certificate_silver_bars' => \['id' => 'silver'/, "نقره (گواهی بورس کالا) باید از TGJU بیاید");
+assert.match(ratesApi, /'CopperCthd' => \['id' => 'copper'/, "مس باید از بورس کالای BrsApi بیاید");
+assert.doesNotMatch(ratesApi, /Commodity\.php/, "Commodity سهمیهٔ ده‌تایی را می‌سوزاند و نباید صدا زده شود");
+assert.match(ratesApi, /const QUOTA_HARD_LIMIT = 9;/, "سقف خودمان باید زیر سقف ده‌تایی BrsApi بماند");
+assert.match(ratesApi, /const IME_TTL_OPEN = 3600;/, "مس در ساعت بازار ساعتی یک‌بار");
+assert.match(ratesApi, /return \$fetchedUnix >= imeLastClose\(\$now\);/, "بیرون از بازار مس فقط یک‌بار بعد از بسته شدن پرسیده شود");
 assert.match(ratesApi, /function flattenSymbolRows/, "پاسخ بالادست باید پیش از نگاشت مسطح شود");
-assert.match(ratesApi, /\$energyRows = flattenSymbolRows\(\$energyPayload\)/, "انرژی باید از مسیر مسطح‌سازی بخواند، نه مستقیم از payload");
 assert.match(marketHistoryStore, /America\/New_York/, "تقویم انرژی باید به وقت نیویورک حساب شود تا ساعت تابستانی خودکار بماند");
 assert.match(script, /name: "بنزین آمریکا"/, "بنزین باید با نام کامل نمایش داده شود تا با بنزین داخلی اشتباه نشود");
 assert.doesNotMatch(script, /FEATURED|featured-assets|updated-label/, "منطق سکشن پرکاربرد باید کامل حذف شود");
@@ -335,7 +336,6 @@ assert.match(ratesApi, /\$carried\[\]\s*= \$id/, "قلم با قیمت صفر ب
 assert.match(ratesApi, /'price_dollar_rl' => \['id' => 'usd'/, "دلار باید از TGJU بیاید");
 assert.match(ratesApi, /'geram18' => \['id' => 'gold18'/, "طلای ۱۸ عیار باید از TGJU بیاید");
 assert.doesNotMatch(ratesApi, /Gold_Currency\.php/, "Gold_Currency دیگر برای طلا و ارز سرویس نمی‌دهد و نباید صدا زده شود");
-assert.match(ratesApi, /'XAUUSD' => \['id' => 'goldounce'/, "انس طلا باید از Commodity بیاید");
 assert.match(ratesApi, /foreach \(IME_MAP as \$meta\) \{\s*\$carry\(\$meta\['id'\]\);/, "نقره و مس نباید با یک پاسخ بی‌قیمت از سایت حذف شوند");
 assert.match(ratesApi, /TGJU_PATH \. '\?rev=' \. time\(\)/, "بدون rev، CDN نرخ نیم‌ساعته کهنه می‌دهد");
 assert.match(read("api/refresh.php"), /const TABDEX_CRON = true;[\s\S]*require __DIR__ \. '\/rates\.php';\s*$/, "کرون باید از refresh.php همان rates.php را اجرا کند");
