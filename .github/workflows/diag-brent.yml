@@ -19,8 +19,10 @@ jobs:
           curl -sS -m 30 -A 'Mozilla/5.0' https://tabdex.ir/api/rates.php -o site.json; echo "::notice::site_http_exit=$?"
           jq -c '{updated,source_updated,stale,reason,quota,carried:(.carried|length),ttl,n:(.assets|length)}' site.json | sed 's/^/::notice::site_meta=/'
           jq -c '{brent:.assets.brent.usd,usd:.assets.usd.toman,gold18:.assets.gold18.toman,ounce:.assets.goldounce.usd,silver:.assets.silver.toman,silver_traded:.assets.silver.traded}' site.json | sed 's/^/::notice::site_assets=/'
-          for ep in Market/Gold_Currency.php Market/Commodity.php IME/Certificate.php; do
-            code=$(curl -sS -m 30 -A 'Mozilla/5.0' -o b.json -w '%{http_code}' "https://api.brsapi.ir/$ep?key=$K")
-            echo "::notice::$ep http=$code bytes=$(wc -c < b.json)"
-            jq -c '[..|objects|select(has("symbol") or has("contract_code"))] as $r | {rows:($r|length), zero:([$r[]|select(((.price//.pl)|tonumber? // 0)<=0)]|length), sample:[$r[]|select((.symbol//.contract_code)|IN("USD","IR_GOLD_18K","XAUUSD","BRENT","SilverBar"))|{s:(.symbol//.contract_code),p:(.price//.pl),d:(.date//.date_update),t:.time}]}' b.json 2>/dev/null | sed "s|^|::notice::$ep |" || head -c 300 b.json | sed "s/$K/***/g; s|^|::notice::$ep raw=|"
-          done
+          jq -c '[.assets|to_entries[]|select(.value.group=="commodity" or .value.group=="energy")|{k:.key,t:.value.toman,tr:.value.traded}]' site.json | sed 's/^/::notice::site_metals=/'
+          curl -sS -m 30 -A 'Mozilla/5.0' -o i.json "https://api.brsapi.ir/IME/Certificate.php?key=$K"
+          jq -c 'if type=="object" then keys else ["ARRAY",length] end' i.json | sed 's/^/::notice::ime_top=/'
+          jq -c '[..|objects|select((.symbol//.contract_code//"")|IN("SilverBar","CopperCthd"))]' i.json | sed 's/^/::notice::ime_rows=/'
+          curl -sS -m 30 -A 'Mozilla/5.0' -o g.json "https://api.brsapi.ir/Market/Gold_Currency.php?key=$K"
+          jq -c 'if type=="object" then (to_entries|map({k:.key,n:(.value|length?)})) else ["ARRAY",length] end' g.json | sed 's/^/::notice::gc_top=/'
+          jq -c '[..|objects|select(.symbol=="USD")]' g.json | sed 's/^/::notice::gc_usd=/'
