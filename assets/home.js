@@ -27,7 +27,7 @@
   var rows = document.getElementById("home-market-rows");
   if (!rows) return;
 
-  /* دلار، طلا و سکه به دستور کارگروه نمایش داده نمی‌شوند (assets/restricted.js). */
+  /* دلار، یورو، پوند و دلار کانادا به دستور کارگروه نمایش داده نمی‌شوند (assets/restricted.js). */
   var RESTRICT = window.TabdexRestricted || null;
   function restricted(id) { return !!(RESTRICT && RESTRICT.is(id)); }
 
@@ -182,7 +182,7 @@
       var small = document.createElement("small"); small.textContent = definition.code;
       label.append(strong, small); identity.append(icon, label);
       var priceCell = document.createElement("span"); priceCell.className = "home-market-price";
-      if (restricted(definition.id)) priceCell.replaceChildren(RESTRICT.price(true));
+      if (restricted(definition.id)) priceCell.replaceChildren(RESTRICT.price());
       else fillPrice(priceCell, price, unit);
       var changeCell = document.createElement("span"); changeCell.className = "home-market-change " + (change > 0 ? "positive" : change < 0 ? "negative" : "neutral"); changeCell.textContent = changeText(change);
       var trend = document.createElement("span"); trend.className = "home-market-trend";
@@ -203,7 +203,7 @@
       if (restricted(id)) {
         var hidden = document.createElement("a"); hidden.className = "home-kpi is-restricted"; hidden.href = definition.url; hidden.setAttribute("data-kpi", id);
         var hiddenName = document.createElement("span"); hiddenName.className = "home-kpi-name"; hiddenName.append(roundIcon(definition.icon), document.createTextNode(definition.name));
-        var hiddenValue = document.createElement("span"); hiddenValue.className = "home-kpi-value"; hiddenValue.appendChild(RESTRICT.price(true));
+        var hiddenValue = document.createElement("span"); hiddenValue.className = "home-kpi-value"; hiddenValue.appendChild(RESTRICT.price());
         hidden.append(hiddenName, hiddenValue); cards.push(hidden);
         return;
       }
@@ -245,7 +245,7 @@
       var label = document.createElement("span"); label.className = "mover-label";
       var strong = document.createElement("strong"); strong.textContent = item.name;
       var small = document.createElement("small");
-      if (restricted(item.id)) small.appendChild(RESTRICT.price(true));
+      if (restricted(item.id)) small.appendChild(RESTRICT.price());
       else small.append(numSpan(number(item.price)), document.createTextNode(" تومان"));
       label.append(strong, small);
       var badge = document.createElement("span"); badge.className = "change-badge " + toneOf(item.change); badge.textContent = changeText(item.change);
@@ -268,7 +268,8 @@
     var usdHidden = restricted("usd");
     document.getElementById("home-usd-chart-low").textContent = usdHidden ? RESTRICT.MASK : number(low);
     document.getElementById("home-usd-chart-high").textContent = usdHidden ? RESTRICT.MASK : number(high);
-    if (usdHidden && !card.querySelector(".restricted-note")) card.appendChild(RESTRICT.notice(false));
+    var usdRange = card.querySelector(".mini-chart-range");
+    if (usdHidden && usdRange && !usdRange.querySelector(".restricted-note")) usdRange.appendChild(RESTRICT.notice());
     var change = (values[values.length - 1] - values[0]) / values[0] * 100;
     var badge = document.getElementById("home-usd-chart-change");
     badge.className = "change-badge " + toneOf(change); badge.textContent = changeText(change);
