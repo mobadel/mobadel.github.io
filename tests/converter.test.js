@@ -23,6 +23,8 @@ assert.match(html, /<script src="\/assets\/app\.js\?v=20261026-restrict2"><\/scr
 assert.match(fs.readFileSync("assets/app.js", "utf8"), /coin-emami\.webp\?v=20260825-2/);
 assert.ok(fs.existsSync("assets/coin-emami.webp"));
 assert.ok(fs.statSync("assets/coin-emami.webp").size < 25000, "آیکون سکه باید برای وب بهینه باشد");
+assert.ok(fs.statSync("assets/coin-parsian.webp").size < 25000, "آیکون سکه پارسیان باید برای وب بهینه باشد");
+assert.match(fs.readFileSync("assets/price.js", "utf8"), /parsian: \{[^}]*icon: "\/assets\/coin-parsian\.webp\?v=20261026-1"/, "دستهٔ سکه پارسیان آیکون خودش را دارد");
 // دکمهٔ به‌روزرسانی حذف شد؛ نباید هیچ ردی از آن بماند
 assert.doesNotMatch(html, /refresh-button|id="refresh"/, "دکمهٔ به‌روزرسانی باید حذف شده باشد");
 assert.doesNotMatch(styles, /\.refresh-button/, "استایل دکمهٔ به‌روزرسانی باید حذف شده باشد");
