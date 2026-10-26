@@ -203,7 +203,7 @@ assert.match(script, /stats\[id \+ "-usdt"\]/, "قیمت اصلی رمزارز �
 assert.match(script, /!USD_STABLECOINS\[id\]/, "استیبل‌کوین دلاری نباید قیمت تتری اصلی بگیرد");
 assert.match(script, /useUsdt \? usdtRow : tomanRow/, "درصد تغییر باید از همان بازار قیمت اصلی بیاید");
 assert.match(script, /tomanChange: useUsdt \? Number\(tomanRow\.dayChange\) : null/, "درصد ردیف تومانی رمزارز باید از بازار مستقیم تومانی بیاید");
-assert.match(script, /assets\[id\]\.change = Number\(row\.change\)/, "تغییر دارایی‌های پراکسی استفاده شود");
+assert.match(script, /assets\[id\]\.change = (?:row\.change == null \? NaN : )?Number\(row\.change\)/, "تغییر دارایی‌های پراکسی استفاده شود");
 assert.match(ratesApi, /'usd'\s*=>\s*\$usdPrice/, "API باید قیمت خام دلاری انس را حفظ کند");
 assert.match(ratesApi, /'toman_change'\s*=>\s*\$tomanChange/, "API باید درصد تغییر تومانی را جداگانه برگرداند");
 assert.match(ratesApi, /\(1 \+ \$rowChange \/ 100\) \* \(1 \+ \$usdChange \/ 100\) - 1/, "درصد تومانی انس باید از تغییر انس دلاری و دلار محاسبه شود");
@@ -239,7 +239,7 @@ assert.match(script, /heroIcon\.classList\.toggle\("is-full-bleed", group === "g
 assert.match(script, /icon\.classList\.toggle\("is-full-bleed", asset\.group === "gold" \|\| asset\.group === "commodity" \|\| asset\.group === "energy"\)/, "آیکون صفحه تکی طلا، فلزات و انرژی باید تمام دایره را پر کند");
 assert.match(styles, /\.asset-main-icon\.is-full-bleed \.asset-main-icon-inner[^}]*width:100%;height:100%/, "ظرف داخلی آیکون full-bleed باید هم‌اندازه دایره باشد");
 
-assert.match(script, /GROUP_SLUGS = \{ fiat: "currency" \}/, "مسیر عمومی ارز باید currency باشد");
+assert.match(script, /GROUP_SLUGS = \{ fiat: "currency"[,}]/, "مسیر عمومی ارز باید currency باشد");
 assert.match(script, /groupFromSlug\(slug\).*slug === "currency" \? "fiat"/, "مسیر currency باید به گروه داخلی ارز نگاشت شود");
 assert.doesNotMatch(script, /\{ id: "irt", name: "تومان"[^\n]*group: "fiat"/, "تومان نباید در صفحات قیمت ارز حضور داشته باشد");
 assert.match(script, /name: "انس جهانی طلا"/, "عنوان انس باید انس جهانی طلا باشد");
@@ -345,4 +345,4 @@ assert.match(ratesApi, /\$age < \$ttl - cronMargin\(\$ttl\)/, "کرون دقیق
 assert.match(ratesApi, /if \(\$code === 402\) \{\s*\$midnight = \(new DateTimeImmutable\('tomorrow'/, "۴۰۲ یعنی سهمیهٔ امروز تمام شد؛ تا نیمه‌شب تهران نباید دوباره کوبید");
 assert.match(ratesApi, /'sources'\s*=> \$sources/, "پاسخ باید بگوید هر منبع چه شد");
 assert.match(ratesApi, /'carried'\s*=> \$carried/, "پاسخ باید بگوید کدام قلم‌ها از کش آمده‌اند");
-assert.match(ratesApi, /array_diff_key\(\$assets, array_flip\(\$carried\)\)/, "نرخ منتقل‌شده نباید نقطهٔ نمودار شود");
+assert.match(ratesApi, /array_diff_key\(\$assets, array_flip\((?:\$carried|array_merge\(\$carried, \$talaStaleIds\))\)\)/, "نرخ منتقل‌شده نباید نقطهٔ نمودار شود");

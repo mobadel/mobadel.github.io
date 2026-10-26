@@ -100,7 +100,7 @@
   function slugOf(id) { return SLUGS[id] || packagedSlug(id) || id; }
   function idFromSlug(slug) { return SLUG_TO_ID[slug] || slug; }
   function groupSlug(group) { return GROUP_SLUGS[group] || group; }
-  function groupFromSlug(slug) { var found = Object.keys(GROUP_SLUGS).filter(function (group) { return GROUP_SLUGS[group] === slug; })[0]; return found || slug; }
+  function groupFromSlug(slug) { return slug === "currency" ? "fiat" : slug === "parsian-coin" ? "parsian" : slug; }
   function assetUrl(asset) { return "/price/" + groupSlug(asset.group) + "/" + slugOf(asset.id) + "/"; }
   function categoryUrl(group) { return "/price/" + groupSlug(group) + "/"; }
   function normalizeId(id) { id = String(id || "").toLowerCase(); return id === "rls" ? "irt" : id; }
