@@ -94,7 +94,7 @@ assert.match(marketHistoryStore, /\$hour >= 11 && \$hour < 20/, "ساعت‌ها
 assert.match(marketHistoryStore, /foreach \(\$assets as [\s\S]*marketIsOpen/, "فیلتر باید پیش از نوشتن هر نقطه اعمال شود");
 // ثبت باید به کرون وابسته نباشد، وگرنه نمودار ۲۴ ساعته روزی یکی دو
 // نقطه می‌گیرد و ساعت‌های شلوغ بازار در آن نیستند.
-assert.match(ratesApi, /recordHistoryPoints\((?:\$assets|array_diff_key\(\$assets, array_flip\(\$carried\)\)), \$result\['fetched_unix'\]\)/, "نرخِ تازه باید همان لحظه نقطهٔ نمودار را هم ثبت کند");
+assert.match(ratesApi, /recordHistoryPoints\((?:\$assets|array_diff_key\(\$assets, array_flip\((?:\$carried|array_merge\(\$carried, \$talaStaleIds\))\)\)), \$result\['fetched_unix'\]\)/, "نرخِ تازه باید همان لحظه نقطهٔ نمودار را هم ثبت کند");
 assert.match(marketHistoryStore, /HISTORY_BUCKET = 300/, "نقطه‌ها باید در سطل پنج‌دقیقه‌ای بنشینند تا تماس دقیقه‌ای حجم فایل را بالا نبرد");
 assert.match(marketHistoryApi, /require __DIR__ \. '\/market-history\.php'/, "history.php باید همان منطق مشترک را استفاده کند");
 assert.match(btcChartScript, /stage\.addEventListener\("pointermove"/, "هاور نمودار باید اطلاعات نقطه را نمایش دهد");

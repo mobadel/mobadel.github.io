@@ -144,7 +144,7 @@ assert.equal((sitemap.match(/<loc>https:\/\/tabdex\.ir\/price\/parsian-coin\/[^<
 for (const slug of ["100-sot", "900-sot", "1-gram", "1-1-gram", "2-1-gram"]) {
   assert.ok(fs.existsSync(path.join(workdir, "_site", "price", "parsian-coin", slug, "index.html")), `صفحهٔ سکه پارسیان ${slug} باید ساخته شود`);
 }
-assert.doesNotMatch(sitemap, /\/convert\/[^<]*(?:sot|gram)-to-/, "سکه پارسیان در مبدل نیست و جفت تبدیل ندارد");
+assert.doesNotMatch(sitemap, /\/convert\/(?:[a-z0-9]+-to-)?[0-9][0-9-]*-(?:sot|gram)[-/]/, "سکه پارسیان در مبدل نیست و جفت تبدیل ندارد");
 const parsianPage = fs.readFileSync(path.join(workdir, "_site", "price", "parsian-coin", "100-sot", "index.html"), "utf8");
 assert.match(parsianPage, /<h1 id="asset-title">قیمت سکه پارسیان ۱۰۰ سوت<\/h1>/, "عنوان صفحه باید «قیمت سکه پارسیان ۱۰۰ سوت» باشد");
 assert.match(parsianPage, /<title>قیمت لحظه ای سکه پارسیان ۱۰۰ سوت امروز<\/title>/, "عنوان سند از قالب کلی سایت پیروی می‌کند");
