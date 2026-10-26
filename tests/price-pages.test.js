@@ -141,7 +141,9 @@ assert.match(hub, /<h1>قیمت لحظه‌ای<\/h1>/, "عنوان صفحه ا�
 assert.match(converter, /<p class="eyebrow">مبدل قیمت<\/p>/, "صفحه convert باید برچسب مبدل قیمت داشته باشد");
 assert.doesNotMatch(hub, /دارایی‌های پرکاربرد|featured-assets|updated-label|market-overview/, "هاب قیمت فقط باید دسته‌بندی‌ها را نشان دهد");
 assert.match(script, /className = "category-card-details"/, "نام و تعداد هر دسته باید در یک ستون جمع‌وجور باشند");
-assert.match(script, /CATEGORY_ORDER = \["fiat", "gold", "coin", "commodity", "energy", "crypto"\]/, "ترتیب هاب باید ارز، طلا، سکه، فلزات، انرژی و ارز دیجیتال باشد");
+assert.match(script, /CATEGORY_ORDER = \["fiat", "gold", "coin", "parsian", "commodity", "energy", "crypto"\]/, "ترتیب هاب باید ارز، طلا، سکه، سکه پارسیان، فلزات، انرژی و ارز دیجیتال باشد");
+assert.match(script, /GROUP_SLUGS = \{[^}]*parsian: "parsian-coin"/, "اسلاگ دستهٔ سکه پارسیان باید parsian-coin باشد");
+assert.match(read(".htaccess"), /\^price\/parsian-coin\/\[a-z0-9-\]\+\/\?\$ price\/asset\.html/, "صفحه‌های سکه پارسیان باید به قالب دارایی بازنویسی شوند");
 
 // از ۲۵ مهر سقف رایگان BrsApi ده درخواست در روز است؛ انرژی، انس و نقره از
 // TGJU می‌آیند و BrsApi فقط برای مس با برنامهٔ صرفه‌جو می‌ماند.

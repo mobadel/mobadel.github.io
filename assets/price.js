@@ -6,13 +6,21 @@
     crypto: { name: "ارزهای دیجیتال", singular: "ارز دیجیتال", description: "قیمت لحظه ای ارزهای دیجیتال در بازار تتری و تومانی ایران", icon: "/assets/crypto-icons/btc.svg" },
     gold: { name: "طلا", singular: "طلا", description: "قیمت طلای ۱۸ و ۲۴ عیار، طلای آب‌شده و انس جهانی", icon: "/assets/gold-18k.svg" },
     coin: { name: "سکه", singular: "سکه", description: "قیمت لحظه ای انواع سکه در بازار ایران", icon: "/assets/coin-emami.webp?v=20260825-2" },
+    parsian: { name: "سکه پارسیان", singular: "سکه پارسیان", description: "قیمت لحظه ای سکه پارسیان با عیار ۷۵۰ از ۱۰۰ سوت تا ۲.۱ گرم", icon: "/assets/coin-emami.webp?v=20260825-2" },
     commodity: { name: "فلزات", singular: "فلز", description: "قیمت لحظه ای نقره ۹۹۹ و مس کاتد بورس کالا", icon: "/assets/silver.svg" },
     energy: { name: "انرژی", singular: "حامل انرژی", description: "قیمت لحظه ای نفت برنت و بنزین در بازارهای جهانی", icon: "/assets/crude-oil.svg" },
     fiat: { name: "ارز", singular: "ارز", description: "قیمت لحظه ای دلار، یورو و دیگر ارزهای رایج به تومان", icon: "/assets/flags/us.svg" }
   };
-  var CATEGORY_ORDER = ["fiat", "gold", "coin", "commodity", "energy", "crypto"];
-  var GROUP_SLUGS = { fiat: "currency" };
+  var CATEGORY_ORDER = ["fiat", "gold", "coin", "parsian", "commodity", "energy", "crypto"];
+  var GROUP_SLUGS = { fiat: "currency", parsian: "parsian-coin" };
   var SLUGS = { goldmelted: "melted", goldounce: "ounce", bahar: "baharazadi", halfcoin: "nim", quartercoin: "rob", gramcoin: "gerami" };
+  /* سکهٔ پارسیان: وزن به سوت (هزارم گرم). شناسه parsian100 و اسلاگ 100-sot؛
+     از یک گرم به بالا 1-gram، 1-1-gram … 2-1-gram. همین جدول در
+     scripts/build-pages.mjs هم هست. */
+  var PARSIAN_WEIGHTS = [100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100, 1200, 1300, 1400, 1500, 1600, 1700, 1800, 1900, 2000, 2100];
+  function parsianSlug(weight) { return weight < 1000 ? weight + "-sot" : String(weight / 1000).replace(".", "-") + "-gram"; }
+  function parsianName(weight) { return "سکه پارسیان " + (weight < 1000 ? formatNumber(weight) + " سوت" : formatNumber(weight / 1000, 1).replace("٫", ".") + " گرم"); }
+  PARSIAN_WEIGHTS.forEach(function (weight) { SLUGS["parsian" + weight] = parsianSlug(weight); });
   var SLUG_TO_ID = {};
   Object.keys(SLUGS).forEach(function (id) { SLUG_TO_ID[SLUGS[id]] = id; });
   var UNIT_LABELS = { gram: "گرم", piece: "عدد", mesghal: "مثقال", ounce: "انس", kilogram: "کیلو", barrel: "بشکه", gallon: "گالن" };
@@ -20,7 +28,6 @@
   var RANK = {};
   var cmcRanks = {};
   var USD_STABLECOINS = { usdt: true, usdc: true, dai: true, busd: true, usde: true, tusd: true, fdusd: true, usdd: true, pyusd: true, gusd: true, susd: true, frax: true };
-  RANKED.forEach(function (id, index) { RANK[id] = index; });
 
   var FIXED = [
     { id: "gold18", name: "طلای ۱۸ عیار", englishName: "18K Gold", group: "gold", unit: "gram", icon: "/assets/gold-18k.svg" },
@@ -65,6 +72,13 @@
     { id: "gel", name: "لاری گرجستان", englishName: "Georgian Lari", code: "GEL", group: "fiat", icon: "/assets/flags/ge.svg" }
   ];
 
+  PARSIAN_WEIGHTS.forEach(function (weight) {
+    FIXED.push({ id: "parsian" + weight, name: parsianName(weight), englishName: "Parsian Coin " + (weight < 1000 ? weight + " Sot" : weight / 1000 + " Gram"), group: "parsian", unit: "piece", icon: "/assets/coin-emami.webp?v=20260825-2" });
+    // ترتیب فهرست از سبک به سنگین؛ بدون رتبه، نام‌ها الفبایی و درهم می‌شدند.
+    RANKED.push("parsian" + weight);
+  });
+  RANKED.forEach(function (id, index) { RANK[id] = index; });
+
   var assets = {};
   FIXED.forEach(function (asset) { assets[asset.id] = Object.assign({}, asset); });
   var latestUpdate = null;
@@ -86,12 +100,14 @@
   function slugOf(id) { return SLUGS[id] || packagedSlug(id) || id; }
   function idFromSlug(slug) { return SLUG_TO_ID[slug] || slug; }
   function groupSlug(group) { return GROUP_SLUGS[group] || group; }
-  function groupFromSlug(slug) { return slug === "currency" ? "fiat" : slug; }
+  function groupFromSlug(slug) { var found = Object.keys(GROUP_SLUGS).filter(function (group) { return GROUP_SLUGS[group] === slug; })[0]; return found || slug; }
   function assetUrl(asset) { return "/price/" + groupSlug(asset.group) + "/" + slugOf(asset.id) + "/"; }
   function categoryUrl(group) { return "/price/" + groupSlug(group) + "/"; }
   function normalizeId(id) { id = String(id || "").toLowerCase(); return id === "rls" ? "irt" : id; }
   function rank(asset) { if (asset.group === "crypto") return Number.isFinite(cmcRanks[asset.id]) ? cmcRanks[asset.id] : 999999; return RANK[asset.id] == null ? RANKED.length : RANK[asset.id]; }
   function compareAssets(a, b) { return rank(a) - rank(b) || a.name.localeCompare(b.name, "fa"); }
+  // مبدل سکهٔ پارسیان را نمی‌شناسد؛ پیوند تبدیل برایش ساخته نمی‌شود.
+  function hasConverter(asset) { return asset.group !== "parsian"; }
   function formatNumber(value, digits) { return new Intl.NumberFormat("fa-IR", { maximumFractionDigits: digits == null ? 0 : digits }).format(value); }
   /* دلار، یورو، پوند و دلار کانادا به دستور کارگروه نمایش داده نمی‌شوند (assets/restricted.js).
      نرخ از سرور می‌رسد ولی هر جا عددش نوشته می‌شد «***» و هشدار می‌آید. */
@@ -198,7 +214,7 @@
       var rows = payload && payload.assets || {}; var at = payload.updated ? new Date(payload.updated) : new Date(); if (!Number.isFinite(at.getTime())) at = new Date();
       Object.keys(rows).forEach(function (id) { if (!assets[id]) return; var row = rows[id]; var usd = Number(row.usd); // انرژی هم مثل انس طلا دلاری معامله می‌شود، پس عدد اصلی دلار است
         // و تومان زیرش می‌آید.
-        var dollarPrimary = (id === "goldounce" || assets[id].group === "energy") && Number.isFinite(usd) && usd > 0; assets[id].price = dollarPrimary ? usd : Number(row.toman); assets[id].priceCurrency = dollarPrimary ? "USD" : "IRT"; assets[id].tomanPrice = dollarPrimary ? Number(row.toman) : null; assets[id].tomanChange = dollarPrimary ? Number(row.toman_change) : null; assets[id].change = Number(row.change); assets[id].source = assets[id].group === "energy" ? "بازار جهانی انرژی" : dollarPrimary ? "بازار جهانی طلا" : id === "copper" ? "بورس کالا" : "بازار ایران"; assets[id].updatedAt = at; });
+        var dollarPrimary = (id === "goldounce" || assets[id].group === "energy") && Number.isFinite(usd) && usd > 0; assets[id].price = dollarPrimary ? usd : Number(row.toman); assets[id].priceCurrency = dollarPrimary ? "USD" : "IRT"; assets[id].tomanPrice = dollarPrimary ? Number(row.toman) : null; assets[id].tomanChange = dollarPrimary ? Number(row.toman_change) : null; assets[id].change = row.change == null ? NaN : Number(row.change); assets[id].source = assets[id].group === "energy" ? "بازار جهانی انرژی" : dollarPrimary ? "بازار جهانی طلا" : id === "copper" ? "بورس کالا" : "بازار ایران"; var rowAt = row.updated ? new Date(row.updated) : null; assets[id].updatedAt = rowAt && Number.isFinite(rowAt.getTime()) ? rowAt : at; });
       if (!latestUpdate || at > latestUpdate) latestUpdate = at;
     });
   }
@@ -417,7 +433,7 @@
     }
     // ورودی جستجو بین رندرها باقی می‌ماند، پس لیسنر باید یک‌بار بسته
     // شود وگرنه هر تازه‌سازی یکی روی قبلی‌ها سوار می‌کرد.
-    function paintRows(query) { var rows = document.getElementById("market-rows"); rows.replaceChildren(); var normalized = normalizeQuery(query); var filtered = sorted(list).filter(function (asset) { return !normalized || normalizeQuery([asset.name, asset.englishName, asset.code, asset.id].join(" ")).indexOf(normalized) >= 0; }); if (!filtered.length) { var empty = document.createElement("div"); empty.className = "empty-state"; empty.textContent = list.length ? "دارایی‌ای با این عبارت پیدا نشد." : "دریافت قیمت‌ها موقتاً ممکن نیست."; rows.appendChild(empty); return; } filtered.forEach(function (asset, index) { var row = document.createElement("div"); row.className = "market-row"; var rankCell = el("span", "market-row-rank", formatNumber(index + 1)); var identity = document.createElement("a"); identity.className = "market-row-identity"; identity.href = assetUrl(asset); identity.appendChild(createIcon(asset, "market-row-icon")); var label = document.createElement("span"); label.className = "market-row-label"; var strong = document.createElement("strong"); strong.textContent = asset.name; var small = document.createElement("small"); small.textContent = asset.code || ""; label.append(strong, small); identity.appendChild(label); var price = document.createElement("span"); price.className = "market-row-price"; if (isRestricted(asset)) price.appendChild(RESTRICT.price()); else if (Number.isFinite(asset.price)) price.append(el("span", "num", formatPrice(asset.price, asset)), document.createTextNode(" " + priceLabel(asset))); else price.textContent = formatPrice(asset.price, asset); var change = document.createElement("span"); change.className = "market-row-change change-badge " + changeClass(asset.change); change.textContent = formatChange(asset.change); var action = el("a", "market-row-action", "تبدیل"); action.href = convertHref(asset); action.setAttribute("aria-label", "تبدیل " + asset.name); row.append(rankCell, identity, price, change); if (withHistory) historyCells(asset).forEach(function (cell) { row.appendChild(cell); }); row.appendChild(action); rows.appendChild(row); }); }
+    function paintRows(query) { var rows = document.getElementById("market-rows"); rows.replaceChildren(); var normalized = normalizeQuery(query); var filtered = sorted(list).filter(function (asset) { return !normalized || normalizeQuery([asset.name, asset.englishName, asset.code, asset.id].join(" ")).indexOf(normalized) >= 0; }); if (!filtered.length) { var empty = document.createElement("div"); empty.className = "empty-state"; empty.textContent = list.length ? "دارایی‌ای با این عبارت پیدا نشد." : "دریافت قیمت‌ها موقتاً ممکن نیست."; rows.appendChild(empty); return; } filtered.forEach(function (asset, index) { var row = document.createElement("div"); row.className = "market-row"; var rankCell = el("span", "market-row-rank", formatNumber(index + 1)); var identity = document.createElement("a"); identity.className = "market-row-identity"; identity.href = assetUrl(asset); identity.appendChild(createIcon(asset, "market-row-icon")); var label = document.createElement("span"); label.className = "market-row-label"; var strong = document.createElement("strong"); strong.textContent = asset.name; var small = document.createElement("small"); small.textContent = asset.code || ""; label.append(strong, small); identity.appendChild(label); var price = document.createElement("span"); price.className = "market-row-price"; if (isRestricted(asset)) price.appendChild(RESTRICT.price()); else if (Number.isFinite(asset.price)) price.append(el("span", "num", formatPrice(asset.price, asset)), document.createTextNode(" " + priceLabel(asset))); else price.textContent = formatPrice(asset.price, asset); var change = document.createElement("span"); change.className = "market-row-change change-badge " + changeClass(asset.change); change.textContent = formatChange(asset.change); var action = el(hasConverter(asset) ? "a" : "span", hasConverter(asset) ? "market-row-action" : "market-row-action is-empty", hasConverter(asset) ? "تبدیل" : null); if (hasConverter(asset)) { action.href = convertHref(asset); action.setAttribute("aria-label", "تبدیل " + asset.name); } row.append(rankCell, identity, price, change); if (withHistory) historyCells(asset).forEach(function (cell) { row.appendChild(cell); }); row.appendChild(action); rows.appendChild(row); }); }
     searchPaint = paintRows;
     if (input && !input.dataset.searchBound) {
       input.dataset.searchBound = "1";
@@ -437,6 +453,7 @@
     if (asset.id === "gold18" || asset.id === "gold24") return "هر گرم";
     if (asset.id === "goldmelted") return "هر مثقال";
     if (asset.group === "fiat") return asset.code || "";
+    if (asset.group === "parsian") return "عیار ۷۵۰";
     if (asset.group === "crypto") return asset.englishName + (asset.code ? " · " + asset.code : "");
     return "";
   }
@@ -450,11 +467,11 @@
     var icon = document.getElementById("asset-main-icon"); if (icon) { icon.classList.toggle("is-full-bleed", asset.group === "gold" || asset.group === "commodity" || asset.group === "energy"); icon.replaceChildren(); icon.appendChild(createIcon(asset, "asset-main-icon-inner")); }
     text(document.getElementById("asset-price"), formatPrice(asset.price, asset)); text(document.getElementById("asset-unit"), priceLabel(asset)); paintRestrictedHero(asset); var secondary = document.getElementById("asset-secondary"); if (secondary) { var hasToman = Number.isFinite(asset.tomanPrice) && asset.group !== "energy"; secondary.hidden = !hasToman; text(document.getElementById("asset-secondary-price"), hasToman ? formatPrice(asset.tomanPrice, isRestricted(asset) ? asset : null) : "—"); var secondaryChange = document.getElementById("asset-secondary-change"); if (secondaryChange) { secondaryChange.className = "price-change secondary-change " + (hasToman ? changeClass(asset.tomanChange) : "neutral"); text(secondaryChange.querySelector("strong"), hasToman ? formatChange(asset.tomanChange) : "—"); } } var changeBox = document.getElementById("asset-change"); if (changeBox) { changeBox.className = "price-change " + changeClass(asset.change); var strong = changeBox.querySelector("strong"); text(strong, formatChange(asset.change)); }
     var freshness = document.getElementById("asset-freshness"); if (freshness) { var dot = document.createElement("i"); dot.setAttribute("aria-hidden", "true"); if (marketClosed(asset)) freshness.replaceChildren(dot, document.createTextNode(" آخرین نرخ بازار "), closedHint()); else freshness.replaceChildren(dot, document.createTextNode(" آخرین به‌روزرسانی " + formatTime(asset.updatedAt || latestUpdate))); }
-    text(document.getElementById("asset-content-title"), "قیمت " + asset.name + " امروز"); var movement = asset.change > 0 ? "افزایش" : asset.change < 0 ? "کاهش" : "بدون تغییر"; var tomanSentence = Number.isFinite(asset.tomanPrice) && asset.group !== "energy" ? " نرخ آن در بازار تومانی " + formatPrice(asset.tomanPrice) + " تومان است." : ""; if (isRestricted(asset)) { var lead = document.getElementById("asset-content-lead"); if (lead) { lead.replaceChildren(document.createTextNode("قیمت " + asset.name + " موقتاً نمایش داده نمی‌شود. ")); lead.appendChild(RESTRICT.notice()); } } else text(document.getElementById("asset-content-lead"), "قیمت هر " + unitText(asset) + " " + asset.name + " اکنون " + formattedPrice(asset) + " است." + tomanSentence + " این قیمت در ۲۴ ساعت گذشته " + formatAbsoluteChange(asset.change) + " " + movement + " داشته است.");
+    text(document.getElementById("asset-content-title"), "قیمت " + asset.name + " امروز"); var movement = asset.change > 0 ? "افزایش" : asset.change < 0 ? "کاهش" : "بدون تغییر"; var tomanSentence = Number.isFinite(asset.tomanPrice) && asset.group !== "energy" ? " نرخ آن در بازار تومانی " + formatPrice(asset.tomanPrice) + " تومان است." : ""; if (isRestricted(asset)) { var lead = document.getElementById("asset-content-lead"); if (lead) { lead.replaceChildren(document.createTextNode("قیمت " + asset.name + " موقتاً نمایش داده نمی‌شود. ")); lead.appendChild(RESTRICT.notice()); } } else text(document.getElementById("asset-content-lead"), "قیمت هر " + unitText(asset) + " " + asset.name + " اکنون " + formattedPrice(asset) + " است." + tomanSentence + (Number.isFinite(asset.change) ? " این قیمت در ۲۴ ساعت گذشته " + formatAbsoluteChange(asset.change) + " " + movement + " داشته است." : ""));
     text(document.getElementById("asset-about-title"), "درباره " + asset.name); text(document.getElementById("asset-about-text"), asset.name + (asset.code ? " با نماد " + asset.code : "") + " در دسته " + category.name + " قرار دارد. این صفحه آخرین قیمت قابل دریافت از " + (asset.source || "بازار") + " را نمایش می‌دهد و برای پیگیری ارزش روز این دارایی به‌روزرسانی می‌شود.");
     text(document.getElementById("asset-usage-text"), "با مقایسه قیمت لحظه ای و درصد تغییر ۲۴ ساعته می‌توانید جهت حرکت کوتاه‌مدت قیمت " + asset.name + " را بهتر ببینید. این داده صرفاً برای محاسبه و اطلاع‌رسانی است و پیشنهاد خرید یا فروش محسوب نمی‌شود.");
     // دکمهٔ بالای صفحه به مبدل همین دارایی به تومان می‌رود: «مبدل قیمت دلار».
-    var heroConvert = document.getElementById("asset-hero-convert"); if (heroConvert) { heroConvert.setAttribute("href", "/convert/" + slugOf(asset.id) + "-to-irt/"); var heroArrow = document.createElement("span"); heroArrow.className = "icon-chevron"; heroArrow.setAttribute("aria-hidden", "true"); heroConvert.replaceChildren(document.createTextNode("مبدل قیمت " + asset.name + " "), heroArrow); }
+    var heroConvert = document.getElementById("asset-hero-convert"); if (heroConvert) heroConvert.hidden = !hasConverter(asset); if (heroConvert && hasConverter(asset)) { heroConvert.setAttribute("href", "/convert/" + slugOf(asset.id) + "-to-irt/"); var heroArrow = document.createElement("span"); heroArrow.className = "icon-chevron"; heroArrow.setAttribute("aria-hidden", "true"); heroConvert.replaceChildren(document.createTextNode("مبدل قیمت " + asset.name + " "), heroArrow); }
     renderQuickConvert(asset);
     renderRelated(asset);
     renderAbsoluteChange(asset);

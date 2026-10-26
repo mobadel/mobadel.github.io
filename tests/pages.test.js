@@ -137,6 +137,19 @@ for (const group of ["currency", "gold", "coin", "commodity", "crypto"]) {
 for (const slug of ["usd", "gel"]) assert.match(sitemap, new RegExp(`<loc>https://tabdex\\.ir/price/currency/${slug}/</loc>`));
 for (const slug of ["gold18", "ounce"]) assert.match(sitemap, new RegExp(`<loc>https://tabdex\\.ir/price/gold/${slug}/</loc>`));
 for (const slug of ["emami", "gerami"]) assert.match(sitemap, new RegExp(`<loc>https://tabdex\\.ir/price/coin/${slug}/</loc>`));
+
+// سکهٔ پارسیان دستهٔ جدای خودش است: ۲۱ وزن از ۱۰۰ سوت تا ۲٫۱ گرم، بدون جفت مبدل.
+assert.match(sitemap, /<loc>https:\/\/tabdex\.ir\/price\/parsian-coin\/<\/loc>/, "دستهٔ سکه پارسیان باید در سایت‌مپ باشد");
+assert.equal((sitemap.match(/<loc>https:\/\/tabdex\.ir\/price\/parsian-coin\/[^<]+\/<\/loc>/g) || []).length, 21, "هر ۲۱ وزن سکه پارسیان باید صفحه داشته باشند");
+for (const slug of ["100-sot", "900-sot", "1-gram", "1-1-gram", "2-1-gram"]) {
+  assert.ok(fs.existsSync(path.join(workdir, "_site", "price", "parsian-coin", slug, "index.html")), `صفحهٔ سکه پارسیان ${slug} باید ساخته شود`);
+}
+assert.doesNotMatch(sitemap, /\/convert\/[^<]*(?:sot|gram)-to-/, "سکه پارسیان در مبدل نیست و جفت تبدیل ندارد");
+const parsianPage = fs.readFileSync(path.join(workdir, "_site", "price", "parsian-coin", "100-sot", "index.html"), "utf8");
+assert.match(parsianPage, /<h1 id="asset-title">قیمت سکه پارسیان ۱۰۰ سوت<\/h1>/, "عنوان صفحه باید «قیمت سکه پارسیان ۱۰۰ سوت» باشد");
+assert.match(parsianPage, /<title>قیمت لحظه ای سکه پارسیان ۱۰۰ سوت امروز<\/title>/, "عنوان سند از قالب کلی سایت پیروی می‌کند");
+assert.match(parsianPage, /id="asset-hero-convert" href="\/convert\/" hidden>/, "دکمهٔ مبدل برای سکه پارسیان پنهان است");
+assert.match(fs.readFileSync(path.join(workdir, "_site", "price", "parsian-coin", "2-1-gram", "index.html"), "utf8"), /<h1 id="asset-title">قیمت سکه پارسیان ۲\.۱ گرم<\/h1>/);
 // شمار صفحه‌ها از خود سازنده مشتق می‌شود، وگرنه با هر رمزارز تازه
 // عددِ ثابت کهنه می‌شود — همان اتفاقی که با افزوده شدن INDEXED_CRYPTO افتاد.
 const cryptoListSize = (name) => {
