@@ -41,6 +41,9 @@ DirectoryIndex index.html
   # صفحه‌های قیمت: قالب هر دسته و هر دارایی بر اساس مسیر جاری پر می‌شود.
   RewriteRule ^price/(crypto|gold|coin|commodity|currency)/?$ price/category.html [L]
   RewriteRule ^price/(crypto|gold|coin|commodity|currency)/[a-z0-9]+/?$ price/asset.html [L]
+  # سکهٔ پارسیان دستهٔ جدای خودش را دارد و اسلاگ وزن‌هایش خط تیره دارد (1-1-gram).
+  RewriteRule ^price/parsian-coin/?$ price/category.html [L]
+  RewriteRule ^price/parsian-coin/[a-z0-9-]+/?$ price/asset.html [L]
 
   # هر مسیر تبدیل به شکل /convert/btc-to-irt/ به قالب مبدل
   # می‌رسد و جاوااسکریپت جفت را از روی آدرس می‌خواند. تعداد این جفت‌ها

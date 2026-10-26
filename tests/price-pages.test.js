@@ -94,7 +94,7 @@ assert.match(marketHistoryStore, /\$hour >= 11 && \$hour < 20/, "ساعت‌ها
 assert.match(marketHistoryStore, /foreach \(\$assets as [\s\S]*marketIsOpen/, "فیلتر باید پیش از نوشتن هر نقطه اعمال شود");
 // ثبت باید به کرون وابسته نباشد، وگرنه نمودار ۲۴ ساعته روزی یکی دو
 // نقطه می‌گیرد و ساعت‌های شلوغ بازار در آن نیستند.
-assert.match(ratesApi, /recordHistoryPoints\((?:\$assets|array_diff_key\(\$assets, array_flip\(\$carried\)\)), \$result\['fetched_unix'\]\)/, "نرخِ تازه باید همان لحظه نقطهٔ نمودار را هم ثبت کند");
+assert.match(ratesApi, /recordHistoryPoints\((?:\$assets|array_diff_key\(\$assets, array_flip\((?:\$carried|array_merge\(\$carried, \$talaStaleIds\))\)\)), \$result\['fetched_unix'\]\)/, "نرخِ تازه باید همان لحظه نقطهٔ نمودار را هم ثبت کند");
 assert.match(marketHistoryStore, /HISTORY_BUCKET = 300/, "نقطه‌ها باید در سطل پنج‌دقیقه‌ای بنشینند تا تماس دقیقه‌ای حجم فایل را بالا نبرد");
 assert.match(marketHistoryApi, /require __DIR__ \. '\/market-history\.php'/, "history.php باید همان منطق مشترک را استفاده کند");
 assert.match(btcChartScript, /stage\.addEventListener\("pointermove"/, "هاور نمودار باید اطلاعات نقطه را نمایش دهد");
@@ -141,7 +141,9 @@ assert.match(hub, /<h1>قیمت لحظه‌ای<\/h1>/, "عنوان صفحه ا�
 assert.match(converter, /<p class="eyebrow">مبدل قیمت<\/p>/, "صفحه convert باید برچسب مبدل قیمت داشته باشد");
 assert.doesNotMatch(hub, /دارایی‌های پرکاربرد|featured-assets|updated-label|market-overview/, "هاب قیمت فقط باید دسته‌بندی‌ها را نشان دهد");
 assert.match(script, /className = "category-card-details"/, "نام و تعداد هر دسته باید در یک ستون جمع‌وجور باشند");
-assert.match(script, /CATEGORY_ORDER = \["fiat", "gold", "coin", "commodity", "energy", "crypto"\]/, "ترتیب هاب باید ارز، طلا، سکه، فلزات، انرژی و ارز دیجیتال باشد");
+assert.match(script, /CATEGORY_ORDER = \["fiat", "gold", "coin", "parsian", "commodity", "energy", "crypto"\]/, "ترتیب هاب باید ارز، طلا، سکه، سکه پارسیان، فلزات، انرژی و ارز دیجیتال باشد");
+assert.match(script, /GROUP_SLUGS = \{[^}]*parsian: "parsian-coin"/, "اسلاگ دستهٔ سکه پارسیان باید parsian-coin باشد");
+assert.match(read(".htaccess"), /\^price\/parsian-coin\/\[a-z0-9-\]\+\/\?\$ price\/asset\.html/, "صفحه‌های سکه پارسیان باید به قالب دارایی بازنویسی شوند");
 
 // از ۲۵ مهر سقف رایگان BrsApi ده درخواست در روز است؛ انرژی، انس و نقره از
 // TGJU می‌آیند و BrsApi فقط برای مس با برنامهٔ صرفه‌جو می‌ماند.
@@ -201,7 +203,7 @@ assert.match(script, /stats\[id \+ "-usdt"\]/, "قیمت اصلی رمزارز �
 assert.match(script, /!USD_STABLECOINS\[id\]/, "استیبل‌کوین دلاری نباید قیمت تتری اصلی بگیرد");
 assert.match(script, /useUsdt \? usdtRow : tomanRow/, "درصد تغییر باید از همان بازار قیمت اصلی بیاید");
 assert.match(script, /tomanChange: useUsdt \? Number\(tomanRow\.dayChange\) : null/, "درصد ردیف تومانی رمزارز باید از بازار مستقیم تومانی بیاید");
-assert.match(script, /assets\[id\]\.change = Number\(row\.change\)/, "تغییر دارایی‌های پراکسی استفاده شود");
+assert.match(script, /assets\[id\]\.change = (?:row\.change == null \? NaN : )?Number\(row\.change\)/, "تغییر دارایی‌های پراکسی استفاده شود");
 assert.match(ratesApi, /'usd'\s*=>\s*\$usdPrice/, "API باید قیمت خام دلاری انس را حفظ کند");
 assert.match(ratesApi, /'toman_change'\s*=>\s*\$tomanChange/, "API باید درصد تغییر تومانی را جداگانه برگرداند");
 assert.match(ratesApi, /\(1 \+ \$rowChange \/ 100\) \* \(1 \+ \$usdChange \/ 100\) - 1/, "درصد تومانی انس باید از تغییر انس دلاری و دلار محاسبه شود");
@@ -237,7 +239,7 @@ assert.match(script, /heroIcon\.classList\.toggle\("is-full-bleed", group === "g
 assert.match(script, /icon\.classList\.toggle\("is-full-bleed", asset\.group === "gold" \|\| asset\.group === "commodity" \|\| asset\.group === "energy"\)/, "آیکون صفحه تکی طلا، فلزات و انرژی باید تمام دایره را پر کند");
 assert.match(styles, /\.asset-main-icon\.is-full-bleed \.asset-main-icon-inner[^}]*width:100%;height:100%/, "ظرف داخلی آیکون full-bleed باید هم‌اندازه دایره باشد");
 
-assert.match(script, /GROUP_SLUGS = \{ fiat: "currency" \}/, "مسیر عمومی ارز باید currency باشد");
+assert.match(script, /GROUP_SLUGS = \{ fiat: "currency"[,}]/, "مسیر عمومی ارز باید currency باشد");
 assert.match(script, /groupFromSlug\(slug\).*slug === "currency" \? "fiat"/, "مسیر currency باید به گروه داخلی ارز نگاشت شود");
 assert.doesNotMatch(script, /\{ id: "irt", name: "تومان"[^\n]*group: "fiat"/, "تومان نباید در صفحات قیمت ارز حضور داشته باشد");
 assert.match(script, /name: "انس جهانی طلا"/, "عنوان انس باید انس جهانی طلا باشد");
@@ -343,4 +345,4 @@ assert.match(ratesApi, /\$age < \$ttl - cronMargin\(\$ttl\)/, "کرون دقیق
 assert.match(ratesApi, /if \(\$code === 402\) \{\s*\$midnight = \(new DateTimeImmutable\('tomorrow'/, "۴۰۲ یعنی سهمیهٔ امروز تمام شد؛ تا نیمه‌شب تهران نباید دوباره کوبید");
 assert.match(ratesApi, /'sources'\s*=> \$sources/, "پاسخ باید بگوید هر منبع چه شد");
 assert.match(ratesApi, /'carried'\s*=> \$carried/, "پاسخ باید بگوید کدام قلم‌ها از کش آمده‌اند");
-assert.match(ratesApi, /array_diff_key\(\$assets, array_flip\(\$carried\)\)/, "نرخ منتقل‌شده نباید نقطهٔ نمودار شود");
+assert.match(ratesApi, /array_diff_key\(\$assets, array_flip\((?:\$carried|array_merge\(\$carried, \$talaStaleIds\))\)\)/, "نرخ منتقل‌شده نباید نقطهٔ نمودار شود");

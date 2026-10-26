@@ -7,6 +7,7 @@ declare(strict_types=1);
  * منابع (از ۲۵ مهر ۱۴۰۵):
  *   طلا، سکه، ارز فیات، نقره ۹۹۹، انس طلا، نفت، بنزین  ← TGJU (call*.tgju.org/ajax.json)
  *   مس (گواهی سپردهٔ مس کاتد بورس کالا)              ← BrsApi IME/Certificate
+ *   سکهٔ پارسیان ۷۵۰ (۱۰۰ سوت تا ۲٫۱ گرم)            ← tala.ir/price/parsian، ساعتی
  *
  * BrsApi سهمیهٔ رایگان را از ۱۵۰۰ به ۱۰ درخواست در روز رساند (۲۵ مهر،
  * usage_today_limit=10 در پاسخ ۴۰۲). پس هر چه TGJU دارد از آنجا می‌آید و
@@ -859,6 +860,124 @@ foreach (IME_MAP as $meta) {
     $carry($meta['id']);
 }
 
+/* ── سکهٔ پارسیان: tala.ir ───────────────────────────────────────
+   TGJU همهٔ وزن‌های پارسیان را ندارد؛ tala.ir دارد، ولی فقط به‌صورت
+   HTML. تنها بخش «سکه پارسیان با عیار 750» خوانده می‌شود (۱۰۰ سوت تا
+   ۲٫۱ گرم)؛ بخش شمش ۹۹۵ که پایین همان صفحه است عمداً کنار می‌ماند.
+   نرخ‌ها به تومان‌اند (خود صفحه می‌گوید) و با طلای ۲۴ عیار جابه‌جا
+   می‌شوند، پس ساعتی یک بار خواندن کافی است و فشاری روی سایت آن‌ها
+   نمی‌آورد. کش مستقل دارد؛ کرون دقیقه‌ای تا پر شدن ساعت سراغش نمی‌رود.
+
+   tala.ir تغییر روزانه نمی‌دهد. تغییر ۲۴ ساعته نسبت به آخرین نرخِ روزِ
+   قبل (به تاریخ تهران) حساب می‌شود و تا وقتی آن روز ثبت نشده، خالی است. */
+const TALA_URL           = 'https://www.tala.ir/price/parsian';
+const TALA_TTL           = 3600;
+/* با کرون دقیقه‌ای، صفحهٔ ازکارافتاده بدون این هر دقیقه دوباره خوانده می‌شد. */
+const TALA_RETRY         = 600;
+const TALA_MIN_ROWS      = 15;
+const TALA_UA            = 'Mozilla/5.0 (compatible; tabdex-rates/2.0; +https://tabdex.ir)';
+/* وزن به سوت (هزارم گرم). شناسه parsian + وزن است: parsian100 … parsian2100. */
+const PARSIAN_WEIGHTS    = [100, 200, 300, 400, 500, 600, 700, 800, 900,
+    1000, 1100, 1200, 1300, 1400, 1500, 1600, 1700, 1800, 1900, 2000, 2100];
+
+/* [وزن به سوت => تومان]. فقط ردیف‌های بخش ۷۵۰؛ خالی یعنی ساختار صفحه عوض شده. */
+function parseTalaParsian(string $html): array
+{
+    $start = mb_strpos($html, 'عیار 750');
+    if ($start === false) {
+        return [];
+    }
+    $section = mb_substr($html, $start);
+    $end = mb_strpos($section, '<h1', 1);
+    if ($end !== false) {
+        $section = mb_substr($section, 0, $end);
+    }
+
+    preg_match_all(
+        '~<h2[^>]*>\s*پارسیان\s*([0-9.]+)\s*(سوت|گرم)\s*</h2>\s*</div>\s*<div[^>]*>\s*<h3[^>]*>([^<]+)</h3>~u',
+        $section,
+        $matches,
+        PREG_SET_ORDER
+    );
+
+    $prices = [];
+    foreach ($matches as [, $amount, $unit, $price]) {
+        $weight = (int) round((float) $amount * ($unit === 'گرم' ? 1000 : 1));
+        $toman  = tgjuNumber($price);
+        if (in_array($weight, PARSIAN_WEIGHTS, true) && $toman > 0) {
+            $prices[$weight] = $toman;
+        }
+    }
+
+    return $prices;
+}
+
+$talaCacheFile = $cacheDir . '/parsian.json';
+$talaCache     = json_decode((string) @file_get_contents($talaCacheFile), true);
+$talaCache     = is_array($talaCache) ? $talaCache : [];
+$talaFetched   = (int) ($talaCache['fetched_unix'] ?? 0);
+$talaAttempted = max($talaFetched, (int) ($talaCache['attempt_unix'] ?? 0));
+$sources['tala'] = 'cache';
+/* نرخی که این دور از tala.ir نیامده نقطهٔ تازهٔ نمودار نیست. */
+$talaStaleIds = [];
+
+if (time() - $talaFetched >= TALA_TTL && time() - $talaAttempted >= TALA_RETRY) {
+    $talaResult = upstreamGet(TALA_URL, UPSTREAM_TIMEOUT, TALA_UA);
+    $talaPrices = ($talaResult['body'] !== false && $talaResult['code'] === 200)
+        ? parseTalaParsian((string) $talaResult['body'])
+        : [];
+
+    if (count($talaPrices) >= TALA_MIN_ROWS) {
+        $today = tehranToday();
+        /* روز عوض شده: آخرین نرخ دیروز مبنای تغییر امروز می‌شود. */
+        if (($talaCache['day'] ?? '') !== '' && $talaCache['day'] !== $today && is_array($talaCache['prices'] ?? null)) {
+            $talaCache['ref']     = $talaCache['prices'];
+            $talaCache['ref_day'] = $talaCache['day'];
+        }
+        $talaCache['day']          = $today;
+        $talaCache['prices']       = $talaPrices;
+        $talaCache['fetched_unix'] = time();
+        $sources['tala'] = 'fetched rows=' . count($talaPrices);
+    } else {
+        /* پاسخ ناقص نرخ‌های سالم قبلی را پاک نمی‌کند؛ فقط زمان تلاش ثبت می‌شود. */
+        $sources['tala'] = $talaResult['code'] === 200
+            ? 'unparsed rows=' . count($talaPrices)
+            : upstreamReason($talaResult);
+        $talaStaleIds = array_map(static fn(int $weight): string => 'parsian' . $weight, PARSIAN_WEIGHTS);
+    }
+    $talaCache['attempt_unix'] = time();
+
+    $talaTemp = $talaCacheFile . '.' . getmypid() . '.tmp';
+    if (@file_put_contents($talaTemp, json_encode($talaCache, JSON_UNESCAPED_UNICODE)) !== false) {
+        @rename($talaTemp, $talaCacheFile);
+    }
+} else {
+    $talaStaleIds = array_map(static fn(int $weight): string => 'parsian' . $weight, PARSIAN_WEIGHTS);
+}
+
+$talaUpdated = (int) ($talaCache['fetched_unix'] ?? 0);
+foreach (PARSIAN_WEIGHTS as $weight) {
+    $id    = 'parsian' . $weight;
+    $toman = (float) ($talaCache['prices'][$weight] ?? 0);
+    if ($toman <= 0) {
+        $carry($id);
+        continue;
+    }
+    $ref    = (float) ($talaCache['ref'][$weight] ?? 0);
+    $change = $ref > 0 ? ($toman / $ref - 1) * 100 : null;
+    $assets[$id] = [
+        'toman'   => $toman,
+        'usd'     => null,
+        'group'   => 'parsian',
+        'unit'    => 'piece',
+        'name'    => $id,
+        'change'  => $change,
+        'toman_change' => $change,
+        // زمان خواندن از tala.ir، نه زمان تازه شدن کش کلی نرخ‌ها.
+        'updated' => $talaUpdated > 0 ? gmdate('c', $talaUpdated) : null,
+    ];
+}
+
 /* ── زمانی که به کاربر نشان داده می‌شود ──────────────────────────
    updated تا امروز بزرگ‌ترین time_unix پاسخ BrsApi بود، یعنی زمانی که
    آن‌ها آخرین بار قیمت را تکان داده‌اند. آن عدد دست ما نیست و می‌تواند
@@ -914,7 +1033,8 @@ if (@file_put_contents($temp, $encoded) !== false) {
 try {
     require_once __DIR__ . '/market-history.php';
     // نرخ منتقل‌شده از کش نقطهٔ تازه نیست و نمودار را صاف و دروغین می‌کرد.
-    recordHistoryPoints(array_diff_key($assets, array_flip($carried)), $result['fetched_unix']);
+    // پارسیان ساعتی یک بار خوانده می‌شود؛ بقیهٔ دورها همان عدد کش است.
+    recordHistoryPoints(array_diff_key($assets, array_flip(array_merge($carried, $talaStaleIds))), $result['fetched_unix']);
 } catch (Throwable $historyError) {
     // عمداً بی‌صدا: نرخ‌ها باید سرو شوند حتی اگر نمودار ثبت نشود.
 }

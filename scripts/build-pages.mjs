@@ -108,6 +108,19 @@ const PRICE_GROUPS = {
   commodity: ["silver", "copper"],
   energy: ["brent", "gasoline"]
 };
+
+/* سکهٔ پارسیان عیار ۷۵۰، از ۱۰۰ سوت تا ۲٫۱ گرم (وزن به سوت). شناسه،
+   اسلاگ و نام باید با PARSIAN_WEIGHTS در assets/price.js یکی بماند؛ نرخ
+   را rates.php ساعتی از tala.ir می‌گیرد. در مبدل نیستند، پس جفت تبدیل
+   ندارند. */
+const PARSIAN_WEIGHTS = [100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100, 1200, 1300, 1400, 1500, 1600, 1700, 1800, 1900, 2000, 2100];
+const parsianDigits = (value) => String(value).replace(/\d/g, (d) => "۰۱۲۳۴۵۶۷۸۹"[d]);
+const PARSIAN = PARSIAN_WEIGHTS.map((weight) => ({
+  id: `parsian${weight}`,
+  slug: weight < 1000 ? `${weight}-sot` : `${String(weight / 1000).replace(".", "-")}-gram`,
+  name: `سکه پارسیان ${weight < 1000 ? `${parsianDigits(weight)} سوت` : `${parsianDigits(weight / 1000)} گرم`}`
+}));
+PRICE_GROUPS["parsian-coin"] = PARSIAN.map((coin) => coin.slug);
 /* نام و توضیح هر دسته باید با CATEGORIES در assets/price.js یکی بماند،
    وگرنه عنوان سرورساخته با چیزی که جاوااسکریپت بعداً می‌نویسد فرق می‌کند.
    tests/price-pages.test.js این هم‌خوانی را بررسی می‌کند. */
@@ -115,6 +128,7 @@ const PRICE_CATEGORIES = {
   crypto:    { name: "ارزهای دیجیتال" },
   gold:      { name: "طلا" },
   coin:      { name: "سکه" },
+  "parsian-coin": { name: "سکه پارسیان" },
   commodity: { name: "فلزات" },
   energy:    { name: "انرژی" },
   currency:  { name: "ارز" }
@@ -179,6 +193,7 @@ function cryptoSlug(id) {
 const currencyNames = JSON.parse(await readFile(resolve(ROOT, "data", "currencies.json"), "utf8")).currencies;
 const NAME_BY_SLUG = new Map();
 for (const asset of Object.values(ASSETS)) NAME_BY_SLUG.set(asset.slug, asset.name);
+for (const coin of PARSIAN) NAME_BY_SLUG.set(coin.slug, coin.name);
 
 function cryptoName(id) {
   const entry = currencyNames[id];
@@ -375,7 +390,10 @@ function priceAssetMeta(group, slug, name) {
       [/(<h2 id="asset-content-title">)[^<]*(<\/h2>)/, `$1قیمت ${name} امروز$2`],
       [/(<h3 id="asset-about-title">)[^<]*(<\/h3>)/, `$1درباره ${name}$2`],
       // دکمهٔ بالای صفحه از همان HTML اولیه به مبدل همین دارایی به تومان می‌رود.
-      [/(<a class="asset-primary-link" id="asset-hero-convert" href=")[^"]*(">)[^<]*/, `$1/convert/${slug}-to-irt/$2مبدل قیمت ${name} `]
+      // سکهٔ پارسیان در مبدل نیست، پس دکمه پنهان می‌ماند و به صفحهٔ ناموجود پیوند نمی‌دهد.
+      group === "parsian-coin"
+        ? [/(<a class="asset-primary-link" id="asset-hero-convert" href=")[^"]*(">)[^<]*/, `$1/convert/" hidden>مبدل قیمت `]
+        : [/(<a class="asset-primary-link" id="asset-hero-convert" href=")[^"]*(">)[^<]*/, `$1/convert/${slug}-to-irt/$2مبدل قیمت ${name} `]
     ]
   };
 }
@@ -414,6 +432,7 @@ const GROUP_HELP = {
   gold: ["وزن و عیار طلا چه اثری در محاسبه دارد؟", "طلای ۱۸ و ۲۴ عیار به گرم، طلای آب‌شده به مثقال و انس جهانی با واحد انس نمایش داده می‌شوند. محاسبه ارزش وزن طلا با قیمت هر واحد انجام می‌شود؛ این برآورد قیمت نهایی زیورآلات نیست و اجرت، سود فروشنده و هزینه‌های معامله را محاسبه نمی‌کند."],
   coin: ["قیمت سکه با ارزش طلای آن چه تفاوتی دارد؟", "واحد قیمت سکه یک عدد از همان نوع سکه است. سکه امامی، بهار آزادی، نیم، ربع و یک‌گرمی قیمت‌های جدا دارند؛ قیمت سکه ممکن است با ارزش طلای داخل آن متفاوت باشد. نرخ مرجع، قیمت قطعی خرید یا فروش فروشنده نیست."],
   commodity: ["این نرخ فلز مربوط به کدام واحد است؟", "نقره ۹۹۹ در این سایت به گرم و با قیمت بازار آزاد (TGJU) نمایش داده می‌شود. مس به کیلوگرم و بر پایهٔ گواهی سپردهٔ مس کاتد بورس کالا از طریق BrsApi است. این نرخ را با قیمت مصنوعات، مس مصرفی یا فلز دارای عیار متفاوت یکسان نگیرید. در توقف منبع، زمان داده ذخیره‌شده را بررسی کنید."],
+  "parsian-coin": ["قیمت سکه پارسیان از کجا می‌آید؟", "قیمت سکه پارسیان با عیار ۷۵۰، از ۱۰۰ سوت تا ۲.۱ گرم، هر یک ساعت یک بار از سایت طلا (tala.ir) دریافت می‌شود و به تومان برای هر عدد سکه است. این نرخ بدون مالیات بر ارزش افزوده است و با طلای ۲۴ عیار تغییر می‌کند؛ قیمت فروشندگان ممکن است تا چند درصد با آن تفاوت داشته باشد."],
   energy: ["نرخ انرژی چه چیزی را اندازه می‌گیرد؟", "نفت برنت به دلار برای هر بشکه و بنزین آمریکا (RBOB) به دلار برای هر گالن نمایش داده می‌شوند. این ارقام نرخ بازار جهانی انرژی هستند و قیمت بنزین جایگاه‌های ایران یا قیمت تحویل محلی را نشان نمی‌دهند."],
   crypto: ["قیمت تومانی و تتری چرا متفاوت است؟", "نرخ رمزارز از آخرین معامله در بازار عمومی نوبیتکس دریافت می‌شود. بازار تومان و بازار تتر سفارش‌های جدا دارند؛ به همین دلیل نرخ تومانی الزاماً برابر حاصل‌ضرب قیمت تتری در قیمت تتر نیست. آخرین معامله نیز تضمین قیمت اجرای سفارش جدید نیست."]
 };
