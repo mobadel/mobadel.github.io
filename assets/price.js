@@ -6,7 +6,7 @@
     crypto: { name: "ارزهای دیجیتال", singular: "ارز دیجیتال", description: "قیمت لحظه ای ارزهای دیجیتال در بازار تتری و تومانی ایران", icon: "/assets/crypto-icons/btc.svg" },
     gold: { name: "طلا", singular: "طلا", description: "قیمت طلای ۱۸ و ۲۴ عیار، طلای آب‌شده و انس جهانی", icon: "/assets/gold-18k.svg" },
     coin: { name: "سکه", singular: "سکه", description: "قیمت لحظه ای انواع سکه در بازار ایران", icon: "/assets/coin-emami.webp?v=20260825-2" },
-    parsian: { name: "سکه پارسیان", singular: "سکه پارسیان", description: "قیمت لحظه ای سکه پارسیان با عیار ۷۵۰ از ۱۰۰ سوت تا ۲.۱ گرم", icon: "/assets/coin-emami.webp?v=20260825-2" },
+    parsian: { name: "سکه پارسیان", singular: "سکه پارسیان", description: "قیمت لحظه ای سکه پارسیان با عیار ۷۵۰ از ۱۰۰ سوت تا ۲.۱ گرم", icon: "/assets/coin-parsian.webp?v=20261026-1" },
     commodity: { name: "فلزات", singular: "فلز", description: "قیمت لحظه ای نقره ۹۹۹ و مس کاتد بورس کالا", icon: "/assets/silver.svg" },
     energy: { name: "انرژی", singular: "حامل انرژی", description: "قیمت لحظه ای نفت برنت و بنزین در بازارهای جهانی", icon: "/assets/crude-oil.svg" },
     fiat: { name: "ارز", singular: "ارز", description: "قیمت لحظه ای دلار، یورو و دیگر ارزهای رایج به تومان", icon: "/assets/flags/us.svg" }
@@ -73,7 +73,7 @@
   ];
 
   PARSIAN_WEIGHTS.forEach(function (weight) {
-    FIXED.push({ id: "parsian" + weight, name: parsianName(weight), englishName: "Parsian Coin " + (weight < 1000 ? weight + " Sot" : weight / 1000 + " Gram"), group: "parsian", unit: "piece", icon: "/assets/coin-emami.webp?v=20260825-2" });
+    FIXED.push({ id: "parsian" + weight, name: parsianName(weight), englishName: "Parsian Coin " + (weight < 1000 ? weight + " Sot" : weight / 1000 + " Gram"), group: "parsian", unit: "piece", icon: "/assets/coin-parsian.webp?v=20261026-1" });
     // ترتیب فهرست از سبک به سنگین؛ بدون رتبه، نام‌ها الفبایی و درهم می‌شدند.
     RANKED.push("parsian" + weight);
   });
