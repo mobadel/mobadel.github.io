@@ -761,3 +761,23 @@ span.num { display: inline; }
   .frequent-grid { grid-template-columns: minmax(0, 1fr); gap: 10px; }
 }
 .frequent-conversions[hidden] { display: none; }
+
+/* ── قیمت پنهان به دستور کارگروه (assets/restricted.js) ─────────────
+   «***» جای عدد و کنارش «!» با متن هشدار. متن همیشه دیده می‌شود و در
+   ستون‌های باریک می‌شکند، نه اینکه از کادر بیرون بزند. */
+.restricted-price { display: inline-flex; flex-direction: column; align-items: flex-start; gap: 4px; min-width: 0; max-width: 100%; white-space: normal; }
+.restricted-mask { color: var(--text); font-weight: 700; letter-spacing: .12em; }
+.restricted-note { display: inline-flex; align-items: flex-start; gap: 6px; min-width: 0; max-width: 100%; color: #8a5a00; font-size: 12.5px; font-weight: 400; line-height: 1.7; white-space: normal; text-align: start; overflow-wrap: anywhere; }
+.restricted-note.is-compact { gap: 5px; font-size: 11.5px; line-height: 1.6; }
+.restricted-icon { display: inline-grid; flex: 0 0 auto; width: 17px; height: 17px; margin-top: 2px; place-items: center; border-radius: 50%; color: #fff; background: #d97706; font-size: 11.5px; font-weight: 700; line-height: 1; }
+.restricted-note.is-compact .restricted-icon { width: 15px; height: 15px; font-size: 10.5px; }
+.restricted-block { display: flex; padding: 14px 16px; border: 1px solid #f3d9a4; border-radius: 14px; background: #fff8eb; }
+.restricted-block .restricted-note { font-size: 14px; }
+.home-kpi .restricted-price, .home-market-price .restricted-price, .market-row-price .restricted-price { font-size: inherit; }
+.home-kpi-value .restricted-price .restricted-mask { font-size: 1.15em; }
+/* فهرست‌ها (مثل «دیگر دارایی‌ها») به هر span داخلشان چیدمان ستونی می‌دهند؛
+   هشدار و «!» باید چیدمان خودشان را نگه دارند. */
+span.restricted-price { display: inline-flex !important; flex-direction: column !important; align-items: flex-start !important; }
+span.restricted-note { display: inline-flex !important; flex-direction: row !important; align-items: flex-start !important; }
+span.restricted-icon { display: inline-grid !important; flex: 0 0 auto !important; place-items: center; overflow: visible !important; }
+span.restricted-text { display: inline !important; flex: 1 1 auto; min-width: 0; }

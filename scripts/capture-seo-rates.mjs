@@ -1,5 +1,6 @@
 import { mkdir, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
+import { createRequire } from 'node:module';
 // Optional publication snapshot. No API keys; failures leave the offline fallback intact.
 const snapshot = {};
 const jobs = [
@@ -35,6 +36,9 @@ await Promise.allSettled(jobs.map(async ([url, consume]) => {
   if (!response.ok) throw new Error(`HTTP ${response.status}`);
   consume(await response.json());
 }));
+// دلار، طلا و سکه به دستور کارگروه: نرخشان در فایل عمومی seo-rates.json منتشر نمی‌شود.
+const RESTRICTED = createRequire(import.meta.url)('../assets/restricted.js');
+for (const id of Object.keys(snapshot)) if (RESTRICTED.is(id)) delete snapshot[id];
 if (Object.keys(snapshot).length) {
   const directory = resolve('_site/data');
   await mkdir(directory, {recursive:true});

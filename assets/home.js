@@ -27,6 +27,10 @@
   var rows = document.getElementById("home-market-rows");
   if (!rows) return;
 
+  /* دلار، طلا و سکه به دستور کارگروه نمایش داده نمی‌شوند (assets/restricted.js). */
+  var RESTRICT = window.TabdexRestricted || null;
+  function restricted(id) { return !!(RESTRICT && RESTRICT.is(id)); }
+
   /* group فقط برای تگ‌های بالای جدول است؛ history یعنی سرور تاریخچهٔ
      روزانهٔ این دارایی را دارد و ستون روند ۳۰ روزه برایش رسم می‌شود. */
   var definitions = [
@@ -178,7 +182,8 @@
       var small = document.createElement("small"); small.textContent = definition.code;
       label.append(strong, small); identity.append(icon, label);
       var priceCell = document.createElement("span"); priceCell.className = "home-market-price";
-      fillPrice(priceCell, price, unit);
+      if (restricted(definition.id)) priceCell.replaceChildren(RESTRICT.price(true));
+      else fillPrice(priceCell, price, unit);
       var changeCell = document.createElement("span"); changeCell.className = "home-market-change " + (change > 0 ? "positive" : change < 0 ? "negative" : "neutral"); changeCell.textContent = changeText(change);
       var trend = document.createElement("span"); trend.className = "home-market-trend";
       trend.appendChild(definition.history ? sparkline(daily[definition.id]) : sparkline(null));
@@ -195,6 +200,13 @@
     KPI_IDS.forEach(function (id) {
       var definition = definitions.concat(KPI_EXTRA).filter(function (item) { return item.id === id; })[0];
       var quote = quoteFor(definition, stats, proxy);
+      if (restricted(id)) {
+        var hidden = document.createElement("a"); hidden.className = "home-kpi is-restricted"; hidden.href = definition.url; hidden.setAttribute("data-kpi", id);
+        var hiddenName = document.createElement("span"); hiddenName.className = "home-kpi-name"; hiddenName.append(roundIcon(definition.icon), document.createTextNode(definition.name));
+        var hiddenValue = document.createElement("span"); hiddenValue.className = "home-kpi-value"; hiddenValue.appendChild(RESTRICT.price(true));
+        hidden.append(hiddenName, hiddenValue); cards.push(hidden);
+        return;
+      }
       if (!(quote.price > 0)) {
         // نرخ این کارت هنوز نرسیده: کارت ایستای سرور سر جایش می‌ماند تا چیدمان نپرد.
         var kept = box.querySelector('[data-kpi="' + id + '"]');
@@ -232,7 +244,9 @@
       var link = document.createElement("a"); link.className = "mover"; link.href = item.url;
       var label = document.createElement("span"); label.className = "mover-label";
       var strong = document.createElement("strong"); strong.textContent = item.name;
-      var small = document.createElement("small"); small.append(numSpan(number(item.price)), document.createTextNode(" تومان"));
+      var small = document.createElement("small");
+      if (restricted(item.id)) small.appendChild(RESTRICT.price(true));
+      else small.append(numSpan(number(item.price)), document.createTextNode(" تومان"));
       label.append(strong, small);
       var badge = document.createElement("span"); badge.className = "change-badge " + toneOf(item.change); badge.textContent = changeText(item.change);
       link.append(roundIcon(item.icon), label, badge); li.appendChild(link); return li;
@@ -251,12 +265,14 @@
     var line = "M" + coords.map(function (c) { return c[0].toFixed(1) + "," + c[1].toFixed(1); }).join(" L");
     document.getElementById("home-usd-chart-line").setAttribute("d", line);
     document.getElementById("home-usd-chart-area").setAttribute("d", line + " L760,220 L0,220 Z");
-    document.getElementById("home-usd-chart-low").textContent = number(low);
-    document.getElementById("home-usd-chart-high").textContent = number(high);
+    var usdHidden = restricted("usd");
+    document.getElementById("home-usd-chart-low").textContent = usdHidden ? RESTRICT.MASK : number(low);
+    document.getElementById("home-usd-chart-high").textContent = usdHidden ? RESTRICT.MASK : number(high);
+    if (usdHidden && !card.querySelector(".restricted-note")) card.appendChild(RESTRICT.notice(false));
     var change = (values[values.length - 1] - values[0]) / values[0] * 100;
     var badge = document.getElementById("home-usd-chart-change");
     badge.className = "change-badge " + toneOf(change); badge.textContent = changeText(change);
-    document.getElementById("home-usd-chart-svg").setAttribute("aria-label", "نمودار قیمت دلار در ۳۰ روز اخیر، از " + number(values[0]) + " تا " + number(values[values.length - 1]) + " تومان");
+    document.getElementById("home-usd-chart-svg").setAttribute("aria-label", usdHidden ? "نمودار قیمت دلار در ۳۰ روز اخیر" : "نمودار قیمت دلار در ۳۰ روز اخیر، از " + number(values[0]) + " تا " + number(values[values.length - 1]) + " تومان");
     card.hidden = false;
   }
 
