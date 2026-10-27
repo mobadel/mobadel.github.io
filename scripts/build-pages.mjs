@@ -13,7 +13,6 @@
 import { readFile, writeFile, mkdir } from "node:fs/promises";
 import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
-import { createRequire } from "node:module";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const SITE = resolve(ROOT, "_site");
@@ -641,12 +640,8 @@ const HOME_KPIS = [
   { id: "silver", name: "نقره گرمی", url: "/price/commodity/silver/", icon: "/assets/silver.svg" }
 ];
 const faNumber = (value, digits) => new Intl.NumberFormat("fa-IR", { maximumFractionDigits: digits }).format(value);
-/* دلار، پوند و دلار کانادا به دستور کارگروه: کارتشان در HTML اولیه هم عدد ندارد
-   (assets/restricted.js همان فهرست home.js و price.js است). */
-const RESTRICTED = createRequire(import.meta.url)("../assets/restricted.js");
 function homeKpis() {
   return HOME_KPIS.map((kpi) => {
-    if (RESTRICTED.is(kpi.id)) return `<a class="home-kpi is-restricted" href="${kpi.url}" data-kpi="${kpi.id}"><span class="home-kpi-name"><span class="round-icon"><img src="${kpi.icon}" alt=""></span>${kpi.name}</span><span class="home-kpi-value">${RESTRICTED.priceHtml()}</span></a>`;
     const snap = snapshots[kpi.id] || {};
     const unit = kpi.unit || "تومان";
     const price = unit === "تتر" ? snap.usdt : unit === "دلار" ? snap.usd : snap.toman;

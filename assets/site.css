@@ -764,15 +764,3 @@ span.num { display: inline; }
   .frequent-grid { grid-template-columns: minmax(0, 1fr); gap: 10px; }
 }
 .frequent-conversions[hidden] { display: none; }
-
-/* ── قیمت پنهان به دستور کارگروه (assets/restricted.js) ─────────────
-   «***» جای عدد و کنارش یک «!» قرمز کم‌رنگ. متن هشدار فقط با هاور،
-   فوکوس یا کلیک در کادر شناور .restricted-tip می‌آید. */
-span.restricted-price { display: inline-flex !important; flex-direction: row !important; align-items: center !important; gap: 6px; white-space: nowrap; }
-.restricted-mask { color: var(--text); font-weight: 700; letter-spacing: .12em; }
-span.restricted-note { position: relative; z-index: 3; display: inline-grid !important; flex: 0 0 auto !important; width: 18px; height: 18px; margin-inline-start: 6px; place-items: center; border-radius: 50%; color: #fff; background: rgba(180, 35, 24, .5); font-family: var(--font-numeric, inherit); font-size: 12px; font-weight: 700; line-height: 1; vertical-align: middle; cursor: help; transition: background .15s; }
-span.restricted-price span.restricted-note { margin-inline-start: 0; }
-span.restricted-note:hover, span.restricted-note:focus-visible { background: rgba(180, 35, 24, .72); outline: none; }
-span.restricted-note:focus-visible { box-shadow: 0 0 0 3px rgba(180, 35, 24, .18); }
-.restricted-tip { position: absolute; z-index: 1000; max-width: min(280px, calc(100vw - 16px)); padding: 10px 12px; border: 1px solid var(--border, #e3e9e6); border-radius: 12px; color: var(--text, #0e1f19); background: var(--surface, #fff); box-shadow: 0 10px 28px rgba(14, 31, 25, .14); font-size: 13px; font-weight: 400; line-height: 1.8; text-align: start; pointer-events: none; }
-.restricted-tip[hidden] { display: none; }

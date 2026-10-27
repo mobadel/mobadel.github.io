@@ -11,8 +11,6 @@
   var SLUG_TO_ID = { melted: "goldmelted", ounce: "goldounce", baharazadi: "bahar", nim: "halfcoin", rob: "quartercoin", gerami: "gramcoin" };
   var id = SLUG_TO_ID[route[2]] || route[2];
   if (id === "goldounce") return;
-  // دلار، پوند و دلار کانادا به دستور کارگروه: آمار و جدول روزانه (که قیمت دارند) ساخته نمی‌شوند.
-  if (window.TabdexRestricted && window.TabdexRestricted.is(id, route[1])) return;
 
   var statsBox = document.getElementById("asset-stats");
   var daysBox = document.getElementById("asset-days");

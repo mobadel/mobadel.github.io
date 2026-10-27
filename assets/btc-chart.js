@@ -24,13 +24,6 @@
   var historyId = routeMatch[2] === "baharazadi" ? "bahar" : routeMatch[2];
   var historyName = MARKET_HISTORY_ASSETS[routeMatch[2]];
   if (!isCryptoChart && !historyName) return;
-  /* دلار، پوند و دلار کانادا به دستور کارگروه: نمودار (که محور و نقطه‌هایش قیمت
-     دارند) ساخته نمی‌شود و کادرش پنهان می‌ماند. */
-  if (!isCryptoChart && window.TabdexRestricted && window.TabdexRestricted.is(historyId, routeMatch[1])) {
-    var restrictedCard = document.getElementById("btc-price-chart");
-    if (restrictedCard) restrictedCard.hidden = true;
-    return;
-  }
   var marketConfig = isCryptoChart ? (MARKETS[routeMatch[2]] || { id: routeMatch[2], crypto: true }) : {
     id: historyId, title: "نمودار قیمت " + historyName, unit: "تومان", history: true
   };

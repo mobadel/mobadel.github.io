@@ -318,13 +318,6 @@
     return (currency && currency.group) || "crypto";
   }
 
-  /* دلار، پوند و دلار کانادا به دستور کارگروه نمایش داده نمی‌شوند (assets/restricted.js).
-     تبدیل هر جفتی که یک طرفش از این‌هاست عدد نشان نمی‌دهد: نتیجه «***» و
-     کنار نرخ هشدار می‌آید. نرخ همچنان دریافت می‌شود. */
-  var RESTRICT = (typeof window !== "undefined" && window.TabdexRestricted) || null;
-  function isRestrictedId(id) { return !!(RESTRICT && id && id !== "irt" && RESTRICT.is(id, groupOf(id))); }
-  function pairRestricted() { return isRestrictedId(state.from) || isRestrictedId(state.to); }
-
   function isPairAllowed(from, to) {
     return Boolean(from && to && from !== to);
   }
@@ -515,10 +508,6 @@
     paintCurrency(elements.currencyFrom, fromCurrency);
     paintCurrency(elements.currencyTo, toCurrency);
     var result = convertEditedAmount();
-    if (pairRestricted()) {
-      if (state.edited === "from") setInput(elements.amountTo, RESTRICT.MASK); else setInput(elements.amountFrom, RESTRICT.MASK);
-      return;
-    }
     if (state.edited === "from") setInput(elements.amountTo, result === null ? "" : formatCurrencyNumber(result, toCurrency));
     else setInput(elements.amountFrom, result === null ? "" : formatCurrencyNumber(result, fromCurrency));
   }
@@ -587,16 +576,6 @@
     }
     var fromCurrency = currencies[state.from];
     var toCurrency = currencies[state.to];
-    var hidden = pairRestricted();
-    if (hidden && fromCurrency && toCurrency) {
-      var maskUnit = unitPrefix(fromCurrency);
-      elements.rateValue.textContent = "۱ " + (maskUnit ? maskUnit + " " : "") + fromCurrency.name + " = " + RESTRICT.MASK + " " + toCurrency.name;
-      // «!» کنار نرخ؛ متن هشدار فقط با هاور یا کلیک.
-      if (typeof document.createTextNode === "function") elements.rateValue.appendChild(RESTRICT.notice());
-      elements.rateStatus.classList.remove("error"); elements.rateStatus.classList.remove("closed");
-      elements.rateStatus.innerHTML = '<span class="status-dot" aria-hidden="true"></span>' + "قیمت این دارایی موقتاً نمایش داده نمی‌شود";
-      return;
-    }
     if (!Number.isFinite(state.rate) || state.rate <= 0) {
       elements.rateValue.textContent = state.loading ? "در حال دریافت…" : "نرخ این تبدیل در دسترس نیست";
       elements.rateStatus.classList.toggle("error", !state.loading);
@@ -645,11 +624,6 @@
       " با قیمت لحظه ای و سریع";
     elements.pairContentIntro.textContent = "با سرویس مبدل تبدکس، می‌توانید به‌سادگی " + fromCurrency.name +
       " خود را به " + toCurrency.name + " تبدیل کنید. قیمت لحظه ای هر دارایی به شما کمک می‌کند قبل از انجام تبدیل، ارزش دارایی خود را مشاهده کنید.";
-    if (pairRestricted()) {
-      elements.pairContentRate.textContent = "نرخ این تبدیل موقتاً نمایش داده نمی‌شود. ";
-      if (typeof document.createTextNode === "function") elements.pairContentRate.appendChild(RESTRICT.notice());
-      return;
-    }
     if (!Number.isFinite(state.rate) || state.rate <= 0) {
       elements.pairContentRate.textContent = "در حال دریافت نرخ لحظه ای " + fromCurrency.name + " و " + toCurrency.name + "…";
       return;
@@ -681,8 +655,7 @@
     if (!fromCurrency || !toCurrency || state.pendingRoute) return;
     document.dispatchEvent(new CustomEvent("tabdex:pair", { detail: {
       from: describeCurrency(fromCurrency), to: describeCurrency(toCurrency),
-      // جفت پنهان نرخی به بخش‌های جانبی نمی‌دهد تا جدول تبدیل و خلاصهٔ روزها ساخته نشوند.
-      rate: !pairRestricted() && Number.isFinite(state.rate) && state.rate > 0 ? state.rate : null, live: state.live
+      rate: Number.isFinite(state.rate) && state.rate > 0 ? state.rate : null, live: state.live
     } }));
   }
 
