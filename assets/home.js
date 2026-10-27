@@ -27,7 +27,7 @@
   var rows = document.getElementById("home-market-rows");
   if (!rows) return;
 
-  /* دلار، یورو، پوند و دلار کانادا به دستور کارگروه نمایش داده نمی‌شوند (assets/restricted.js). */
+  /* دلار، پوند و دلار کانادا به دستور کارگروه نمایش داده نمی‌شوند (assets/restricted.js). */
   var RESTRICT = window.TabdexRestricted || null;
   function restricted(id) { return !!(RESTRICT && RESTRICT.is(id)); }
 

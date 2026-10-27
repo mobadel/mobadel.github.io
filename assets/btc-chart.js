@@ -24,7 +24,7 @@
   var historyId = routeMatch[2] === "baharazadi" ? "bahar" : routeMatch[2];
   var historyName = MARKET_HISTORY_ASSETS[routeMatch[2]];
   if (!isCryptoChart && !historyName) return;
-  /* دلار، یورو، پوند و دلار کانادا به دستور کارگروه: نمودار (که محور و نقطه‌هایش قیمت
+  /* دلار، پوند و دلار کانادا به دستور کارگروه: نمودار (که محور و نقطه‌هایش قیمت
      دارند) ساخته نمی‌شود و کادرش پنهان می‌ماند. */
   if (!isCryptoChart && window.TabdexRestricted && window.TabdexRestricted.is(historyId, routeMatch[1])) {
     var restrictedCard = document.getElementById("btc-price-chart");

@@ -109,7 +109,7 @@
   // مبدل سکهٔ پارسیان را نمی‌شناسد؛ پیوند تبدیل برایش ساخته نمی‌شود.
   function hasConverter(asset) { return asset.group !== "parsian"; }
   function formatNumber(value, digits) { return new Intl.NumberFormat("fa-IR", { maximumFractionDigits: digits == null ? 0 : digits }).format(value); }
-  /* دلار، یورو، پوند و دلار کانادا به دستور کارگروه نمایش داده نمی‌شوند (assets/restricted.js).
+  /* دلار، پوند و دلار کانادا به دستور کارگروه نمایش داده نمی‌شوند (assets/restricted.js).
      نرخ از سرور می‌رسد ولی هر جا عددش نوشته می‌شد «***» و هشدار می‌آید. */
   var RESTRICT = (typeof window !== "undefined" && window.TabdexRestricted) || null;
   function isRestricted(asset) { return !!(RESTRICT && asset && RESTRICT.is(asset.id, asset.group)); }

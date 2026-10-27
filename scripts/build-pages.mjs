@@ -641,7 +641,7 @@ const HOME_KPIS = [
   { id: "silver", name: "نقره گرمی", url: "/price/commodity/silver/", icon: "/assets/silver.svg" }
 ];
 const faNumber = (value, digits) => new Intl.NumberFormat("fa-IR", { maximumFractionDigits: digits }).format(value);
-/* دلار، یورو، پوند و دلار کانادا به دستور کارگروه: کارتشان در HTML اولیه هم عدد ندارد
+/* دلار، پوند و دلار کانادا به دستور کارگروه: کارتشان در HTML اولیه هم عدد ندارد
    (assets/restricted.js همان فهرست home.js و price.js است). */
 const RESTRICTED = createRequire(import.meta.url)("../assets/restricted.js");
 function homeKpis() {

@@ -318,7 +318,7 @@
     return (currency && currency.group) || "crypto";
   }
 
-  /* دلار، یورو، پوند و دلار کانادا به دستور کارگروه نمایش داده نمی‌شوند (assets/restricted.js).
+  /* دلار، پوند و دلار کانادا به دستور کارگروه نمایش داده نمی‌شوند (assets/restricted.js).
      تبدیل هر جفتی که یک طرفش از این‌هاست عدد نشان نمی‌دهد: نتیجه «***» و
      کنار نرخ هشدار می‌آید. نرخ همچنان دریافت می‌شود. */
   var RESTRICT = (typeof window !== "undefined" && window.TabdexRestricted) || null;
