@@ -180,6 +180,12 @@ for (const id of ["usd", "eur", "gbp", "chf", "aed", "try", "jpy", "cny", "aud",
   assert.ok(fs.existsSync(path.join(workdir, "_site", "convert", slug, "index.html")), `${slug} باید صفحهٔ واقعی داشته باشد`);
 });
 
+// عیارهای ساخته از ۲۴ عیار هم در هر دو جهت با تومان مبدل دارند.
+["gold22", "gold21", "gold20", "gold17", "gold14"].flatMap((id) => [`${id}-to-irt`, `irt-to-${id}`]).forEach((slug) => {
+  assert.match(sitemap, new RegExp(`<loc>https://tabdex\.ir/convert/${slug}/</loc>`), `${slug} باید در سایت‌مپ باشد`);
+  assert.ok(fs.existsSync(path.join(workdir, "_site", "convert", slug, "index.html")), `${slug} باید صفحهٔ واقعی داشته باشد`);
+});
+
 /* نام فارسی دارایی‌ها باید بدون افزودن واحد در قالب توضیحات بیاید. */
 const ouncePage = fs.readFileSync(path.join(workdir, "_site", "convert", "ounce-to-irt", "index.html"), "utf8");
 assert.match(ouncePage, /تبدیل انس طلا به تومان با نرخ مرجع بازار\. مبدل نرخ انس طلا به تومان\./);
