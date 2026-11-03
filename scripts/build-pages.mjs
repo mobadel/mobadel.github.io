@@ -39,13 +39,13 @@ const ASSETS = {
   shib: { slug: "shib", name: "شیبا اینو" },
   gram: { slug: "gram", name: "گرام" },
 
-  gold18:     { slug: "gold18",     name: "طلای ۱۸ عیار", unit: "گرم" },
-  gold24:     { slug: "gold24",     name: "طلای ۲۴ عیار", unit: "گرم" },
-  gold22:     { slug: "gold22",     name: "طلای ۲۲ عیار", unit: "گرم" },
-  gold21:     { slug: "gold21",     name: "طلای ۲۱ عیار", unit: "گرم" },
-  gold20:     { slug: "gold20",     name: "طلای ۲۰ عیار", unit: "گرم" },
-  gold17:     { slug: "gold17",     name: "طلای ۱۷ عیار", unit: "گرم" },
-  gold14:     { slug: "gold14",     name: "طلای ۱۴ عیار", unit: "گرم" },
+  gold18:     { slug: "gold18",     name: "طلا ۱۸ عیار", unit: "گرم" },
+  gold24:     { slug: "gold24",     name: "طلا ۲۴ عیار", unit: "گرم" },
+  gold22:     { slug: "gold22",     name: "طلا ۲۲ عیار", unit: "گرم" },
+  gold21:     { slug: "gold21",     name: "طلا ۲۱ عیار", unit: "گرم" },
+  gold20:     { slug: "gold20",     name: "طلا ۲۰ عیار", unit: "گرم" },
+  gold17:     { slug: "gold17",     name: "طلا ۱۷ عیار", unit: "گرم" },
+  gold14:     { slug: "gold14",     name: "طلا ۱۴ عیار", unit: "گرم" },
   goldmelted: { slug: "melted",     name: "طلای آب‌شده",  unit: "مثقال" },
   goldounce:  { slug: "ounce",      name: "انس طلا",      unit: "انس" },
 
@@ -638,7 +638,7 @@ await writeFile(resolve(SITE, "sitemap-legacy.xml"), legacyXml, "utf8");
    paintKpis در home.js یکی بماند. */
 const HOME_KPIS = [
   { id: "usd", name: "دلار", url: "/price/currency/usd/", icon: "/assets/flags/us.svg" },
-  { id: "gold18", name: "طلای ۱۸ عیار", url: "/price/gold/gold18/", icon: "/assets/gold-18k.svg" },
+  { id: "gold18", name: "طلا ۱۸ عیار", url: "/price/gold/gold18/", icon: "/assets/gold-18k.svg" },
   { id: "emami", name: "سکه امامی", url: "/price/coin/emami/", icon: "/assets/coin-emami.webp?v=20260825-2" },
   { id: "btc", name: "بیت کوین", url: "/price/crypto/btc/", icon: "/assets/crypto-icons/btc.svg", unit: "تتر" },
   { id: "brent", name: "نفت برنت", url: "/price/energy/brent/", icon: "/assets/crude-oil.svg", unit: "دلار" },

@@ -19,7 +19,7 @@ assert.match(html, /<h1 id="page-title">تبدیل دلار به تومان<\/h1
 assert.match(html, /<h2 class="rate-value" id="rate-value">/);
 assert.match(html, /<h2 id="pair-content-title">تبدیل دلار به تومان با قیمت لحظه ای و سریع<\/h2>/);
 assert.doesNotMatch(html, /<h2 id="asset-dialog-title">/);
-assert.match(html, /<script src="\/assets\/app\.js\?v=20261103-karats"><\/script>/);
+assert.match(html, /<script src="\/assets\/app\.js\?v=20261103-names"><\/script>/);
 assert.match(fs.readFileSync("assets/app.js", "utf8"), /coin-emami\.webp\?v=20260825-2/);
 assert.ok(fs.existsSync("assets/coin-emami.webp"));
 assert.ok(fs.statSync("assets/coin-emami.webp").size < 25000, "آیکون سکه باید برای وب بهینه باشد");
@@ -180,7 +180,7 @@ const proxyRates = {
   updated: "2026-08-20T16:14:01+00:00",
   stale: false,
   assets: {
-    gold18: { toman: 20000000, group: "gold", unit: "gram", name: "طلای ۱۸ عیار" },
+    gold18: { toman: 20000000, group: "gold", unit: "gram", name: "طلا ۱۸ عیار" },
     goldounce: { toman: 860000000, group: "gold", unit: "ounce", name: "انس طلا" },
     emami: { toman: 200000000, group: "coin", unit: "piece", name: "سکه امامی" },
     usd: { toman: 200000, group: "fiat", unit: "unit", name: "دلار" },
@@ -237,7 +237,7 @@ setTimeout(async () => {
   assert.ok(order.indexOf("usd") < order.indexOf("eur"), "دلار باید قبل از یورو بیاید");
   assert.ok(order.indexOf("usd") < order.indexOf("aed"), "دلار باید قبل از درهم بیاید");
   assert.ok(order.indexOf("usd") < order.indexOf("try"), "دلار باید قبل از لیر بیاید");
-  assert.ok(order.indexOf("gold18") < order.indexOf("emami"), "طلای ۱۸ قبل از سکه امامی");
+  assert.ok(order.indexOf("gold18") < order.indexOf("emami"), "طلا ۱۸ قبل از سکه امامی");
   assert.ok(order.indexOf("silver") < order.indexOf("usd"), "فلزات قبل از ارز فیات");
   const bitcoinOption = optionsInDialog.find((item) => item.dataset.currency === "btc");
   assert.ok(bitcoinOption);
@@ -319,17 +319,17 @@ setTimeout(async () => {
   const goldOption = elements["asset-list"].children.find((item) => item.dataset.currency === "gold18");
   // بیت کوین سه فرزند دارد (آیکون، برچسب، نماد) ولی طلا نماد ندارد.
   assert.equal(goldOption.children.length, 2, "طلا نباید ستون نماد داشته باشد");
-  assert.equal(goldOption.children[1].children[0].textContent, "طلای ۱۸ عیار");
+  assert.equal(goldOption.children[1].children[0].textContent, "طلا ۱۸ عیار");
   assert.equal(goldOption.children[1].children[1].textContent, "هر گرم");
 
   goldOption.dispatch("click");
-  assert.match(elements["page-title"].textContent, /طلای ۱۸ عیار به تومان/);
+  assert.match(elements["page-title"].textContent, /طلا ۱۸ عیار به تومان/);
   // واحد باید در نرخ دیده شود وگرنه «۱» مبهم است.
-  assert.match(elements["rate-value"].textContent, /^۱ گرم طلای ۱۸ عیار = ۲۰٬۰۰۰٬۰۰۰ تومان$/);
-  assert.match(elements["pair-content-rate"].textContent, /^هر یک گرم طلای ۱۸ عیار معادل/);
+  assert.match(elements["rate-value"].textContent, /^۱ گرم طلا ۱۸ عیار = ۲۰٬۰۰۰٬۰۰۰ تومان$/);
+  assert.match(elements["pair-content-rate"].textContent, /^هر یک گرم طلا ۱۸ عیار معادل/);
 
   // در خود مبدل هم خط پررنگ باید نام فارسی باشد نه نماد.
-  assert.equal(elements["currency-from"].children[1].children[0].textContent, "طلای ۱۸ عیار");
+  assert.equal(elements["currency-from"].children[1].children[0].textContent, "طلا ۱۸ عیار");
   assert.equal(elements["currency-from"].children[1].children[1].textContent, "هر گرم");
 
   // محدودیت برداشته شده: طلا حالا به همه چیز تبدیل می‌شود.
@@ -412,7 +412,7 @@ setTimeout(async () => {
   openDialog("from");
   clickChip("commodity");
   const silverOption = elements["asset-list"].children.find((item) => item.dataset.currency === "silver");
-  assert.equal(silverOption.children.length, 2, "نقره مثل طلای ۱۸ عیار ستون نماد ندارد");
+  assert.equal(silverOption.children.length, 2, "نقره مثل طلا ۱۸ عیار ستون نماد ندارد");
   assert.equal(silverOption.children[1].children[0].textContent, "نقره ۹۹۹");
   assert.equal(silverOption.children[1].children[1].textContent, "هر گرم");
 
@@ -425,7 +425,7 @@ setTimeout(async () => {
 
   /* ── واحد نباید در نام تکرار شود ────────────────────────────
      «انس طلا» واحدش هم «انس» است، پس نباید بشود «۱ انس انس طلا».
-     ولی «طلای ۱۸ عیار» که واحدش «گرم» است باید پیشوند بگیرد. */
+     ولی «طلا ۱۸ عیار» که واحدش «گرم» است باید پیشوند بگیرد. */
   media.pointerFine = false;
   openDialog("from");
   elements["asset-search"].value = "انس";
@@ -440,11 +440,11 @@ setTimeout(async () => {
   assert.doesNotMatch(elements["rate-value"].textContent, /انس انس/, "«انس انس» نباید تکرار شود");
 
   openDialog("from");
-  elements["asset-search"].value = "طلای ۱۸";
+  elements["asset-search"].value = "طلا ۱۸";
   elements["asset-search"].dispatch("input");
   elements["asset-list"].children.find((item) => item.dataset.currency === "gold18").dispatch("click");
   assert.ok(
-    elements["rate-value"].textContent.startsWith("۱ گرم طلای ۱۸ عیار"),
+    elements["rate-value"].textContent.startsWith("۱ گرم طلا ۱۸ عیار"),
     "دارایی‌هایی که نامشان با واحد شروع نمی‌شود باید پیشوند واحد بگیرند"
   );
 

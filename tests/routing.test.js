@@ -129,7 +129,7 @@ function loadAt(pathname, search = "", initialMeta = null) {
 (async () => {
   // ── جفت از روی آدرس خوانده می‌شود ─────────────────────────────
   let page = loadAt("/convert/gold18-to-eur/");
-  assert.equal(page.heading(), "تبدیل طلای ۱۸ عیار به یورو", "جفت باید از آدرس خوانده شود");
+  assert.equal(page.heading(), "تبدیل طلا ۱۸ عیار به یورو", "جفت باید از آدرس خوانده شود");
 
   // ── پارامتر amount ────────────────────────────────────────────
   page = loadAt("/convert/gold18-to-irt/", "?amount=300");
@@ -143,7 +143,7 @@ function loadAt(pathname, search = "", initialMeta = null) {
     ["/convert/nim-to-irt/", "تبدیل نیم سکه به تومان"],
     ["/convert/rob-to-irt/", "تبدیل ربع سکه به تومان"],
     ["/convert/gerami-to-irt/", "تبدیل سکه یک گرمی به تومان"],
-    ["/convert/gold24-to-usd/", "تبدیل طلای ۲۴ عیار به دلار"]
+    ["/convert/gold24-to-usd/", "تبدیل طلا ۲۴ عیار به دلار"]
   ];
   slugCases.forEach(([path, expected]) => {
     assert.equal(loadAt(path).heading(), expected, `اسلاگ ${path} باید درست نگاشت شود`);
@@ -207,7 +207,7 @@ function loadAt(pathname, search = "", initialMeta = null) {
   // ترکیب رمزارز و دارایی پراکسی هم باید کار کند.
   const mixed = loadAt("/convert/btc-to-gold18/", "?amount=2");
   await new Promise((resolve) => setTimeout(resolve, 120));
-  assert.equal(mixed.heading(), "تبدیل بیت کوین به طلای ۱۸ عیار");
+  assert.equal(mixed.heading(), "تبدیل بیت کوین به طلا ۱۸ عیار");
   assert.equal(mixed.elements["amount-from"].value, "۲");
 
   console.log("routing tests passed");

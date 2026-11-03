@@ -53,7 +53,7 @@ assert.match(asset, /بالاترین قیمت[\s\S]*پایین‌ترین قی�
 assert.match(btcChartScript, /btc: \{[\s\S]*symbol: "BTCUSDT"[\s\S]*statsKey: "btc-usdt"[\s\S]*unit: "تتر"/, "نمودار بیت کوین باید از بازار بیت کوین تتر بیاید");
 assert.match(btcChartScript, /usdt: \{[\s\S]*symbol: "USDTIRT"[\s\S]*statsKey: "usdt-irt"[\s\S]*liveScale: 0\.1[\s\S]*unit: "تومان"/, "نمودار تتر باید داده تاریخی تومانی و قیمت لحظه‌ای تبدیل‌شده از ریال داشته باشد");
 assert.match(btcChartScript, /MARKET_HISTORY_ASSETS[\s\S]*gold18[\s\S]*baharazadi[\s\S]*afn/, "نمودار باید برای همه دارایی‌های دارای تاریخچه فعال شود");
-for (const id of ["gold24", "gold22", "gold21", "gold20", "gold17", "gold14"]) assert.match(btcChartScript, new RegExp(`${id}: "طلای [۰-۹]+ عیار"`), `${id} باید نمودار داشته باشد`);
+for (const id of ["gold24", "gold22", "gold21", "gold20", "gold17", "gold14"]) assert.match(btcChartScript, new RegExp(`${id}: "طلا [۰-۹]+ عیار"`), `${id} باید نمودار داشته باشد`);
 assert.match(btcChartScript, /\/api\/history\.php\?asset=/, "نمودارهای غیررمزارزی باید تاریخچهٔ سرور را دریافت کنند");
 assert.match(btcChartScript, /resolveCryptoMarket[\s\S]*marketConfig\.symbol = id\.toUpperCase\(\) \+ \(useUsdt \? "USDT" : "IRT"\)/, "همهٔ رمزارزها باید نماد تاریخچه را از بازار نوبیتکس بسازند");
 assert.match(btcChartScript, /range === "all" && to - normalized\[0\]\.time > 2 \* 365 \* 86400 \? aggregateWeekly/, "بازه همه فقط برای تاریخچهٔ بیش از دو سال باید هفتگی شود");
@@ -186,7 +186,7 @@ assert.match(home, /تغییرات ۲۴ ساعته/, "عنوان ستون تغی
 assert.match(category, /تغییرات ۲۴ ساعته/, "عنوان ستون تغییرات دسته‌بندی باید کامل باشد");
 assert.doesNotMatch(home, /class="pair-content"/, "محتوای SEO قدیمی مبدل باید از هوم حذف شود");
 assert.match(homeScript, /"usd"[\s\S]*"usdt"[\s\S]*"gold18"[\s\S]*"emami"[\s\S]*"btc"[\s\S]*"eur"/, "ترتیب شش قیمت مهم هوم باید ثابت بماند");
-assert.match(homeScript, /id: "gold18", name: "طلای ۱۸ عیار", code: "هر گرم"/, "واحد طلای هوم باید هر گرم باشد");
+assert.match(homeScript, /id: "gold18", name: "طلا ۱۸ عیار", code: "هر گرم"/, "واحد طلای هوم باید هر گرم باشد");
 assert.match(homeScript, /id: "emami", name: "سکه امامی", code: "هر عدد"/, "واحد سکه هوم باید هر عدد باشد");
 assert.match(homeScript, /name: "دلار"[\s\S]*name: "طلا"[\s\S]*name: "تتر"[\s\S]*name: "سکه"[\s\S]*name: "بیت‌کوین"/, "ترتیب دارایی‌های عنوان متغیر باید ثابت بماند");
 assert.match(homeStyles, /\.home-market-label small \{[^}]*direction: rtl;[^}]*text-align: right;/, "زیرعنوان ردیف هوم باید راست‌چین باشد");
@@ -216,7 +216,7 @@ assert.match(styles, /@media\(max-width:600px\)[^\n]*\.price-unit\{font-size:16p
 assert.match(script, /secondaryChange\.className = "price-change secondary-change " \+ \(hasToman \? changeClass\(asset\.tomanChange\) : "neutral"\)/, "درصد تومانی باید کلاس رنگ را از جهت تغییر تومانی بگیرد");
 assert.match(styles, /\.price-secondary \.price-change\.positive strong\{color:var\(--green-dark\)!important\}/, "درصد تومانی مثبت باید سبز باشد");
 assert.match(styles, /\.price-secondary \.price-change\.negative strong\{color:var\(--danger\)!important\}/, "درصد تومانی منفی باید قرمز باشد");
-assert.match(script, /asset\.id === "silver"\) return "هر گرم";/, "زیرعنوان نقره مثل طلای ۱۸ عیار فقط «هر گرم» است");
+assert.match(script, /asset\.id === "silver"\) return "هر گرم";/, "زیرعنوان نقره مثل طلا ۱۸ عیار فقط «هر گرم» است");
 assert.match(script, /asset\.id === "copper"\) return "هر کیلوگرم در بورس کالا"/, "زیرعنوان مس باید واحد کیلوگرم و بورس کالا باشد");
 assert.match(script, /asset\.id === "gold18" \|\| asset\.id === "gold24"\) return "هر گرم"/, "زیرعنوان طلای ۱۸ و ۲۴ عیار باید هر گرم باشد");
 assert.match(script, /asset\.id === "goldmelted"\) return "هر مثقال"/, "زیرعنوان طلای آب‌شده باید هر مثقال باشد");
@@ -337,7 +337,7 @@ console.log("price page tests passed");
 // و نفت (که اندپوینت سالمی دارد) هم قفل می‌شود.
 assert.match(ratesApi, /\$carried\[\]\s*= \$id/, "قلم با قیمت صفر باید آخرین نرخ کش را نگه دارد");
 assert.match(ratesApi, /'price_dollar_rl' => \['id' => 'usd'/, "دلار باید از TGJU بیاید");
-assert.match(ratesApi, /'geram18' => \['id' => 'gold18'/, "طلای ۱۸ عیار باید از TGJU بیاید");
+assert.match(ratesApi, /'geram18' => \['id' => 'gold18'/, "طلا ۱۸ عیار باید از TGJU بیاید");
 // عیارهای ۲۲ تا ۱۴ سهم عیارشان از ۲۴ عیار است و با کهنه شدن ۲۴ عیار نقطهٔ نمودار تازه نمی‌سازند.
 assert.match(ratesApi, /const GOLD_KARATS = \[22, 21, 20, 17, 14\]/, "عیارهای دیگر طلا باید ساخته شوند");
 assert.match(ratesApi, /'toman'\s*=> \(float\) \$gold24\['toman'\] \* \$karat \/ 24/, "قیمت هر عیار باید سهمش از ۲۴ عیار باشد");
