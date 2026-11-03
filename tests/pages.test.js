@@ -105,12 +105,12 @@ const generated = path.join(workdir, "_site", "convert", "gold18-to-irt", "index
 assert.ok(fs.existsSync(generated), "صفحهٔ gold18-to-irt ساخته نشد");
 
 const html = fs.readFileSync(generated, "utf8");
-assert.match(html, /<title>تبدیل طلای ۱۸ عیار به تومان \| مبدل قیمت<\/title>/);
-assert.match(html, /<meta name="description" content="تبدیل طلای ۱۸ عیار به تومان با نرخ مرجع بازار\. مبدل نرخ طلای ۱۸ عیار به تومان\.">/);
+assert.match(html, /<title>تبدیل طلا ۱۸ عیار به تومان \| مبدل قیمت<\/title>/);
+assert.match(html, /<meta name="description" content="تبدیل طلا ۱۸ عیار به تومان با نرخ مرجع بازار\. مبدل نرخ طلا ۱۸ عیار به تومان\.">/);
 assert.match(html, /<link rel="canonical" href="https:\/\/tabdex\.ir\/convert\/gold18-to-irt\/">/);
-assert.match(html, /<h1 id="page-title">تبدیل طلای ۱۸ عیار به تومان<\/h1>/);
-assert.match(html, /<h2 id="pair-content-title">تبدیل طلای ۱۸ عیار به تومان با قیمت لحظه ای و سریع<\/h2>/);
-assert.match(html, /<p id="pair-content-intro">با سرویس مبدل تبدکس، می‌توانید به‌سادگی طلای ۱۸ عیار خود را به تومان تبدیل کنید\./);
+assert.match(html, /<h1 id="page-title">تبدیل طلا ۱۸ عیار به تومان<\/h1>/);
+assert.match(html, /<h2 id="pair-content-title">تبدیل طلا ۱۸ عیار به تومان با قیمت لحظه ای و سریع<\/h2>/);
+assert.match(html, /<p id="pair-content-intro">با سرویس مبدل تبدکس، می‌توانید به‌سادگی طلا ۱۸ عیار خود را به تومان تبدیل کنید\./);
 // مسیرها باید مطلق شده باشند وگرنه از داخل پوشه به فایل نمی‌رسند
 assert.match(html, /src="\/assets\/app\.js/);
 assert.doesNotMatch(html, /src="assets\//);
@@ -174,7 +174,7 @@ for (const id of ["usd", "eur", "gbp", "chf", "aed", "try", "jpy", "cny", "aud",
   }
 }
 
-// تبدیل انس طلا و طلای ۱۸ عیار باید در هر دو جهت صفحهٔ مستقل و ورودی سایت‌مپ داشته باشد.
+// تبدیل انس طلا و طلا ۱۸ عیار باید در هر دو جهت صفحهٔ مستقل و ورودی سایت‌مپ داشته باشد.
 ["ounce-to-gold18", "gold18-to-ounce"].forEach((slug) => {
   assert.match(sitemap, new RegExp(`<loc>https://tabdex\\.ir/convert/${slug}/</loc>`), `${slug} باید در سایت‌مپ باشد`);
   assert.ok(fs.existsSync(path.join(workdir, "_site", "convert", slug, "index.html")), `${slug} باید صفحهٔ واقعی داشته باشد`);

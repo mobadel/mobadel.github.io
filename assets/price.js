@@ -30,14 +30,14 @@
   var USD_STABLECOINS = { usdt: true, usdc: true, dai: true, busd: true, usde: true, tusd: true, fdusd: true, usdd: true, pyusd: true, gusd: true, susd: true, frax: true };
 
   var FIXED = [
-    { id: "gold18", name: "طلای ۱۸ عیار", englishName: "18K Gold", group: "gold", unit: "gram", icon: "/assets/gold-18k.svg" },
-    { id: "gold24", name: "طلای ۲۴ عیار", englishName: "24K Gold", group: "gold", unit: "gram", icon: "/assets/gold-18k.svg" },
+    { id: "gold18", name: "طلا ۱۸ عیار", englishName: "18K Gold", group: "gold", unit: "gram", icon: "/assets/gold-18k.svg" },
+    { id: "gold24", name: "طلا ۲۴ عیار", englishName: "24K Gold", group: "gold", unit: "gram", icon: "/assets/gold-18k.svg" },
     // عیارهای زیر را rates.php از سهم عیارشان در طلای ۲۴ عیار می‌سازد.
-    { id: "gold22", name: "طلای ۲۲ عیار", englishName: "22K Gold", group: "gold", unit: "gram", icon: "/assets/gold-18k.svg" },
-    { id: "gold21", name: "طلای ۲۱ عیار", englishName: "21K Gold", group: "gold", unit: "gram", icon: "/assets/gold-18k.svg" },
-    { id: "gold20", name: "طلای ۲۰ عیار", englishName: "20K Gold", group: "gold", unit: "gram", icon: "/assets/gold-18k.svg" },
-    { id: "gold17", name: "طلای ۱۷ عیار", englishName: "17K Gold", group: "gold", unit: "gram", icon: "/assets/gold-18k.svg" },
-    { id: "gold14", name: "طلای ۱۴ عیار", englishName: "14K Gold", group: "gold", unit: "gram", icon: "/assets/gold-18k.svg" },
+    { id: "gold22", name: "طلا ۲۲ عیار", englishName: "22K Gold", group: "gold", unit: "gram", icon: "/assets/gold-18k.svg" },
+    { id: "gold21", name: "طلا ۲۱ عیار", englishName: "21K Gold", group: "gold", unit: "gram", icon: "/assets/gold-18k.svg" },
+    { id: "gold20", name: "طلا ۲۰ عیار", englishName: "20K Gold", group: "gold", unit: "gram", icon: "/assets/gold-18k.svg" },
+    { id: "gold17", name: "طلا ۱۷ عیار", englishName: "17K Gold", group: "gold", unit: "gram", icon: "/assets/gold-18k.svg" },
+    { id: "gold14", name: "طلا ۱۴ عیار", englishName: "14K Gold", group: "gold", unit: "gram", icon: "/assets/gold-18k.svg" },
     { id: "goldmelted", name: "طلای آب‌شده", englishName: "Melted Gold", group: "gold", unit: "mesghal", icon: "/assets/gold-18k.svg" },
     { id: "goldounce", name: "انس جهانی طلا", englishName: "Gold Ounce", group: "gold", unit: "ounce", icon: "/assets/gold-18k.svg" },
     { id: "emami", name: "سکه امامی", englishName: "Emami Coin", group: "coin", unit: "piece", icon: "/assets/coin-emami.webp?v=20260825-2" },

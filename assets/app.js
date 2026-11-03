@@ -38,14 +38,14 @@
   [
     // طلا و سکه — نماد ندارند، چون «۱۸K» یا «EMAMI» چیزی به کاربر
     // فارسی‌زبان نمی‌گوید. به‌جایش نام و واحد نمایش داده می‌شود.
-    { id: "gold18",      name: "طلای ۱۸ عیار",     englishName: "18K Gold",        decimals: 4, group: "gold", unit: "gram",    localIcon: GOLD_ICON },
-    { id: "gold24",      name: "طلای ۲۴ عیار",     englishName: "24K Gold",        decimals: 4, group: "gold", unit: "gram",    localIcon: GOLD_ICON },
+    { id: "gold18",      name: "طلا ۱۸ عیار",     englishName: "18K Gold",        decimals: 4, group: "gold", unit: "gram",    localIcon: GOLD_ICON },
+    { id: "gold24",      name: "طلا ۲۴ عیار",     englishName: "24K Gold",        decimals: 4, group: "gold", unit: "gram",    localIcon: GOLD_ICON },
     // عیارهای زیر را rates.php از سهم عیارشان در طلای ۲۴ عیار می‌سازد.
-    { id: "gold22",      name: "طلای ۲۲ عیار",     englishName: "22K Gold",        decimals: 4, group: "gold", unit: "gram",    localIcon: GOLD_ICON },
-    { id: "gold21",      name: "طلای ۲۱ عیار",     englishName: "21K Gold",        decimals: 4, group: "gold", unit: "gram",    localIcon: GOLD_ICON },
-    { id: "gold20",      name: "طلای ۲۰ عیار",     englishName: "20K Gold",        decimals: 4, group: "gold", unit: "gram",    localIcon: GOLD_ICON },
-    { id: "gold17",      name: "طلای ۱۷ عیار",     englishName: "17K Gold",        decimals: 4, group: "gold", unit: "gram",    localIcon: GOLD_ICON },
-    { id: "gold14",      name: "طلای ۱۴ عیار",     englishName: "14K Gold",        decimals: 4, group: "gold", unit: "gram",    localIcon: GOLD_ICON },
+    { id: "gold22",      name: "طلا ۲۲ عیار",     englishName: "22K Gold",        decimals: 4, group: "gold", unit: "gram",    localIcon: GOLD_ICON },
+    { id: "gold21",      name: "طلا ۲۱ عیار",     englishName: "21K Gold",        decimals: 4, group: "gold", unit: "gram",    localIcon: GOLD_ICON },
+    { id: "gold20",      name: "طلا ۲۰ عیار",     englishName: "20K Gold",        decimals: 4, group: "gold", unit: "gram",    localIcon: GOLD_ICON },
+    { id: "gold17",      name: "طلا ۱۷ عیار",     englishName: "17K Gold",        decimals: 4, group: "gold", unit: "gram",    localIcon: GOLD_ICON },
+    { id: "gold14",      name: "طلا ۱۴ عیار",     englishName: "14K Gold",        decimals: 4, group: "gold", unit: "gram",    localIcon: GOLD_ICON },
     { id: "goldmelted",  name: "طلای آب‌شده",       englishName: "Melted Gold",     decimals: 4, group: "gold", unit: "mesghal", localIcon: GOLD_ICON },
     { id: "goldounce",   name: "انس طلا",           englishName: "Gold Ounce",      decimals: 4, group: "gold", unit: "ounce",   localIcon: GOLD_ICON },
 
