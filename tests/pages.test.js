@@ -132,7 +132,7 @@ for (const group of ["currency", "gold", "coin", "commodity", "crypto"]) {
   assert.match(sitemap, new RegExp(`<loc>https://tabdex\\.ir/price/${group}/</loc>`), `دسته قیمت ${group} باید در سایت‌مپ باشد`);
 }
 for (const slug of ["usd", "gel"]) assert.match(sitemap, new RegExp(`<loc>https://tabdex\\.ir/price/currency/${slug}/</loc>`));
-for (const slug of ["gold18", "ounce"]) assert.match(sitemap, new RegExp(`<loc>https://tabdex\\.ir/price/gold/${slug}/</loc>`));
+for (const slug of ["gold18", "gold24", "gold22", "gold21", "gold20", "gold17", "gold14", "ounce"]) assert.match(sitemap, new RegExp(`<loc>https://tabdex\\.ir/price/gold/${slug}/</loc>`));
 for (const slug of ["emami", "gerami"]) assert.match(sitemap, new RegExp(`<loc>https://tabdex\\.ir/price/coin/${slug}/</loc>`));
 
 // سکهٔ پارسیان دستهٔ جدای خودش است: ۲۱ وزن از ۱۰۰ سوت تا ۲٫۱ گرم، بدون جفت مبدل.

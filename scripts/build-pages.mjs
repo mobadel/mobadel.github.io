@@ -102,7 +102,7 @@ const WITH_TOMAN = [
 // باارزش‌تر متمرکز بماند. شناسه‌ها با data/currencies.json هم‌خوان‌اند.
 const PRICE_GROUPS = {
   currency: ["usd", "eur", "gbp", "chf", "aed", "try", "jpy", "cny", "aud", "cad", "rub", "sek", "inr", "pkr", "afn", "myr", "thb", "sar", "qar", "kwd", "bhd", "omr", "iqd", "syp", "azn", "amd", "gel"],
-  gold: ["gold18", "gold24", "melted", "ounce"],
+  gold: ["gold18", "gold24", "gold22", "gold21", "gold20", "gold17", "gold14", "melted", "ounce"],
   coin: ["emami", "baharazadi", "nim", "rob", "gerami"],
   commodity: ["silver", "copper"],
   energy: ["brent", "gasoline"]
@@ -120,6 +120,12 @@ const PARSIAN = PARSIAN_WEIGHTS.map((weight) => ({
   name: `سکه پارسیان ${weight < 1000 ? `${parsianDigits(weight)} سوت` : `${parsianDigits(weight / 1000)} گرم`}`
 }));
 PRICE_GROUPS["parsian-coin"] = PARSIAN.map((coin) => coin.slug);
+
+/* عیارهای دیگر طلا: rates.php قیمتشان را از سهم عیار در طلای ۲۴ عیار
+   می‌سازد. نام‌ها باید با FIXED در assets/price.js یکی بماند. مثل
+   پارسیان در مبدل نیستند. */
+const GOLD_KARATS = [22, 21, 20, 17, 14].map((karat) => ({ slug: `gold${karat}`, name: `طلای ${parsianDigits(karat)} عیار` }));
+const NO_CONVERTER = new Set(GOLD_KARATS.map((gold) => gold.slug));
 /* نام و توضیح هر دسته باید با CATEGORIES در assets/price.js یکی بماند،
    وگرنه عنوان سرورساخته با چیزی که جاوااسکریپت بعداً می‌نویسد فرق می‌کند.
    tests/price-pages.test.js این هم‌خوانی را بررسی می‌کند. */
@@ -193,6 +199,7 @@ const currencyNames = JSON.parse(await readFile(resolve(ROOT, "data", "currencie
 const NAME_BY_SLUG = new Map();
 for (const asset of Object.values(ASSETS)) NAME_BY_SLUG.set(asset.slug, asset.name);
 for (const coin of PARSIAN) NAME_BY_SLUG.set(coin.slug, coin.name);
+for (const gold of GOLD_KARATS) NAME_BY_SLUG.set(gold.slug, gold.name);
 
 function cryptoName(id) {
   const entry = currencyNames[id];
@@ -389,8 +396,8 @@ function priceAssetMeta(group, slug, name) {
       [/(<h2 id="asset-content-title">)[^<]*(<\/h2>)/, `$1قیمت ${name} امروز$2`],
       [/(<h3 id="asset-about-title">)[^<]*(<\/h3>)/, `$1درباره ${name}$2`],
       // دکمهٔ بالای صفحه از همان HTML اولیه به مبدل همین دارایی به تومان می‌رود.
-      // سکهٔ پارسیان در مبدل نیست، پس دکمه پنهان می‌ماند و به صفحهٔ ناموجود پیوند نمی‌دهد.
-      group === "parsian-coin"
+      // سکهٔ پارسیان و عیارهای ساختهٔ طلا در مبدل نیستند، پس دکمه پنهان می‌ماند و به صفحهٔ ناموجود پیوند نمی‌دهد.
+      group === "parsian-coin" || NO_CONVERTER.has(slug)
         ? [/(<a class="asset-primary-link" id="asset-hero-convert" href=")[^"]*(">)[^<]*/, `$1/convert/" hidden>مبدل قیمت `]
         : [/(<a class="asset-primary-link" id="asset-hero-convert" href=")[^"]*(">)[^<]*/, `$1/convert/${slug}-to-irt/$2مبدل قیمت ${name} `]
     ]
@@ -428,7 +435,7 @@ function groupFor(slug) { return Object.entries(PRICE_GROUPS).find(([, ids]) => 
 function assetLink(slug) { const a = assetForSlug(slug); return `<a href="/price/${groupFor(slug)}/${slug}/">قیمت ${esc(a?.name || cryptoName([...TOP_CRYPTO, ...INDEXED_CRYPTO].find(id => cryptoSlug(id) === slug) || slug))}</a>`; }
 const GROUP_HELP = {
   currency: ["این نرخ متعلق به چه بازاری است؟", "نرخ ارز، طلا و سکه از بازار آزاد و از طریق TGJU دریافت می‌شود. نرخ نمایش‌داده‌شده را با قیمت خرید، فروش، حواله یا نرخ رسمی یکسان نگیرید؛ پیش از پرداخت، نوع نرخ و کارمزد را از ارائه‌دهنده معامله بپرسید. یک تومان برابر ده ریال است. نرخ ین در این سایت برای یکصد ین نمایش داده می‌شود."],
-  gold: ["وزن و عیار طلا چه اثری در محاسبه دارد؟", "طلای ۱۸ و ۲۴ عیار به گرم، طلای آب‌شده به مثقال و انس جهانی با واحد انس نمایش داده می‌شوند. محاسبه ارزش وزن طلا با قیمت هر واحد انجام می‌شود؛ این برآورد قیمت نهایی زیورآلات نیست و اجرت، سود فروشنده و هزینه‌های معامله را محاسبه نمی‌کند."],
+  gold: ["وزن و عیار طلا چه اثری در محاسبه دارد؟", "طلای ۱۴ تا ۲۴ عیار به گرم، طلای آب‌شده به مثقال و انس جهانی با واحد انس نمایش داده می‌شوند. قیمت ۲۲، ۲۱، ۲۰، ۱۷ و ۱۴ عیار سهم عیارشان از طلای ۲۴ عیار است؛ مثلاً هر گرم ۲۱ عیار برابر ۲۱/۲۴ قیمت هر گرم ۲۴ عیار. محاسبه ارزش وزن طلا با قیمت هر واحد انجام می‌شود؛ این برآورد قیمت نهایی زیورآلات نیست و اجرت، سود فروشنده و هزینه‌های معامله را محاسبه نمی‌کند."],
   coin: ["قیمت سکه با ارزش طلای آن چه تفاوتی دارد؟", "واحد قیمت سکه یک عدد از همان نوع سکه است. سکه امامی، بهار آزادی، نیم، ربع و یک‌گرمی قیمت‌های جدا دارند؛ قیمت سکه ممکن است با ارزش طلای داخل آن متفاوت باشد. نرخ مرجع، قیمت قطعی خرید یا فروش فروشنده نیست."],
   commodity: ["این نرخ فلز مربوط به کدام واحد است؟", "نقره ۹۹۹ در این سایت به گرم و با قیمت بازار آزاد (TGJU) نمایش داده می‌شود. مس به کیلوگرم و بر پایهٔ گواهی سپردهٔ مس کاتد بورس کالا از طریق BrsApi است. این نرخ را با قیمت مصنوعات، مس مصرفی یا فلز دارای عیار متفاوت یکسان نگیرید. در توقف منبع، زمان داده ذخیره‌شده را بررسی کنید."],
   "parsian-coin": ["قیمت سکه پارسیان از کجا می‌آید؟", "قیمت سکه پارسیان با عیار ۷۵۰، از ۱۰۰ سوت تا ۲.۱ گرم، هر یک ساعت یک بار از سایت طلا (tala.ir) دریافت می‌شود و به تومان برای هر عدد سکه است. این نرخ بدون مالیات بر ارزش افزوده است و با طلای ۲۴ عیار تغییر می‌کند؛ قیمت فروشندگان ممکن است تا چند درصد با آن تفاوت داشته باشد."],

@@ -53,6 +53,7 @@ assert.match(asset, /بالاترین قیمت[\s\S]*پایین‌ترین قی�
 assert.match(btcChartScript, /btc: \{[\s\S]*symbol: "BTCUSDT"[\s\S]*statsKey: "btc-usdt"[\s\S]*unit: "تتر"/, "نمودار بیت کوین باید از بازار بیت کوین تتر بیاید");
 assert.match(btcChartScript, /usdt: \{[\s\S]*symbol: "USDTIRT"[\s\S]*statsKey: "usdt-irt"[\s\S]*liveScale: 0\.1[\s\S]*unit: "تومان"/, "نمودار تتر باید داده تاریخی تومانی و قیمت لحظه‌ای تبدیل‌شده از ریال داشته باشد");
 assert.match(btcChartScript, /MARKET_HISTORY_ASSETS[\s\S]*gold18[\s\S]*baharazadi[\s\S]*afn/, "نمودار باید برای همه دارایی‌های دارای تاریخچه فعال شود");
+for (const id of ["gold24", "gold22", "gold21", "gold20", "gold17", "gold14"]) assert.match(btcChartScript, new RegExp(`${id}: "طلای [۰-۹]+ عیار"`), `${id} باید نمودار داشته باشد`);
 assert.match(btcChartScript, /\/api\/history\.php\?asset=/, "نمودارهای غیررمزارزی باید تاریخچهٔ سرور را دریافت کنند");
 assert.match(btcChartScript, /resolveCryptoMarket[\s\S]*marketConfig\.symbol = id\.toUpperCase\(\) \+ \(useUsdt \? "USDT" : "IRT"\)/, "همهٔ رمزارزها باید نماد تاریخچه را از بازار نوبیتکس بسازند");
 assert.match(btcChartScript, /range === "all" && to - normalized\[0\]\.time > 2 \* 365 \* 86400 \? aggregateWeekly/, "بازه همه فقط برای تاریخچهٔ بیش از دو سال باید هفتگی شود");
@@ -337,6 +338,10 @@ console.log("price page tests passed");
 assert.match(ratesApi, /\$carried\[\]\s*= \$id/, "قلم با قیمت صفر باید آخرین نرخ کش را نگه دارد");
 assert.match(ratesApi, /'price_dollar_rl' => \['id' => 'usd'/, "دلار باید از TGJU بیاید");
 assert.match(ratesApi, /'geram18' => \['id' => 'gold18'/, "طلای ۱۸ عیار باید از TGJU بیاید");
+// عیارهای ۲۲ تا ۱۴ سهم عیارشان از ۲۴ عیار است و با کهنه شدن ۲۴ عیار نقطهٔ نمودار تازه نمی‌سازند.
+assert.match(ratesApi, /const GOLD_KARATS = \[22, 21, 20, 17, 14\]/, "عیارهای دیگر طلا باید ساخته شوند");
+assert.match(ratesApi, /'toman'\s*=> \(float\) \$gold24\['toman'\] \* \$karat \/ 24/, "قیمت هر عیار باید سهمش از ۲۴ عیار باشد");
+assert.match(ratesApi, /in_array\('gold24', \$carried, true\)\) \$carried\[\] = \$id/, "عیار ساخته از ۲۴ عیار کش‌شده هم منتقل‌شده است");
 assert.doesNotMatch(ratesApi, /Gold_Currency\.php/, "Gold_Currency دیگر برای طلا و ارز سرویس نمی‌دهد و نباید صدا زده شود");
 assert.match(ratesApi, /foreach \(IME_MAP as \$meta\) \{\s*\$carry\(\$meta\['id'\]\);/, "نقره و مس نباید با یک پاسخ بی‌قیمت از سایت حذف شوند");
 assert.match(ratesApi, /TGJU_PATH \. '\?rev=' \. time\(\)/, "بدون rev، CDN نرخ نیم‌ساعته کهنه می‌دهد");

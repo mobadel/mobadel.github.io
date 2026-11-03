@@ -4,7 +4,7 @@
   var ORIGIN = "https://tabdex.ir";
   var CATEGORIES = {
     crypto: { name: "ارزهای دیجیتال", singular: "ارز دیجیتال", description: "قیمت لحظه ای ارزهای دیجیتال در بازار تتری و تومانی ایران", icon: "/assets/crypto-icons/btc.svg" },
-    gold: { name: "طلا", singular: "طلا", description: "قیمت طلای ۱۸ و ۲۴ عیار، طلای آب‌شده و انس جهانی", icon: "/assets/gold-18k.svg" },
+    gold: { name: "طلا", singular: "طلا", description: "قیمت طلای ۱۴ تا ۲۴ عیار، طلای آب‌شده و انس جهانی", icon: "/assets/gold-18k.svg" },
     coin: { name: "سکه", singular: "سکه", description: "قیمت لحظه ای انواع سکه در بازار ایران", icon: "/assets/coin-emami.webp?v=20260825-2" },
     parsian: { name: "سکه پارسیان", singular: "سکه پارسیان", description: "قیمت لحظه ای سکه پارسیان با عیار ۷۵۰ از ۱۰۰ سوت تا ۲.۱ گرم", icon: "/assets/coin-parsian.webp?v=20261026-1" },
     commodity: { name: "فلزات", singular: "فلز", description: "قیمت لحظه ای نقره ۹۹۹ و مس کاتد بورس کالا", icon: "/assets/silver.svg" },
@@ -24,7 +24,7 @@
   var SLUG_TO_ID = {};
   Object.keys(SLUGS).forEach(function (id) { SLUG_TO_ID[SLUGS[id]] = id; });
   var UNIT_LABELS = { gram: "گرم", piece: "عدد", mesghal: "مثقال", ounce: "انس", kilogram: "کیلو", barrel: "بشکه", gallon: "گالن" };
-  var RANKED = ["btc", "usdt", "eth", "usdc", "xrp", "bnb", "sol", "doge", "trx", "ada", "gold18", "gold24", "goldmelted", "goldounce", "emami", "bahar", "halfcoin", "quartercoin", "gramcoin", "silver", "copper", "brent", "gasoline", "usd", "eur", "gbp", "aed", "try", "chf", "cad", "aud"];
+  var RANKED = ["btc", "usdt", "eth", "usdc", "xrp", "bnb", "sol", "doge", "trx", "ada", "gold18", "gold24", "gold22", "gold21", "gold20", "gold17", "gold14", "goldmelted", "goldounce", "emami", "bahar", "halfcoin", "quartercoin", "gramcoin", "silver", "copper", "brent", "gasoline", "usd", "eur", "gbp", "aed", "try", "chf", "cad", "aud"];
   var RANK = {};
   var cmcRanks = {};
   var USD_STABLECOINS = { usdt: true, usdc: true, dai: true, busd: true, usde: true, tusd: true, fdusd: true, usdd: true, pyusd: true, gusd: true, susd: true, frax: true };
@@ -32,6 +32,12 @@
   var FIXED = [
     { id: "gold18", name: "طلای ۱۸ عیار", englishName: "18K Gold", group: "gold", unit: "gram", icon: "/assets/gold-18k.svg" },
     { id: "gold24", name: "طلای ۲۴ عیار", englishName: "24K Gold", group: "gold", unit: "gram", icon: "/assets/gold-18k.svg" },
+    // عیارهای زیر را rates.php از سهم عیارشان در طلای ۲۴ عیار می‌سازد.
+    { id: "gold22", name: "طلای ۲۲ عیار", englishName: "22K Gold", group: "gold", unit: "gram", icon: "/assets/gold-18k.svg" },
+    { id: "gold21", name: "طلای ۲۱ عیار", englishName: "21K Gold", group: "gold", unit: "gram", icon: "/assets/gold-18k.svg" },
+    { id: "gold20", name: "طلای ۲۰ عیار", englishName: "20K Gold", group: "gold", unit: "gram", icon: "/assets/gold-18k.svg" },
+    { id: "gold17", name: "طلای ۱۷ عیار", englishName: "17K Gold", group: "gold", unit: "gram", icon: "/assets/gold-18k.svg" },
+    { id: "gold14", name: "طلای ۱۴ عیار", englishName: "14K Gold", group: "gold", unit: "gram", icon: "/assets/gold-18k.svg" },
     { id: "goldmelted", name: "طلای آب‌شده", englishName: "Melted Gold", group: "gold", unit: "mesghal", icon: "/assets/gold-18k.svg" },
     { id: "goldounce", name: "انس جهانی طلا", englishName: "Gold Ounce", group: "gold", unit: "ounce", icon: "/assets/gold-18k.svg" },
     { id: "emami", name: "سکه امامی", englishName: "Emami Coin", group: "coin", unit: "piece", icon: "/assets/coin-emami.webp?v=20260825-2" },
@@ -107,7 +113,9 @@
   function rank(asset) { if (asset.group === "crypto") return Number.isFinite(cmcRanks[asset.id]) ? cmcRanks[asset.id] : 999999; return RANK[asset.id] == null ? RANKED.length : RANK[asset.id]; }
   function compareAssets(a, b) { return rank(a) - rank(b) || a.name.localeCompare(b.name, "fa"); }
   // مبدل سکهٔ پارسیان را نمی‌شناسد؛ پیوند تبدیل برایش ساخته نمی‌شود.
-  function hasConverter(asset) { return asset.group !== "parsian"; }
+  // عیارهای ساخته‌شده از ۲۴ عیار هم در مبدل نیستند.
+  var NO_CONVERTER = { gold22: true, gold21: true, gold20: true, gold17: true, gold14: true };
+  function hasConverter(asset) { return asset.group !== "parsian" && !NO_CONVERTER[asset.id]; }
   function formatNumber(value, digits) { return new Intl.NumberFormat("fa-IR", { maximumFractionDigits: digits == null ? 0 : digits }).format(value); }
   function formatPrice(value, asset) { return Number.isFinite(value) ? formatNumber(value, asset && (asset.group === "crypto" || asset.priceCurrency === "USD") && value >= 1 ? 2 : value < 1 ? 6 : 0) : "ناموجود"; }
   function priceLabel(asset) { return asset.priceCurrency === "USDT" ? "تتر" : asset.priceCurrency === "USD" ? "دلار" : "تومان"; }
@@ -446,6 +454,7 @@
     if (asset.id === "silver") return "هر گرم";
     if (asset.id === "copper") return "هر کیلوگرم در بورس کالا";
     if (asset.id === "gold18" || asset.id === "gold24") return "هر گرم";
+    if (asset.group === "gold" && asset.unit === "gram") return "هر گرم";
     if (asset.id === "goldmelted") return "هر مثقال";
     if (asset.group === "fiat") return asset.code || "";
     if (asset.group === "parsian") return "عیار ۷۵۰";
