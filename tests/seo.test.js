@@ -35,7 +35,8 @@ for (const url of urls) {
     const url = `https://tabdex.ir/convert/${key}/?amount=${item.amount}`;
     assert.ok(urls.includes(url), `${url} در سایت‌مپ`);
     const html = fs.readFileSync(path.join(root,'convert',key,`amount-${item.amount}.html`),'utf8');
-    assert.ok(html.includes(`<h1 id="page-title">${item.text}؟</h1>`), `${url}: H1`);
+    assert.ok(html.includes(`<h1 id="page-title">${item.text}</h1>`), `${url}: H1`);
+    assert.ok(html.includes(`<title>${item.text} | مبدل قیمت</title>`), `${url}: عنوان بدون علامت سؤال`);
     assert.ok(html.includes(`data-amount-page="${item.amount}"`), `${url}: نشان صفحهٔ مقدار`);
     assert.ok(html.includes(`href="/convert/${key}/?amount=${item.amount}" aria-current="page"`), `${url}: دکمهٔ فعلی`);
     count += 1;

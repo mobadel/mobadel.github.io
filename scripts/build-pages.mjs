@@ -572,7 +572,7 @@ for (const [key, entry] of Object.entries(FREQUENT.pairs)) {
   for (const item of entry.items) {
     const path = frequentPath(key, item);
     const url = ORIGIN + path;
-    const title = `${item.text}؟ | مبدل قیمت`;
+    const title = `${item.text} | مبدل قیمت`;
     const description = entry.to === "irt"
       ? `${item.text}؟ معادل تومانی آن را با نرخ لحظه ای بازار ببینید و هر مقدار دیگری از ${from.name} را هم به تومان تبدیل کنید.`
       : `${item.text}؟ معادل آن به ${to.name} را با نرخ لحظه ای بازار ببینید و هر مقدار دیگری از ${from.name} را هم به ${to.name} تبدیل کنید.`;
@@ -585,7 +585,7 @@ for (const [key, entry] of Object.entries(FREQUENT.pairs)) {
       [/(<meta name="twitter:description" content=")[^"]*(">)/, `$1${description}$2`],
       [/(<link rel="canonical" href=")[^"]*(">)/, `$1${url}$2`],
       [/(<meta property="og:url" content=")[^"]*(">)/, `$1${url}$2`],
-      [/(<h1 id="page-title">)[^<]*(<\/h1>)/, `$1${item.text}؟$2`],
+      [/(<h1 id="page-title">)[^<]*(<\/h1>)/, `$1${item.text}$2`],
       [/<body([^>]*)>/, `<body$1 data-amount-page="${item.amount}">`],
       [/(<input id="amount-from"[^>]*value=")[^"]*(")/, `$1${editableAmount(item.amount)}$2`]
     ];
