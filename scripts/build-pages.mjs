@@ -41,6 +41,11 @@ const ASSETS = {
 
   gold18:     { slug: "gold18",     name: "طلای ۱۸ عیار", unit: "گرم" },
   gold24:     { slug: "gold24",     name: "طلای ۲۴ عیار", unit: "گرم" },
+  gold22:     { slug: "gold22",     name: "طلای ۲۲ عیار", unit: "گرم" },
+  gold21:     { slug: "gold21",     name: "طلای ۲۱ عیار", unit: "گرم" },
+  gold20:     { slug: "gold20",     name: "طلای ۲۰ عیار", unit: "گرم" },
+  gold17:     { slug: "gold17",     name: "طلای ۱۷ عیار", unit: "گرم" },
+  gold14:     { slug: "gold14",     name: "طلای ۱۴ عیار", unit: "گرم" },
   goldmelted: { slug: "melted",     name: "طلای آب‌شده",  unit: "مثقال" },
   goldounce:  { slug: "ounce",      name: "انس طلا",      unit: "انس" },
 
@@ -88,7 +93,7 @@ const ASSETS = {
 // هر کدام از این‌ها در هر دو جهت با تومان صفحه می‌گیرد.
 const WITH_TOMAN = [
   "usdt", "btc", "eth", "usdc", "xrp", "doge", "trx", "sol", "ada", "shib", "gram",
-  "gold18", "gold24", "goldmelted", "goldounce",
+  "gold18", "gold24", "gold22", "gold21", "gold20", "gold17", "gold14", "goldmelted", "goldounce",
   "emami", "bahar", "halfcoin", "quartercoin", "gramcoin",
   "silver", "copper",
   "brent", "gasoline",
@@ -120,12 +125,6 @@ const PARSIAN = PARSIAN_WEIGHTS.map((weight) => ({
   name: `سکه پارسیان ${weight < 1000 ? `${parsianDigits(weight)} سوت` : `${parsianDigits(weight / 1000)} گرم`}`
 }));
 PRICE_GROUPS["parsian-coin"] = PARSIAN.map((coin) => coin.slug);
-
-/* عیارهای دیگر طلا: rates.php قیمتشان را از سهم عیار در طلای ۲۴ عیار
-   می‌سازد. نام‌ها باید با FIXED در assets/price.js یکی بماند. مثل
-   پارسیان در مبدل نیستند. */
-const GOLD_KARATS = [22, 21, 20, 17, 14].map((karat) => ({ slug: `gold${karat}`, name: `طلای ${parsianDigits(karat)} عیار` }));
-const NO_CONVERTER = new Set(GOLD_KARATS.map((gold) => gold.slug));
 /* نام و توضیح هر دسته باید با CATEGORIES در assets/price.js یکی بماند،
    وگرنه عنوان سرورساخته با چیزی که جاوااسکریپت بعداً می‌نویسد فرق می‌کند.
    tests/price-pages.test.js این هم‌خوانی را بررسی می‌کند. */
@@ -199,7 +198,6 @@ const currencyNames = JSON.parse(await readFile(resolve(ROOT, "data", "currencie
 const NAME_BY_SLUG = new Map();
 for (const asset of Object.values(ASSETS)) NAME_BY_SLUG.set(asset.slug, asset.name);
 for (const coin of PARSIAN) NAME_BY_SLUG.set(coin.slug, coin.name);
-for (const gold of GOLD_KARATS) NAME_BY_SLUG.set(gold.slug, gold.name);
 
 function cryptoName(id) {
   const entry = currencyNames[id];
@@ -396,8 +394,8 @@ function priceAssetMeta(group, slug, name) {
       [/(<h2 id="asset-content-title">)[^<]*(<\/h2>)/, `$1قیمت ${name} امروز$2`],
       [/(<h3 id="asset-about-title">)[^<]*(<\/h3>)/, `$1درباره ${name}$2`],
       // دکمهٔ بالای صفحه از همان HTML اولیه به مبدل همین دارایی به تومان می‌رود.
-      // سکهٔ پارسیان و عیارهای ساختهٔ طلا در مبدل نیستند، پس دکمه پنهان می‌ماند و به صفحهٔ ناموجود پیوند نمی‌دهد.
-      group === "parsian-coin" || NO_CONVERTER.has(slug)
+      // سکهٔ پارسیان در مبدل نیست، پس دکمه پنهان می‌ماند و به صفحهٔ ناموجود پیوند نمی‌دهد.
+      group === "parsian-coin"
         ? [/(<a class="asset-primary-link" id="asset-hero-convert" href=")[^"]*(">)[^<]*/, `$1/convert/" hidden>مبدل قیمت `]
         : [/(<a class="asset-primary-link" id="asset-hero-convert" href=")[^"]*(">)[^<]*/, `$1/convert/${slug}-to-irt/$2مبدل قیمت ${name} `]
     ]
@@ -444,7 +442,7 @@ const GROUP_HELP = {
 };
 // آیکون گرد مبدأ در کارت‌های «تبدیل‌های پرکاربرد».
 function popularIcon(slug) {
-  if (slug === "gold18") return "/assets/gold-18k.svg";
+  if (/^gold\d+$/.test(slug)) return "/assets/gold-18k.svg";
   if (slug === "irt") return "/assets/flags/ir.svg";
   if (slug === "usdt") return "/assets/usdt-logo.svg";
   if (slug === "emami") return "/assets/coin-emami.webp?v=20260825-2";

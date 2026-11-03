@@ -113,9 +113,7 @@
   function rank(asset) { if (asset.group === "crypto") return Number.isFinite(cmcRanks[asset.id]) ? cmcRanks[asset.id] : 999999; return RANK[asset.id] == null ? RANKED.length : RANK[asset.id]; }
   function compareAssets(a, b) { return rank(a) - rank(b) || a.name.localeCompare(b.name, "fa"); }
   // مبدل سکهٔ پارسیان را نمی‌شناسد؛ پیوند تبدیل برایش ساخته نمی‌شود.
-  // عیارهای ساخته‌شده از ۲۴ عیار هم در مبدل نیستند.
-  var NO_CONVERTER = { gold22: true, gold21: true, gold20: true, gold17: true, gold14: true };
-  function hasConverter(asset) { return asset.group !== "parsian" && !NO_CONVERTER[asset.id]; }
+  function hasConverter(asset) { return asset.group !== "parsian"; }
   function formatNumber(value, digits) { return new Intl.NumberFormat("fa-IR", { maximumFractionDigits: digits == null ? 0 : digits }).format(value); }
   function formatPrice(value, asset) { return Number.isFinite(value) ? formatNumber(value, asset && (asset.group === "crypto" || asset.priceCurrency === "USD") && value >= 1 ? 2 : value < 1 ? 6 : 0) : "ناموجود"; }
   function priceLabel(asset) { return asset.priceCurrency === "USDT" ? "تتر" : asset.priceCurrency === "USD" ? "دلار" : "تومان"; }
