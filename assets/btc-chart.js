@@ -6,7 +6,8 @@
 
   var API = "https://apiv2.nobitex.ir/market/udf/history";
   var MARKET_HISTORY_ASSETS = {
-    gold18: "طلای ۱۸ عیار", emami: "سکه امامی", baharazadi: "سکه بهار آزادی",
+    gold18: "طلای ۱۸ عیار", gold24: "طلای ۲۴ عیار", gold22: "طلای ۲۲ عیار", gold21: "طلای ۲۱ عیار",
+    gold20: "طلای ۲۰ عیار", gold17: "طلای ۱۷ عیار", gold14: "طلای ۱۴ عیار", emami: "سکه امامی", baharazadi: "سکه بهار آزادی",
     usd: "دلار", eur: "یورو", gbp: "پوند", aed: "درهم امارات", try: "لیر ترکیه",
     cny: "یوآن چین", rub: "روبل روسیه", afn: "افغانی"
   };

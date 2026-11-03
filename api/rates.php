@@ -673,6 +673,31 @@ foreach (TGJU_MAP as $tgjuKey => $meta) {
     $latest = max($latest, tgjuTime($row));
 }
 
+/* ── عیارهای دیگر طلا ────────────────────────────────────────────
+   TGJU فقط ۱۸ و ۲۴ عیار را می‌دهد. بقیه سهمِ عیارشان از طلای ۲۴ عیار
+   است (۲۱ عیار = ۲۱/۲۴ قیمت ۲۴ عیار) و درصد تغییرشان همان درصد ۲۴ عیار.
+   اگر ۲۴ عیار از کش آمده باشد، این‌ها هم منتقل‌شده‌اند و نقطهٔ نمودار
+   تازه نمی‌سازند. */
+const GOLD_KARATS = [22, 21, 20, 17, 14];
+$gold24 = $assets['gold24'] ?? null;
+foreach (GOLD_KARATS as $karat) {
+    $id = 'gold' . $karat;
+    if (!is_array($gold24) || (float) ($gold24['toman'] ?? 0) <= 0) {
+        $carry($id);
+        continue;
+    }
+    $assets[$id] = [
+        'toman'  => (float) $gold24['toman'] * $karat / 24,
+        'usd'    => null,
+        'group'  => 'gold',
+        'unit'   => 'gram',
+        'name'   => $id,
+        'change' => $gold24['change'],
+        'toman_change' => $gold24['toman_change'],
+    ];
+    if (in_array('gold24', $carried, true)) $carried[] = $id;
+}
+
 /* دلار برای تبدیل اقلام دلاری (انس، نفت، بنزین) لازم است. */
 $usdToman  = (float) ($assets['usd']['toman'] ?? 0);
 $usdChange = (float) ($assets['usd']['change'] ?? 0);
