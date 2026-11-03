@@ -40,10 +40,10 @@ for (const url of urls) {
     assert.ok(html.includes(`href="/convert/${key}/?amount=${item.amount}" aria-current="page"`), `${url}: دکمهٔ فعلی`);
     count += 1;
   }
-  assert.equal(count, 309);
+  assert.equal(count, 394);
   const pair = fs.readFileSync(path.join(root,'convert','usd-to-irt','index.html'),'utf8');
   assert.ok(pair.includes('<link rel="canonical" href="https://tabdex.ir/convert/usd-to-irt/">'), 'صفحهٔ مادر canonical خودش');
-  assert.match(pair, /<section class="frequent-conversions" id="frequent-conversions" data-pair="usd-to-irt"[^>]*><h2 id="frequent-title">تبدیل‌های پرتکرار<\/h2>[\s\S]*?<h2>۱۰۰۰ دلار چند تومان است<\/h2>/, 'بخش و دکمه‌ها تیتر ۲');
+  assert.match(pair, /<section class="frequent-conversions" id="frequent-conversions" data-pair="usd-to-irt"[^>]*><h2 id="frequent-title">تبدیل‌های پرتکرار<\/h2>[\s\S]*?<h2>۱۰۰۰ دلار چند تومان ایران است<\/h2>/, 'بخش و دکمه‌ها تیتر ۲');
   // بخش فقط روی جفت «دارایی دارای داده → تومان»؛ بقیه فقط جای خالی پنهان دارند.
   // دکمه‌ها مال جفت خودشان‌اند: تومان به دلار و دلار به لیر دکمهٔ خودشان را دارند،
   // جفت‌های بی‌داده هیچ.
