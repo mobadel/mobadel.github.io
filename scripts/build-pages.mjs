@@ -574,8 +574,8 @@ for (const [key, entry] of Object.entries(FREQUENT.pairs)) {
     const url = ORIGIN + path;
     const title = `${item.text} | مبدل قیمت`;
     const description = entry.to === "irt"
-      ? `${item.text}؟ معادل تومانی آن را با نرخ لحظه ای بازار ببینید و هر مقدار دیگری از ${from.name} را هم به تومان تبدیل کنید.`
-      : `${item.text}؟ معادل آن به ${to.name} را با نرخ لحظه ای بازار ببینید و هر مقدار دیگری از ${from.name} را هم به ${to.name} تبدیل کنید.`;
+      ? `${item.text}؛ معادل تومانی آن را با نرخ لحظه ای بازار ببینید و هر مقدار دیگری از ${from.name} را هم به تومان تبدیل کنید.`
+      : `${item.text}؛ معادل آن به ${to.name} را با نرخ لحظه ای بازار ببینید و هر مقدار دیگری از ${from.name} را هم به ${to.name} تبدیل کنید.`;
     const swaps = [
       [/<title>[^<]*<\/title>/, `<title>${title}</title>`],
       [/(<meta name="description" content=")[^"]*(">)/, `$1${description}$2`],
