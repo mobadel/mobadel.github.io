@@ -162,9 +162,12 @@
     setMeta("name", "description", description); setMeta("property", "og:title", title); setMeta("property", "og:description", description); setMeta("property", "og:url", ORIGIN + path);
     var canonical = document.querySelector('link[rel="canonical"]'); if (canonical) canonical.href = ORIGIN + path;
   }
+  /* صفحه‌های ساخته‌شده در build-pages اسکیمای کامل سرورساخته دارند
+     (data-built) و دست نمی‌خورند. این مسیر فقط برای آدرس‌هایی است که
+     از راه بازنویسی قالب خام را می‌گیرند؛ عمداً بدون قیمت و Offer. */
   function setSchema(graph) {
     var script = document.getElementById("price-schema");
-    if (script) script.textContent = JSON.stringify({ "@context": "https://schema.org", "@graph": graph });
+    if (script && !script.hasAttribute("data-built")) script.textContent = JSON.stringify({ "@context": "https://schema.org", "@graph": graph }).replace(/</g, "\\u003c");
   }
   function breadcrumb(items) {
     return { "@type": "BreadcrumbList", itemListElement: items.map(function (item, index) { return { "@type": "ListItem", position: index + 1, name: item.name, item: ORIGIN + item.path }; }) };
@@ -352,7 +355,7 @@
     bindHubSearch();
     loadDaily(HUB_INDICES, 31).then(function (changed) { if (changed) renderIndices(); });
     setDocumentMeta("قیمت لحظه ای دلار، طلا، سکه و ارز دیجیتال امروز " + todayLabel(), "مشاهده قیمت لحظه ای دلار، تتر، طلا، سکه، بیت کوین و ارزهای دیجیتال در بازار ایران و جهان.", "/price/");
-    var path = "/price/"; setSchema([{ "@type": "WebPage", "@id": ORIGIN + path + "#page", name: "قیمت لحظه ای دارایی‌ها", url: ORIGIN + path, inLanguage: "fa-IR" }, breadcrumb([{ name: "تبدکس", path: "/" }, { name: "قیمت‌ها", path: path }]), { "@type": "ItemList", name: "دسته‌بندی بازارهای تبدکس", itemListElement: CATEGORY_ORDER.map(function (id, index) { return { "@type": "ListItem", position: index + 1, name: CATEGORIES[id].name, url: ORIGIN + categoryUrl(id) }; }) }]);
+    var path = "/price/"; setSchema([{ "@type": "WebPage", "@id": ORIGIN + path + "#webpage", name: "قیمت لحظه ای دارایی‌ها", url: ORIGIN + path, inLanguage: "fa-IR" }, breadcrumb([{ name: "تبدکس", path: "/" }, { name: "قیمت‌ها", path: path }]), { "@type": "ItemList", name: "دسته‌بندی بازارهای تبدکس", itemListElement: CATEGORY_ORDER.map(function (id, index) { return { "@type": "ListItem", position: index + 1, name: CATEGORIES[id].name, url: ORIGIN + categoryUrl(id) }; }) }]);
   }
 
   // آخرین تابع ترسیم ردیف‌ها؛ لیسنر جستجو از طریق آن همیشه به لیست
@@ -444,7 +447,7 @@
     // عبارتی که کاربر تایپ کرده نباید با تازه‌سازی پاک شود.
     paintRows(input ? input.value : "");
     if (withHistory && list.length) loadDaily(list.map(function (asset) { return asset.id; }), 31).then(function (changed) { if (changed && searchPaint === paintRows) paintRows(input ? input.value : ""); });
-    setSchema([{ "@type": "CollectionPage", "@id": ORIGIN + path + "#page", name: "قیمت لحظه ای " + category.name, description: description, url: ORIGIN + path, inLanguage: "fa-IR" }, breadcrumb([{ name: "تبدکس", path: "/" }, { name: "قیمت‌ها", path: "/price/" }, { name: category.name, path: path }]), { "@type": "ItemList", name: "فهرست قیمت " + category.name, numberOfItems: list.length, itemListElement: list.map(function (asset, index) { return { "@type": "ListItem", position: index + 1, name: asset.name, url: ORIGIN + assetUrl(asset) }; }) }]);
+    setSchema([{ "@type": "CollectionPage", "@id": ORIGIN + path + "#webpage", name: "قیمت لحظه ای " + category.name, description: description, url: ORIGIN + path, inLanguage: "fa-IR" }, breadcrumb([{ name: "تبدکس", path: "/" }, { name: "قیمت‌ها", path: "/price/" }, { name: category.name, path: path }]), { "@type": "ItemList", name: "فهرست قیمت " + category.name, numberOfItems: list.length, itemListElement: list.map(function (asset, index) { return { "@type": "ListItem", position: index + 1, name: asset.name, url: ORIGIN + assetUrl(asset) }; }) }]);
   }
 
   function descriptionFor(asset) { var units = priceLabel(asset) + (Number.isFinite(asset.tomanPrice) ? " و تومان" : ""); return "قیمت لحظه ای " + asset.name + " امروز " + todayLabel() + " به " + units + "، میزان تغییر قیمت و اطلاعات بازار " + asset.name + "."; }
@@ -478,8 +481,8 @@
     renderRelated(asset);
     renderAbsoluteChange(asset);
     var sourceBox = document.getElementById("data-source-note"); if (sourceBox) { text(document.getElementById("data-source-text"), "قیمت " + asset.name + " از " + (asset.source || "بازار") + " دریافت می‌شود."); sourceBox.hidden = false; }
-    var measured = [{ "@type": "PropertyValue", name: "قیمت به " + priceLabel(asset), value: asset.price, unitText: priceLabel(asset) }, { "@type": "PropertyValue", name: "تغییر ۲۴ ساعته", value: Number.isFinite(asset.change) ? asset.change : null, unitText: "درصد" }]; if (Number.isFinite(asset.tomanPrice)) measured.push({ "@type": "PropertyValue", name: "قیمت تومانی", value: asset.tomanPrice, unitText: "تومان" }); var dataset = { "@type": "Dataset", name: "قیمت لحظه ای " + asset.name, description: description, url: ORIGIN + path, dateModified: (asset.updatedAt || latestUpdate || new Date()).toISOString(), variableMeasured: measured };
-    setSchema([{ "@type": "WebPage", "@id": ORIGIN + path + "#page", name: title.replace(" | تبدکس", ""), description: description, url: ORIGIN + path, inLanguage: "fa-IR", about: { "@type": "Thing", name: asset.name, alternateName: asset.code || asset.englishName }, mainEntity: { "@id": ORIGIN + path + "#dataset" } }, breadcrumb([{ name: "تبدکس", path: "/" }, { name: "قیمت‌ها", path: "/price/" }, { name: category.name, path: categoryUrl(group) }, { name: asset.name, path: path }]), Object.assign({ "@id": ORIGIN + path + "#dataset" }, dataset)]);
+    var thingId = ORIGIN + path + "#thing";
+    setSchema([{ "@type": "WebPage", "@id": ORIGIN + path + "#webpage", name: title.replace(" | تبدکس", ""), description: description, url: ORIGIN + path, inLanguage: "fa-IR", about: { "@id": thingId }, mainEntity: { "@id": thingId }, breadcrumb: { "@id": ORIGIN + path + "#breadcrumb" } }, { "@type": "Thing", "@id": thingId, name: asset.name, alternateName: asset.code || asset.englishName }, Object.assign({ "@id": ORIGIN + path + "#breadcrumb" }, breadcrumb([{ name: "تبدکس", path: "/" }, { name: "قیمت‌ها", path: "/price/" }, { name: category.name, path: categoryUrl(group) }, { name: asset.name, path: path }]))]);
   }
 
   /* تبدیل سریع کنار صفحهٔ دارایی: مقدار × قیمت هر واحد با همان واحد
