@@ -671,7 +671,7 @@ for (const [key, entry] of Object.entries(FREQUENT.pairs)) {
 try {
   const htaccessPath = resolve(SITE, ".htaccess");
   const htaccess = await readFile(htaccessPath, "utf8");
-  const anchor = "  # اگر فایل یا پوشهٔ واقعی وجود دارد، دست نزن.";
+  const anchor = "  # محتوای دستی پنل:";
   if (!htaccess.includes(anchor)) throw new Error("جای قاعده‌های صفحه‌های مقدار در .htaccess پیدا نشد.");
   await writeFile(htaccessPath, htaccess.replace(anchor, `  # تبدیل‌های پرتکرار: فقط همین مقدارها صفحهٔ خودشان را دارند (ساخته‌شده در build-pages).\n${amountRules.join("\n")}\n\n${anchor}`), "utf8");
 } catch (error) { if (error.code !== "ENOENT") throw error; }
@@ -807,6 +807,23 @@ for (const [path, title, body] of [
   addSitemapUrl(path,"0.5");
 }
 const completeSitemap = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.join("\n")}\n</urlset>\n`;
+/* فهرست صفحه‌های پنل محتوا. فقط از داخل سرور خوانده می‌شود و جفت‌های
+   بدون فایل ایستا را پنل با واردکردن آدرس باز می‌کند. */
+const panelPages = [
+  { path: "/price/", title: "هاب قیمت‌ها", type: "category" },
+  { path: "/convert/", title: "صفحهٔ اصلی مبدل", type: "convert" },
+  ...[...Object.keys(PRICE_GROUPS), "crypto"].map((group) => ({ path: `/price/${group}/`, title: `قیمت ${PRICE_CATEGORIES[group].name}`, type: "category" })),
+];
+const panelSeen = new Set(panelPages.map((page) => page.path));
+function addPanelPage(page) { if (!panelSeen.has(page.path)) { panelSeen.add(page.path); panelPages.push(page); } }
+for (const { group, slug, id } of priceAssets) addPanelPage({ path: `/price/${group}/${slug}/`, title: `قیمت ${priceName(group, slug, id)}`, type: "asset" });
+for (const [fromId, toId] of pagePairs) {
+  const meta = metaFor(ASSETS[fromId], ASSETS[toId]);
+  addPanelPage({ path: meta.path, title: meta.heading, type: "convert" });
+}
+await mkdir(resolve(SITE, "panel"), { recursive: true });
+await writeFile(resolve(SITE, "panel/catalog.json"), JSON.stringify({ pages: panelPages }), "utf8");
+
 await writeFile(resolve(SITE,"sitemap.xml"),completeSitemap);
 await writeFile(resolve(ROOT,"sitemap.xml"),completeSitemap);
 

@@ -777,11 +777,32 @@
       location.href = target;
       return;
     }
+    // متن دستی پنل مال همین آدرس است و نباید روی جفت بعدی بماند.
+    if (document.querySelector(".cms-content")) {
+      location.href = target;
+      return;
+    }
     try {
       history.pushState({ from: state.from, to: state.to }, "", target);
     } catch (error) {
       /* اگر مرورگر اجازه نداد، آدرس دست‌نخورده می‌ماند و برنامه کار می‌کند */
     }
+    loadCustomContentFor(target);
+  }
+
+  // جفت مقصد اگر در پنل متن دستی داشته باشد، باید از سرور بار شود.
+  var customPairsRequest = null;
+  function loadCustomContentFor(target) {
+    if (typeof fetch !== "function") return;
+    if (!customPairsRequest) {
+      customPairsRequest = Promise.resolve()
+        .then(function () { return fetch("/cms-media/custom-pairs.json", { cache: "no-cache" }); })
+        .then(function (response) { return response && response.ok ? response.json() : []; })
+        .catch(function () { return []; });
+    }
+    customPairsRequest.then(function (pairs) {
+      if (Array.isArray(pairs) && pairs.indexOf(target) !== -1 && location.pathname === target) location.replace(target);
+    });
   }
 
   function applyRoute(route) {

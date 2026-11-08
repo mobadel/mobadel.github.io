@@ -12,6 +12,11 @@ DirectoryIndex index.html
   # کش پراکسی و لاگ کرون هاست فقط برای خود PHP است، نه برای مرورگر.
   RewriteRule ^api/cache(?:/|$) - [F,L]
 
+  # داده‌های پنل محتوا و کد داخلی آن فقط برای خود PHP است.
+  RewriteRule ^cms-data(?:/|$) - [F,L]
+  RewriteRule ^panel/(?:lib(?:/|$)|config\.php$|catalog\.json$) - [F,L]
+  RewriteRule ^cms-media/.*\.(?:php[0-9]*|phtml|phar)$ - [F,L,NC]
+
   # مسیر قدیمی ارزها به currency منتقل می‌شود؛ صفحه قیمت تومان عمداً حذف شده است.
   RewriteRule ^price/(?:fiat|currency)/irt/?$ - [R=410,L]
   RewriteRule ^price/fiat/?$ /price/currency/ [R=301,L,NE]
@@ -30,6 +35,13 @@ DirectoryIndex index.html
 
   # مسیرهای قدیمی تبدیل با حفظ query string به ساختار جدید منتقل می‌شوند.
   RewriteRule ^([a-z0-9]+)-to-([a-z0-9]+)/?$ /convert/$1-to-$2/ [R=301,L,NE]
+
+  # محتوای دستی پنل: فقط آدرس‌هایی که متن منتشرشده دارند از PHP می‌گذرند
+  # و باید پیش از قاعدهٔ «فایل یا پوشهٔ واقعی» باشند. پیش‌نمایش با امضای موقت است.
+  RewriteCond %{QUERY_STRING} (?:^|&)cms_preview=
+  RewriteRule ^(?:price(?:/[a-z0-9-]+){0,2}|convert(?:/[a-z0-9]+-to-[a-z0-9]+)?)/?$ panel/render.php [L]
+  RewriteCond %{DOCUMENT_ROOT}/cms-data/published/$1.php -f
+  RewriteRule ^(price(?:/[a-z0-9-]+){0,2}|convert(?:/[a-z0-9]+-to-[a-z0-9]+)?)/?$ panel/render.php [L]
 
   # اگر فایل یا پوشهٔ واقعی وجود دارد، دست نزن. صفحه‌های ایستایی که
   # هنگام دیپلوی ساخته می‌شوند از همین راه سرو می‌شوند و بازنویسی

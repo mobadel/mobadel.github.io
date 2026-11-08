@@ -4,3 +4,9 @@ api/config.php
 api/cache/
 # خروجی مولد صفحه‌ها؛ هنگام دیپلوی ساخته می‌شود.
 _site/
+
+# پنل محتوا: کلید و خروجی ساخت، و داده‌هایی که فقط روی سرور ساخته می‌شوند.
+panel/config.php
+panel/catalog.json
+cms-data/
+cms-media/

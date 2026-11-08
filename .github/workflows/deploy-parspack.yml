@@ -57,6 +57,7 @@ jobs:
           # به‌صورت متن سرو می‌شدند. ابزارهای توسعه در tools/ هستند که
           # اصلاً منتشر نمی‌شود.
           cp -R assets data api price convert _site/
+          cp -R panel _site/
 
       # صفحه‌های ایستای جفت‌های پرجستجو و سایت‌مپ. بقیهٔ آدرس‌ها از راه
       # بازنویسی در .htaccess کار می‌کنند. sitemap.xml را بازنویسی
@@ -122,6 +123,22 @@ jobs:
           printf '<?php\nreturn ["brsapi_key" => base64_decode("%s"), "history_capture_token" => base64_decode("%s")];\n' "$encoded" "$history_encoded" > _site/api/config.php
           echo "config.php نوشته شد."
 
+      # بدون این کلید صفحهٔ ساخت اولین مدیر پنل غیرفعال می‌ماند.
+      - name: نوشتن کلید راه‌اندازی پنل
+        shell: bash
+        env:
+          PANEL_SETUP_TOKEN: ${{ secrets.PANEL_SETUP_TOKEN }}
+        run: |
+          set -euo pipefail
+          if [ -z "${PANEL_SETUP_TOKEN:-}" ]; then
+            echo "::warning::سکرت PANEL_SETUP_TOKEN تعریف نشده؛ ساخت اولین مدیر پنل ممکن نیست."
+            exit 0
+          fi
+          encoded=$(printf '%s' "$PANEL_SETUP_TOKEN" | base64 -w0)
+          printf '<?php
+return ["setup_token" => base64_decode("%s")];
+' "$encoded" > _site/panel/config.php
+
       # Python 3 is included in the runner. No apt or Ubuntu mirror is needed.
       - name: Test FTPS uploader
         run: python3 -m unittest discover -s tests -p test_deploy_ftps.py
@@ -168,7 +185,7 @@ jobs:
           # یک بار با بامپ هم‌طول نسخه بی‌صدا جا ماندند.
           for file in index.html convert/index.html assets/styles.css assets/site.css assets/app.js assets/home.js assets/price.js \
                       price/index.html price/currency/index.html price/currency/usd/index.html convert/usd-to-irt/index.html methodology/index.html \
-                      convert/rahn-ejare/index.html assets/rent-calc.css; do
+                      convert/rahn-ejare/index.html assets/rent-calc.css assets/cms-content.css panel/assets/panel.js; do
             [ -f "_site/$file" ] || continue
             expected=$(md5sum "_site/$file" | cut -d' ' -f1)
             # کش‌شکن تا پاسخِ کش‌شدهٔ واسطه‌ها تأیید را الکی سبز نکند.
@@ -188,6 +205,23 @@ jobs:
             echo "  ✓ convert/usd-to-irt/?amount=1000"
           else
             echo "::error::صفحهٔ ?amount=1000 canonical خودش را ندارد؛ قاعده‌های .htaccess اعمال نشده‌اند."
+            mismatch=1
+          fi
+          # دادهٔ پنل و کد داخلی آن نباید از بیرون خوانده شود.
+          for private in cms-data/users.php panel/lib/core.php panel/config.php panel/catalog.json; do
+            code=$(curl -s -o /dev/null --max-time 25 -w '%{http_code}' "https://tabdex.ir/$private" || true)
+            if [ "$code" = "403" ]; then
+              echo "  ✓ $private بسته است"
+            else
+              echo "::error::$private باید 403 بدهد ولی $code داد."
+              mismatch=1
+            fi
+          done
+          panel_status=$(curl -fsS --max-time 25 'https://tabdex.ir/panel/api.php?action=status' || true)
+          if printf '%s' "$panel_status" | grep -q '"ok":true'; then
+            echo "  ✓ panel/api.php"
+          else
+            echo "::error::API پنل پاسخ درست نداد: $panel_status"
             mismatch=1
           fi
           if [ "$mismatch" -ne 0 ]; then

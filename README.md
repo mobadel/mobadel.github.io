@@ -76,3 +76,7 @@ python3 scripts/gsc/report.py gsc.json
 همه URLهای sitemap اصلی باید فایل HTML با canonical اختصاصی داشته باشند.
 صفحات `/about/`، `/contact/` و `/methodology/` نیز در زمان ساخت تولید می‌شوند.
 `node --test tests/*.test.js` علاوه بر تست مبدل، این قرارداد و رفتار قطع داده را بررسی می‌کند.
+
+## پنل محتوا
+
+محتوای صفحه‌های قیمت و مبدل از `/panel/` مدیریت می‌شود. راه‌اندازی، نقش‌ها و پشتیبان‌گیری در [docs/PANEL.md](docs/PANEL.md) آمده است.
