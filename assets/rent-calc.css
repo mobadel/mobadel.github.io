@@ -13,7 +13,8 @@
 .rent-unit .currency-icon { width: 34px; height: 34px; font-size: 17px; }
 .rent-unit .currency-text strong { direction: rtl; font-size: 14px; }
 .rent-words { min-height: 20px; margin: 6px 4px 0 0; color: var(--muted); font-size: 12.5px; }
-.rent-computed { margin-inline-start: 6px; color: var(--green-dark); font-size: 11.5px; font-weight: 700; }
+/* inline-block تا حروف برچسب به آخرین حرف عنوان فیلد نچسبند */
+.rent-computed { display: inline-block; margin-inline-start: 4px; padding: 0 8px; border-radius: 999px; color: var(--green-dark); background: var(--green-soft); font-size: 11px; font-weight: 700; line-height: 20px; vertical-align: 1px; }
 .rent-computed[hidden] { display: none; }
 
 .rent-arrow { display: grid; width: 48px; height: 48px; flex: 0 0 auto; place-items: center; border: 1px solid var(--border-strong); border-radius: 50%; color: var(--green-dark); background: #fff; box-shadow: 0 5px 14px rgba(26, 58, 47, .10); }
