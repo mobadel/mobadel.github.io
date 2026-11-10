@@ -26,7 +26,14 @@
   };
   var digits = clean;
   // مقدار به تومان
-  var parse = function (el) { var v = clean(el); return v && v !== "." ? Number(v) * scale(el) : 0; };
+  /* مقدار به تومان. فیلدی که ماشین حساب پر کرده مقدار دقیقش را در
+     data-exact نگه می‌دارد؛ متن نمایشی گرد شده (مثلاً ۱٬۳۸۳٫۳۳۳ میلیون) و
+     خواندن دوباره‌اش باقیماندهٔ چندتومانی می‌ساخت. با تایپ کاربر پاک می‌شود. */
+  var parse = function (el) {
+    if (el.dataset.exact !== undefined) return Number(el.dataset.exact);
+    var v = clean(el);
+    return v && v !== "." ? Number(v) * scale(el) : 0;
+  };
   var sep = function (n) { return fa(Math.round(n).toLocaleString("en-US").replace(/,/g, "٬")); };
   // نمایش یک مبلغ تومانی در واحد فیلد؛ میلیونی‌ها تا سه رقم اعشار
   var display = function (el, toman) {
@@ -59,6 +66,7 @@
   var fixed = "rahn"; // فیلد مقصدی که کاربر تعیین کرده
 
   function setField(input, n) {
+    input.dataset.exact = String(n);
     input.value = n > 0 ? display(input, n) : (input.dataset.touched ? "۰" : "");
   }
 
@@ -84,7 +92,7 @@
       if (fixed === "rahn") {
         var r = parse(el["dst-rahn"]);
         if (r > total) { warn.textContent = "رهن واردشده از رهن کامل بیشتر است؛ اجاره صفر در نظر گرفته شد."; warn.hidden = false; }
-        setField(el["dst-ejare"], Math.max(0, (total - r) * rate));
+        setField(el["dst-ejare"], Math.max(0, Math.round((total - r) * rate)));
       } else {
         var e = parse(el["dst-ejare"]);
         if (e / rate > total) { warn.textContent = "اجارهٔ واردشده از اجارهٔ کامل بیشتر است؛ رهن صفر در نظر گرفته شد."; warn.hidden = false; }
@@ -109,6 +117,7 @@
   function onType(event) {
     var input = event.target;
     input.dataset.touched = "1";
+    delete input.dataset.exact;
     var v = clean(input);
     if (!v) { input.value = ""; return; }
     var dot = v.indexOf(".");
@@ -145,7 +154,7 @@
   });
 
   $("rent-reset").addEventListener("click", function () {
-    ids.forEach(function (id) { el[id].value = ""; delete el[id].dataset.touched; });
+    ids.forEach(function (id) { el[id].value = ""; delete el[id].dataset.touched; delete el[id].dataset.exact; });
     fixed = "rahn";
     render();
     el["src-rahn"].focus();
