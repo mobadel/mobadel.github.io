@@ -1,7 +1,9 @@
 /* ماشین حساب تبدیل رهن و اجاره (/convert/rahn-ejare/)
    رهن کامل = رهن + اجارهٔ ماهانه ÷ نرخ ماهانه. مبدا رهن کامل را می‌سازد و
    در مقصد هر فیلدی که کاربر دست بزند ثابت می‌ماند و دیگری محاسبه می‌شود.
-   گیج پایین همان مقصد را با کشیدن بین «اجارهٔ کامل» و «رهن کامل» جابه‌جا می‌کند. */
+   گیج پایین همان مقصد را با کشیدن بین «اجارهٔ کامل» و «رهن کامل» جابه‌جا می‌کند.
+   فیلدهای رهن data-scale="1000000" دارند: عدد به میلیون تومان وارد و نمایش
+   داده می‌شود (۱۰۰۰ یعنی یک میلیارد)، ولی همهٔ محاسبه‌ها به تومان است. */
 (function () {
   "use strict";
   var $ = function (id) { return document.getElementById(id); };
@@ -12,9 +14,28 @@
       .replace(/[۰-۹]/g, function (d) { return FA.indexOf(d); })
       .replace(/[٠-٩]/g, function (d) { return "٠١٢٣٤٥٦٧٨٩".indexOf(d); });
   };
-  var digits = function (el) { return toEn(el.value).replace(/[^\d]/g, ""); };
-  var parse = function (el) { var v = digits(el); return v ? Number(v) : 0; };
+  var scale = function (el) { return Number(el.getAttribute("data-scale")) || 1; };
+  // ورودی پاک‌شده: فقط رقم و (برای فیلدهای میلیونی) یک ممیز
+  var clean = function (el) {
+    var v = toEn(el.value).replace(/[٫\/,]/g, function (c) { return c === "," ? "" : "."; });
+    if (scale(el) === 1) return v.replace(/[^\d]/g, "");
+    v = v.replace(/[^\d.]/g, "");
+    var dot = v.indexOf(".");
+    if (dot >= 0) v = v.slice(0, dot + 1) + v.slice(dot + 1).replace(/\./g, "").slice(0, 3);
+    return v;
+  };
+  var digits = clean;
+  // مقدار به تومان
+  var parse = function (el) { var v = clean(el); return v && v !== "." ? Number(v) * scale(el) : 0; };
   var sep = function (n) { return fa(Math.round(n).toLocaleString("en-US").replace(/,/g, "٬")); };
+  // نمایش یک مبلغ تومانی در واحد فیلد؛ میلیونی‌ها تا سه رقم اعشار
+  var display = function (el, toman) {
+    var unit = scale(el);
+    if (unit === 1) return sep(toman);
+    var v = Math.round((toman / unit) * 1000) / 1000;
+    var parts = String(v).split(".");
+    return sep(Number(parts[0])) + (parts[1] ? "٫" + fa(parts[1]) : "");
+  };
 
   function words(n) {
     n = Math.round(n);
@@ -38,7 +59,7 @@
   var fixed = "rahn"; // فیلد مقصدی که کاربر تعیین کرده
 
   function setField(input, n) {
-    input.value = n > 0 ? sep(n) : (input.dataset.touched ? "۰" : "");
+    input.value = n > 0 ? display(input, n) : (input.dataset.touched ? "۰" : "");
   }
 
   function markComputed() {
@@ -54,7 +75,7 @@
     warn.hidden = true;
 
     $("rent-total").innerHTML = total
-      ? 'رهن کامل: <span class="num">' + sep(total) + "</span> تومان"
+      ? 'رهن کامل: <span class="num">' + words(total).replace(/ تومان$/, "") + "</span> تومان"
       : "مبلغ فعلی را وارد کنید";
     $("rent-full-rahn").textContent = total ? words(total) : "—";
     $("rent-full-ejare").textContent = total ? words(total * rate) : "—";
@@ -88,7 +109,12 @@
   function onType(event) {
     var input = event.target;
     input.dataset.touched = "1";
-    input.value = digits(input) ? sep(parse(input)) : "";
+    var v = clean(input);
+    if (!v) { input.value = ""; return; }
+    var dot = v.indexOf(".");
+    var whole = dot >= 0 ? v.slice(0, dot) : v;
+    // ممیز و رقم‌های اعشار همان‌طور که تایپ شده می‌مانند تا وسط تایپ «۱٫» پاک نشود
+    input.value = sep(Number(whole || 0)) + (dot >= 0 ? "٫" + fa(v.slice(dot + 1)) : "");
   }
 
   el["src-rahn"].addEventListener("input", function (e) { onType(e); render(); });
