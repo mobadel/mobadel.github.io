@@ -9,6 +9,7 @@
      (فلزات، انرژی) زیر «قیمت‌ها». */
   function sectionFor(pathname) {
     var path = String(pathname || "/");
+    if (/^\/convert\/rahn-ejare(\/|$)/.test(path)) return "/convert/rahn-ejare/";
     if (/^\/convert(\/|$)/.test(path)) return "/convert/";
     if (/^\/mag(\/|$)/.test(path)) return "/mag/";
     var match = path.match(/^\/price\/([a-z]+)(\/|$)/);
