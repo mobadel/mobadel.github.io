@@ -45,7 +45,7 @@
   <link rel="preload" href="/assets/fonts/Estedad-Arabic-wght.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="/assets/styles.css?v=20261016-status">
   <link rel="stylesheet" href="/assets/site.css?v=20261027-prices">
-  <link rel="stylesheet" href="/assets/rent-calc.css?v=20261110b">
+  <link rel="stylesheet" href="/assets/rent-calc.css?v=20261110c">
 
   <script type="application/ld+json">
   {
@@ -93,7 +93,7 @@
     <section class="intro" aria-labelledby="page-title">
       <p class="eyebrow">مبدل قیمت</p>
       <h1 id="page-title">تبدیل رهن و اجاره</h1>
-      <p class="intro-copy">رهن و اجارهٔ فعلی را وارد کنید؛ بعد رهن یا اجارهٔ دلخواه را بنویسید یا گیج را بکشید تا دیگری محاسبه شود.</p>
+      <p class="intro-copy">رهن (به میلیون تومان) و اجارهٔ فعلی را وارد کنید؛ بعد رهن یا اجارهٔ دلخواه را بنویسید یا گیج را بکشید تا دیگری محاسبه شود.</p>
     </section>
 
     <div class="convert-layout rent-layout">
@@ -108,8 +108,8 @@
           <div class="currency-field">
             <label for="src-rahn">مبلغ رهن (ودیعه)</label>
             <div class="field-control" id="src-rahn-control">
-              <input id="src-rahn" type="text" inputmode="numeric" autocomplete="off" spellcheck="false" placeholder="۰" aria-describedby="src-rahn-words">
-              <span class="rent-unit" aria-hidden="true"><span class="currency-icon toman">ت</span><span class="currency-text"><strong>تومان</strong><small>رهن</small></span></span>
+              <input id="src-rahn" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" placeholder="مثلاً ۵۰۰" data-scale="1000000" aria-describedby="src-rahn-words">
+              <span class="rent-unit" aria-hidden="true"><span class="currency-icon toman">ت</span><span class="currency-text"><strong>میلیون تومان</strong><small>رهن</small></span></span>
             </div>
             <div class="rent-words" id="src-rahn-words"></div>
           </div>
@@ -130,8 +130,8 @@
           <div class="currency-field">
             <label for="dst-rahn">مبلغ رهن (ودیعه) <span class="rent-computed" id="dst-rahn-tag" hidden>محاسبه‌شده</span></label>
             <div class="field-control" id="dst-rahn-control">
-              <input id="dst-rahn" type="text" inputmode="numeric" autocomplete="off" spellcheck="false" placeholder="۰" aria-describedby="dst-rahn-words">
-              <span class="rent-unit" aria-hidden="true"><span class="currency-icon toman">ت</span><span class="currency-text"><strong>تومان</strong><small>رهن</small></span></span>
+              <input id="dst-rahn" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" placeholder="مثلاً ۵۰۰" data-scale="1000000" aria-describedby="dst-rahn-words">
+              <span class="rent-unit" aria-hidden="true"><span class="currency-icon toman">ت</span><span class="currency-text"><strong>میلیون تومان</strong><small>رهن</small></span></span>
             </div>
             <div class="rent-words" id="dst-rahn-words"></div>
           </div>
@@ -197,6 +197,6 @@
 
 
   <script src="/assets/site.js?v=20261110-rahn"></script>
-  <script src="/assets/rent-calc.js?v=20261110"></script>
+  <script src="/assets/rent-calc.js?v=20261110c"></script>
 </body>
 </html>
