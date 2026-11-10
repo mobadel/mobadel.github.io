@@ -1,0 +1,63 @@
+/* ماشین حساب رهن و اجاره؛ روی styles.css و site.css سوار می‌شود و فقط
+   اجزای خاص همین صفحه (برچسب مرحله، واحد تومان، گیج) را اضافه می‌کند. */
+.rent-layout > .converter-card { flex: 0 1 760px; }
+
+.rent-step { display: flex; align-items: center; gap: 10px; margin: 0 0 14px; font-size: 17px; }
+.rent-step-tag { display: inline-flex; align-items: center; min-height: 26px; padding: 0 11px; border-radius: 999px; color: var(--green-dark); background: var(--green-soft); font-family: var(--font-body); font-size: 12px; font-weight: 700; }
+.rent-step-tag.is-target { color: #fff; background: var(--ink); }
+
+.rent-fields { display: grid; gap: 14px; }
+.rent-fields .field-control { min-height: 76px; }
+.rent-fields .field-control input { font-size: clamp(22px, 5vw, 28px); }
+.rent-unit { display: flex; flex: 0 0 auto; align-items: center; gap: 9px; padding: 6px 8px; }
+.rent-unit .currency-icon { width: 34px; height: 34px; font-size: 17px; }
+.rent-unit .currency-text strong { direction: rtl; font-size: 14px; }
+.rent-words { min-height: 20px; margin: 6px 4px 0 0; color: var(--muted); font-size: 12.5px; }
+.rent-computed { margin-inline-start: 6px; color: var(--green-dark); font-size: 11.5px; font-weight: 700; }
+.rent-computed[hidden] { display: none; }
+
+.rent-arrow { display: grid; width: 48px; height: 48px; flex: 0 0 auto; place-items: center; border: 1px solid var(--border-strong); border-radius: 50%; color: var(--green-dark); background: #fff; box-shadow: 0 5px 14px rgba(26, 58, 47, .10); }
+.rent-card .swap-divider { margin: 18px 0 10px; }
+
+.rent-warn { margin: 12px 0 0; padding: 10px 14px; border-radius: 14px; color: #8a4b00; background: #fff4e0; font-size: 13px; }
+.rent-warn[hidden] { display: none; }
+
+/* گیج: کشیدن به راست = اجارهٔ بیشتر، به چپ = رهن بیشتر (جهت راست‌به‌چپ) */
+.rent-gauge { margin-top: 22px; padding: 18px 18px 16px; border: 1px solid var(--border); border-radius: 18px; background: var(--surface-muted); }
+.rent-gauge-head { display: flex; justify-content: space-between; gap: 12px; margin-bottom: 12px; font-size: 13px; color: var(--muted); }
+.rent-gauge-head b { color: var(--text); font-family: var(--font-numeric); font-weight: 700; }
+.rent-gauge-head .is-rahn b { color: var(--green-dark); }
+.rent-gauge input[type="range"] {
+  --fill: 0%;
+  width: 100%; height: 28px; margin: 0; padding: 0; background: transparent; cursor: pointer;
+  -webkit-appearance: none; appearance: none; direction: rtl;
+}
+.rent-gauge input[type="range"]:disabled { cursor: not-allowed; opacity: .55; }
+.rent-gauge input[type="range"]:focus-visible { outline: 3px solid rgba(22, 129, 95, .25); outline-offset: 4px; border-radius: 999px; }
+.rent-gauge input[type="range"]::-webkit-slider-runnable-track {
+  height: 10px; border-radius: 999px;
+  background: linear-gradient(to left, var(--green) var(--fill), var(--border-strong) var(--fill));
+}
+.rent-gauge input[type="range"]::-moz-range-track { height: 10px; border-radius: 999px; background: var(--border-strong); }
+.rent-gauge input[type="range"]::-moz-range-progress { height: 10px; border-radius: 999px; background: var(--green); }
+.rent-gauge input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none; appearance: none; width: 26px; height: 26px; margin-top: -8px;
+  border: 3px solid var(--green); border-radius: 50%; background: #fff; box-shadow: 0 3px 10px rgba(26, 58, 47, .22);
+}
+.rent-gauge input[type="range"]::-moz-range-thumb { width: 20px; height: 20px; border: 3px solid var(--green); border-radius: 50%; background: #fff; box-shadow: 0 3px 10px rgba(26, 58, 47, .22); }
+.rent-gauge-ends { display: flex; justify-content: space-between; margin-top: 8px; color: var(--subtle); font-size: 12px; }
+
+.rent-rates { flex-wrap: wrap; margin-top: 22px; }
+.rent-rates .chip { flex: 0 0 auto; }
+.rent-rate-note { flex: 0 0 100%; width: 100%; margin: 4px 0 0; color: var(--muted); font-size: 12.5px; text-align: center; }
+
+.rent-summary { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 22px; }
+.rent-summary > div { padding: 12px 14px; border-radius: 16px; background: var(--surface-muted); }
+.rent-summary small { display: block; margin-bottom: 2px; color: var(--muted); font-size: 12px; }
+.rent-summary strong { font-family: var(--font-numeric); font-size: 14.5px; font-weight: 700; }
+.rent-reset { display: block; margin: 18px auto 0; }
+
+@media (max-width: 560px) {
+  .rent-summary { grid-template-columns: 1fr; }
+  .rent-gauge { padding-inline: 14px; }
+}
