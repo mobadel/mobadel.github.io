@@ -6,7 +6,8 @@
 .rent-step-tag { display: inline-flex; align-items: center; min-height: 26px; padding: 0 11px; border-radius: 999px; color: var(--green-dark); background: var(--green-soft); font-family: var(--font-body); font-size: 12px; font-weight: 700; }
 .rent-step-tag.is-target { color: #fff; background: var(--ink); }
 
-.rent-fields { display: grid; gap: 14px; }
+.rent-fields { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 3fr); column-gap: 14px; }
+.rent-fields > .currency-field { display: grid; grid-template-rows: subgrid; grid-row: span 3; min-width: 0; }
 .rent-fields .field-control { min-height: 76px; }
 .rent-fields .field-control input { font-size: clamp(22px, 5vw, 28px); }
 .rent-unit { display: flex; flex: 0 0 auto; align-items: center; gap: 9px; padding: 6px 8px; }
@@ -57,6 +58,15 @@
 .rent-summary small { display: block; margin-bottom: 2px; color: var(--muted); font-size: 12px; }
 .rent-summary strong { font-family: var(--font-numeric); font-size: 14.5px; font-weight: 700; }
 .rent-reset { display: block; margin: 18px auto 0; }
+
+@media (max-width: 760px) {
+  .rent-fields { column-gap: 10px; }
+  .rent-fields .field-control { flex-direction: column; align-items: stretch; gap: 2px; }
+  .rent-fields .field-control input { flex: 0 0 auto; font-size: clamp(18px, 4.8vw, 24px); }
+  .rent-unit { padding: 0 4px; }
+  .rent-unit .currency-icon, .rent-unit .currency-text small { display: none; }
+  .rent-unit .currency-text strong { font-size: 12px; }
+}
 
 @media (max-width: 560px) {
   .rent-summary { grid-template-columns: 1fr; }
