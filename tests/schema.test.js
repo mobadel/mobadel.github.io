@@ -64,6 +64,14 @@ assert.equal(typeOf('/about/'), 'AboutPage');
 assert.equal(typeOf('/contact/'), 'ContactPage');
 assert.equal(typeOf('/methodology/'), 'WebPage');
 assert.equal(typeOf('/convert/usd-to-irt/'), 'WebPage');
+assert.equal(typeOf('/convert/rahn-ejare/'), 'WebPage');
+const rentGraph = graphs[`${ORIGIN}/convert/rahn-ejare/`];
+const rentApp = rentGraph.find(n => n['@type'] === 'WebApplication');
+assert.equal(rentApp['@id'], `${ORIGIN}/convert/rahn-ejare/#application`);
+assert.equal(rentApp.url, `${ORIGIN}/convert/rahn-ejare/`);
+assert.equal(rentApp.name, 'ماشین حساب تبدیل رهن و اجاره');
+assert.equal(rentApp.isAccessibleForFree, true);
+assert.equal(rentGraph.find(n => n['@type'] === 'WebPage').mainEntity['@id'], rentApp['@id']);
 
 // نمودار با تاریخ شروع واقعی ⇒ Dataset؛ رمزارز (تاریخ شروع نامعلوم) و طلای ۲۲ (بی‌سری) ⇒ نه.
 const usd = graphs[`${ORIGIN}/price/currency/usd/`].find(n => n['@type'] === 'Dataset');

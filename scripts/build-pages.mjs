@@ -768,6 +768,24 @@ for (const [path, file] of [["/", "index.html"], ["/price/", "price/index.html"]
 // سرو می‌کند؛ پس بخش را از پیش رسم نمی‌کند و اسکریپت فقط برای جفت جورشده می‌سازدش.
   await writePricePage(path, replaceJsonLd(html, hubNodes(path, html), path === "/price/" ? BUILT_PRICE_SCHEMA : ""));
 }
+// ماشین حساب رهن و اجاره صفحهٔ دست‌نویس است و همان‌طور که هست منتشر می‌شود.
+await mkdir(resolve(SITE, "convert", "rahn-ejare"), { recursive: true });
+const rentPath = "/convert/rahn-ejare/";
+const rentName = "ماشین حساب تبدیل رهن و اجاره";
+const rentDescription = "محاسبه آنلاین تبدیل رهن به اجاره و اجاره به رهن با فرمول عرف بازار؛ مبلغ فعلی را وارد کنید و با گیج، ترکیب رهن و اجارهٔ جدید را انتخاب کنید.";
+const rentApplication = {
+  ...buildConverter(),
+  "@id": `${ORIGIN}${rentPath}#application`,
+  name: rentName,
+  url: `${ORIGIN}${rentPath}`,
+  description: rentDescription
+};
+const rentPage = buildWebPage({ path: rentPath, name: rentName, description: rentDescription }, {
+  mainEntity: { "@id": rentApplication["@id"] }
+});
+const rentTemplate = await readFile(resolve(ROOT, "convert", "rahn-ejare", "index.html"), "utf8");
+await writeFile(resolve(SITE, "convert", "rahn-ejare", "index.html"), replaceJsonLd(rentTemplate, withIdentity([rentPage, rentApplication])), "utf8");
+addSitemapUrl("/convert/rahn-ejare/", "0.8");
 const methodTemplate = await readFile(resolve(ROOT, "price/index.html"), "utf8");
 const crumbs = (title) => `<nav class="breadcrumbs" aria-label="مسیر صفحه"><ol><li><a href="/">تبدکس</a></li><li aria-current="page">${title}</li></ol></nav>`;
 const methodBody = `<main class="wide-shell price-main static-main" id="price-main">${crumbs("منابع داده و روش محاسبه")}<section class="seo-content"><h1>منابع داده و روش محاسبه تبدکس</h1><p>تبدکس ابزار نمایش نرخ و محاسبه ارزش معادل دارایی‌هاست و معامله یا انتقال وجه انجام نمی‌دهد.</p><h2>منابع قیمت</h2>${Object.values(GROUP_HELP).map(([h,t])=>`<h3>${h}</h3><p>${t}</p>`).join("")}<h2>زمان داده و قطع ارتباط</h2><p>زمان دریافت داده توسط تبدکس ممکن است با زمان آخرین معامله در منبع تفاوت داشته باشد. نرخ ذخیره‌شده با زمان خودش مشخص می‌شود و نباید نرخ لحظه‌ای تلقی شود. در نبود داده تازه، پیش از تصمیم‌گیری نرخ را با منبع معامله بررسی کنید.</p><h2>فرمول تبدیل</h2><p>ارزش مقدار مبدأ به تومان بر نرخ تومانی هر واحد مقصد تقسیم می‌شود. نرخ‌هایی که از نوبیتکس به ریال دریافت می‌شوند برای نمایش تومان بر ۱۰ تقسیم می‌شوند.</p><p><a href="/convert/">مبدل قیمت</a> · <a href="/price/">فهرست قیمت‌ها</a></p></section></main>`;

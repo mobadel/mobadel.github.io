@@ -16,6 +16,7 @@
 |---|---|---|---|
 | `/` | `CollectionPage` | `mainEntity` ← `ItemList` شش کارت بالای صفحه، `hasPart` ← مبدل | |
 | `/convert/` | `WebPage` | `mainEntity` ← `WebApplication` مبدل | |
+| `/convert/rahn-ejare/` | `WebPage` | `mainEntity` ← `WebApplication` ماشین حساب رهن و اجاره، با شناسهٔ مستقل و بدون `Offer` | |
 | `/convert/x-to-y/` و صفحه‌های `?amount=` | `WebPage` | `about` ← دو `Thing`، `hasPart` ← مبدل | |
 | `/price/` | `CollectionPage` | `ItemList` دسته‌ها، `BreadcrumbList` | |
 | `/price/<دسته>/` | `CollectionPage` | `ItemList` دارایی‌ها، `BreadcrumbList` | رمزارز `ItemList` ندارد ↓ |

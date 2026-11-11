@@ -88,6 +88,8 @@ const workdir = fs.mkdtempSync(path.join(os.tmpdir(), "tabdex-pages-"));
 fs.cpSync("index.html", path.join(workdir, "index.html"));
 fs.mkdirSync(path.join(workdir, "convert"), { recursive: true });
 fs.cpSync("convert/index.html", path.join(workdir, "convert", "index.html"));
+fs.mkdirSync(path.join(workdir, "convert", "rahn-ejare"), { recursive: true });
+fs.cpSync("convert/rahn-ejare/index.html", path.join(workdir, "convert", "rahn-ejare", "index.html"));
 fs.mkdirSync(path.join(workdir, "scripts"), { recursive: true });
 fs.cpSync("scripts/build-pages.mjs", path.join(workdir, "scripts/build-pages.mjs"));
 fs.cpSync("scripts/schema.mjs", path.join(workdir, "scripts/schema.mjs"));
