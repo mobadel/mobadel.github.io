@@ -13,6 +13,22 @@ import time
 from urllib.parse import urlsplit
 
 
+class SessionFTP_TLS(ftplib.FTP_TLS):
+    """Reuse the authenticated TLS session for hosts requiring data-channel reuse."""
+
+    def ntransfercmd(self, cmd, rest=None):
+        connection, size = ftplib.FTP.ntransfercmd(self, cmd, rest)
+        if self._prot_p:
+            try:
+                connection = self.context.wrap_socket(
+                    connection, server_hostname=self.host, session=self.sock.session
+                )
+            except Exception:
+                connection.close()
+                raise
+        return connection, size
+
+
 def connect():
     server = os.environ["FTP_SERVER"]
     # Accept the same ftp:// / ftps:// server values as the former lftp command.
@@ -23,7 +39,7 @@ def connect():
     if os.environ.get("FTP_ALLOW_SELF_SIGNED") == "true":
         context.check_hostname = False
         context.verify_mode = ssl.CERT_NONE
-    ftp = ftplib.FTP_TLS(context=context, timeout=60)
+    ftp = SessionFTP_TLS(context=context, timeout=60)
     try:
         ftp.connect(host, int(os.environ.get("FTP_PORT") or 21))
         ftp.login(os.environ["FTP_USERNAME"], os.environ["FTP_PASSWORD"])

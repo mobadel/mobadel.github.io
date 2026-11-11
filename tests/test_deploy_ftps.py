@@ -5,7 +5,7 @@ import ssl
 from pathlib import Path, PurePosixPath
 import tempfile
 import unittest
-from unittest.mock import patch
+from unittest.mock import patch, Mock
 
 spec = importlib.util.spec_from_file_location("deploy_ftps", Path(__file__).parents[1] / "scripts/deploy-ftps.py")
 client = importlib.util.module_from_spec(spec)
@@ -61,6 +61,21 @@ class FakeFTPS:
 
 
 class DeployTest(unittest.TestCase):
+    def test_data_channel_reuses_control_tls_session(self):
+        ftp = client.SessionFTP_TLS(context=ssl.create_default_context())
+        ftp.host = "ftp.example.com"
+        ftp.sock = Mock()
+        ftp.context = Mock()
+        ftp._prot_p = True
+        raw_connection = Mock()
+        with patch.object(client.ftplib.FTP, "ntransfercmd", return_value=(raw_connection, 10)):
+            connection, size = ftp.ntransfercmd("STOR test.css")
+        ftp.context.wrap_socket.assert_called_once_with(
+            raw_connection, server_hostname=ftp.host, session=ftp.sock.session
+        )
+        self.assertEqual(size, 10)
+        self.assertIs(connection, ftp.context.wrap_socket.return_value)
+
     def setUp(self):
         FakeFTPS.directories = {"/hosting/site"}
         FakeFTPS.uploads = []
@@ -85,7 +100,7 @@ class DeployTest(unittest.TestCase):
             target.write_bytes(data)
         return root
 
-    @patch.object(client.ftplib, "FTP_TLS", FakeFTPS)
+    @patch.object(client, "SessionFTP_TLS", FakeFTPS)
     def test_uploads_all_files_with_tls_and_routing_last(self):
         with tempfile.TemporaryDirectory() as directory:
             client.deploy(self.site(directory), workers=2)
@@ -96,7 +111,7 @@ class DeployTest(unittest.TestCase):
         self.assertTrue(all(connection.closed for connection in FakeFTPS.connections))
 
     @patch.object(client.time, "sleep")
-    @patch.object(client.ftplib, "FTP_TLS", FakeFTPS)
+    @patch.object(client, "SessionFTP_TLS", FakeFTPS)
     def test_reconnects_after_failed_transfer(self, sleep):
         FakeFTPS.failures = 1
         with tempfile.TemporaryDirectory() as directory:
@@ -105,7 +120,7 @@ class DeployTest(unittest.TestCase):
         sleep.assert_called_once_with(1)
 
     @patch.object(client.time, "sleep")
-    @patch.object(client.ftplib, "FTP_TLS", FakeFTPS)
+    @patch.object(client, "SessionFTP_TLS", FakeFTPS)
     def test_persistent_failure_is_bounded_and_fails_deployment(self, sleep):
         FakeFTPS.failures = 10
         with tempfile.TemporaryDirectory() as directory:
@@ -119,7 +134,7 @@ class DeployTest(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "index.html is missing"):
                 client.deploy(Path(directory))
 
-    @patch.object(client.ftplib, "FTP_TLS", FakeFTPS)
+    @patch.object(client, "SessionFTP_TLS", FakeFTPS)
     def test_self_signed_exception_requires_explicit_opt_in(self):
         with patch.dict(os.environ, {"FTP_ALLOW_SELF_SIGNED": "true"}):
             ftp, root = client.connect()
