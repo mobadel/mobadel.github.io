@@ -135,6 +135,8 @@ jobs:
           FTP_USERNAME: ${{ secrets.PARS_FTP_USERNAME }}
           FTP_PASSWORD: ${{ secrets.PARS_FTP_PASSWORD }}
           FTP_DIRECTORY: ${{ secrets.PARS_FTP_DIRECTORY }}
+          # Explicitly approved by the owner for this host's self-signed FTPS certificate.
+          FTP_ALLOW_SELF_SIGNED: 'true'
         run: python3 scripts/deploy-ftps.py
 
       - name: ثبت اسنپ‌شات نمودارهای بازار

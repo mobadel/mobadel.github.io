@@ -17,8 +17,12 @@ def connect():
     server = os.environ["FTP_SERVER"]
     # Accept the same ftp:// / ftps:// server values as the former lftp command.
     host = urlsplit(server if "://" in server else "ftp://" + server).hostname
-    # Verify the server certificate and hostname on both TLS connections.
     context = ssl.create_default_context()
+    # Owner-approved exception for this deployment's configured FTPS host.
+    # This context is local to this connection; HTTPS validation is unchanged.
+    if os.environ.get("FTP_ALLOW_SELF_SIGNED") == "true":
+        context.check_hostname = False
+        context.verify_mode = ssl.CERT_NONE
     ftp = ftplib.FTP_TLS(context=context, timeout=60)
     try:
         ftp.connect(host, int(os.environ.get("FTP_PORT") or 21))

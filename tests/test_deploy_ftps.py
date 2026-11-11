@@ -19,8 +19,9 @@ class FakeFTPS:
     failures = 0
 
     def __init__(self, **kwargs):
-        assert kwargs['context'].check_hostname
-        assert kwargs['context'].verify_mode == ssl.CERT_REQUIRED
+        allow_self_signed = os.environ.get('FTP_ALLOW_SELF_SIGNED') == 'true'
+        assert kwargs['context'].check_hostname == (not allow_self_signed)
+        assert kwargs['context'].verify_mode == (ssl.CERT_NONE if allow_self_signed else ssl.CERT_REQUIRED)
         self.directory = "/"
         self.protected = False
         self.closed = False
@@ -69,6 +70,7 @@ class DeployTest(unittest.TestCase):
             "FTP_SERVER": "ftps://ftp.example.com", "FTP_PORT": "21",
             "FTP_USERNAME": "user", "FTP_PASSWORD": "password",
             "FTP_DIRECTORY": "/hosting/site",
+            "FTP_ALLOW_SELF_SIGNED": "false",
         })
         self.env.start()
         self.addCleanup(self.env.stop)
@@ -116,6 +118,14 @@ class DeployTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             with self.assertRaisesRegex(ValueError, "index.html is missing"):
                 client.deploy(Path(directory))
+
+    @patch.object(client.ftplib, "FTP_TLS", FakeFTPS)
+    def test_self_signed_exception_requires_explicit_opt_in(self):
+        with patch.dict(os.environ, {"FTP_ALLOW_SELF_SIGNED": "true"}):
+            ftp, root = client.connect()
+            self.assertTrue(ftp.protected)
+            self.assertEqual(root, "/hosting/site")
+            ftp.close()
 
 
 if __name__ == "__main__":
