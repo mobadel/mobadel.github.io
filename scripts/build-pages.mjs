@@ -13,6 +13,10 @@
 import { readFile, writeFile, mkdir } from "node:fs/promises";
 import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
+import {
+  buildBreadcrumb, buildCollectionPage, buildConverter, buildDataset, buildItemList,
+  buildThing, buildWebPage, withIdentity, replaceJsonLd, ORGANIZATION_ID, CONVERTER_ID
+} from "./schema.mjs";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const SITE = resolve(ROOT, "_site");
@@ -417,11 +421,18 @@ function priceCategoryMeta(group) {
 }
 
 const snapshots = {};
+/* تاریخ واقعی اولین نقطهٔ هر سری در market-history.json؛ همان داده‌ای
+   که نمودار طلا، سکه و ارز نشان می‌دهد. نود Dataset فقط برای همین‌ها
+   ساخته می‌شود. نمودار رمزارزها از نوبیتکس می‌آید و تاریخ شروع
+   واقعی‌اش اینجا معلوم نیست، پس Dataset نمی‌گیرد. */
+const HISTORY_SINCE = {};
 try {
   const history = JSON.parse(await readFile(resolve(ROOT, "data/market-history.json"), "utf8"));
   for (const [id, points] of Object.entries(history.assets || {})) {
     const point = points.reduce((a, b) => !a || b[0] > a[0] ? b : a, null);
     if (point && Number.isFinite(point[1]) && point[1] > 0) snapshots[id] = { toman: point[1], at: new Date(point[0] * 1000).toISOString() };
+    const first = points.reduce((min, p) => Number.isFinite(p[0]) && p[0] < min ? p[0] : min, Infinity);
+    if (Number.isFinite(first)) HISTORY_SINCE[id] = new Date(first * 1000).toISOString().slice(0, 10);
   }
 } catch (error) { if (error.code !== "ENOENT") throw error; }
 try { Object.assign(snapshots, JSON.parse(await readFile(resolve(SITE, "data/seo-rates.json"), "utf8"))); }
@@ -458,6 +469,57 @@ function enrichPage(html, path) {
   const content = `<h2>تبدیل‌های پرکاربرد</h2><p class="popular-conversions-intro">تبدیل موردنظر را انتخاب کنید و ارزش معادل دارایی‌تان را ببینید.</p><ul class="popular-conversions-grid">${["usd-to-irt","usdt-to-irt","eur-to-irt","emami-to-irt","gold18-to-eur","aed-to-irt","afn-to-irt","irt-to-iqd"].map(slug=>{const [a,b]=slug.split("-to-");return `<li><a class="popular-conversion" href="/convert/${slug}/"><span class="popular-conversion-icons" aria-hidden="true"><span class="popular-conversion-symbol"><img src="${popularIcon(a)}" alt="" loading="lazy"></span><span class="popular-conversion-target"><img src="${popularIcon(b)}" alt="" loading="lazy"></span></span><span class="popular-conversion-label"><strong>${esc(assetForSlug(a).name)} به ${esc(assetForSlug(b).name)}</strong><span>محاسبه و تبدیل</span></span><span class="icon-chevron" aria-hidden="true"></span></a></li>`;}).join("")}</ul>`;
   return html.replace(/<\/main>/, `<section class="seo-content popular-conversions" aria-label="تبدیل‌های پرکاربرد">${content}</section></main>`);
 }
+
+/* ── داده‌های ساختاریافته ───────────────────────────────────────────
+   سازنده‌ها در scripts/schema.mjs اند؛ اینجا فقط تصمیم می‌گیریم هر صفحه
+   چه نودی بگیرد. نقشهٔ کامل و دلیل هر تصمیم: docs/SCHEMA.md. */
+/* شناسهٔ هر دارایی روی صفحهٔ قیمت خودش است تا صفحهٔ قیمت و همهٔ
+   جفت‌های مبدلش به یک موجودیت اشاره کنند. دارایی بی‌صفحهٔ قیمت (تومان،
+   گرام) شناسه‌اش را زیر /convert/ می‌گیرد. */
+// کد بازار فقط برای ارز و رمزارز معنای عمومی دارد (USD، BTC)؛ GOLD18 نام نیست.
+function assetThing(slug, name) {
+  if (slug === "irt") return buildThing(`${ORIGIN}/convert/#irt`, { name: "تومان", alternateName: "Iranian toman" });
+  const group = groupFor(slug);
+  const path = `/price/${group}/${slug}/`;
+  const code = group === "currency" || group === "crypto" ? slug.toUpperCase() : null;
+  const id = seenPricePaths.has(path) ? `${ORIGIN}${path}#thing` : `${ORIGIN}/convert/#${slug}`;
+  return buildThing(id, { name, alternateName: code });
+}
+function pairNodes(meta, path, name, description) {
+  const page = buildWebPage({ path, name, description }, {
+    about: [assetThing(meta.fromSlug, meta.fromName), assetThing(meta.toSlug, meta.toName)],
+    hasPart: [{ "@id": CONVERTER_ID }]
+  });
+  return withIdentity([page, buildConverter()]);
+}
+function categoryNodes(group, meta) {
+  const category = PRICE_CATEGORIES[group];
+  /* فهرست دسته موضوع خودِ صفحه است. رمزارزها حدود ۲۸۰ دارایی‌اند که
+     جاوااسکریپت از بازار زنده می‌سازد و ترتیبش با رتبه عوض می‌شود؛
+     فهرست ثابتی که با صفحه یکی باشد نداریم، پس آن دسته ItemList ندارد. */
+  const items = group === "crypto" ? [] : PRICE_GROUPS[group].map((slug) => ({ name: priceName(group, slug, slug), path: `/price/${group}/${slug}/` }));
+  const list = buildItemList(meta.path, `فهرست قیمت ${category.name}`, items);
+  const breadcrumb = buildBreadcrumb(meta.path, [{ name: "تبدکس", path: "/" }, { name: "قیمت‌ها", path: "/price/" }, { name: category.name, path: meta.path }]);
+  const page = buildCollectionPage({ path: meta.path, name: meta.title, description: meta.description }, list);
+  page.breadcrumb = { "@id": breadcrumb["@id"] };
+  return withIdentity([page, breadcrumb, list]);
+}
+function assetNodes(group, slug, name, meta) {
+  const thing = assetThing(slug, name);
+  const historyId = slug === "baharazadi" ? "bahar" : slug;
+  // نمودار طلا، سکه و ارز از market-history می‌آید؛ رمزارز تاریخ شروع معلوم ندارد.
+  const dataset = group === "crypto" ? null : buildDataset(meta.path, { name, since: HISTORY_SINCE[historyId] });
+  const breadcrumb = buildBreadcrumb(meta.path, [{ name: "تبدکس", path: "/" }, { name: "قیمت‌ها", path: "/price/" }, { name: PRICE_CATEGORIES[group].name, path: `/price/${group}/` }, { name, path: meta.path }]);
+  const page = buildWebPage({ path: meta.path, name: meta.title, description: meta.description }, {
+    about: { "@id": thing["@id"] },
+    mainEntity: { "@id": thing["@id"] },
+    hasPart: dataset ? [{ "@id": dataset["@id"] }] : [],
+    breadcrumb
+  });
+  return withIdentity([page, thing, breadcrumb, dataset]);
+}
+// اسکریپت price.js این نشان را می‌بیند و اسکیمای سرورساخته را بازنویسی نمی‌کند.
+const BUILT_PRICE_SCHEMA = ' id="price-schema" data-built';
 
 const template = await readFile(resolve(ROOT, "convert", "index.html"), "utf8");
 
@@ -521,7 +583,7 @@ async function writePricePage(path, html) {
 let pricePages = 0;
 for (const group of [...Object.keys(PRICE_GROUPS), "crypto"]) {
   const meta = priceCategoryMeta(group);
-  await writePricePage(meta.path, renderPricePage(categoryTemplate, meta));
+  await writePricePage(meta.path, replaceJsonLd(renderPricePage(categoryTemplate, meta), categoryNodes(group, meta), BUILT_PRICE_SCHEMA));
   addSitemapUrl(meta.path, "0.8");
   pricePages += 1;
 }
@@ -535,10 +597,11 @@ const priceAssets = [
 
 const seenPricePaths = new Set();
 for (const { group, slug, id } of priceAssets) {
-  const meta = priceAssetMeta(group, slug, priceName(group, slug, id));
+  const name = priceName(group, slug, id);
+  const meta = priceAssetMeta(group, slug, name);
   if (seenPricePaths.has(meta.path)) continue;
   seenPricePaths.add(meta.path);
-  await writePricePage(meta.path, renderPricePage(assetTemplate, meta));
+  await writePricePage(meta.path, replaceJsonLd(renderPricePage(assetTemplate, meta), assetNodes(group, slug, name, meta), BUILT_PRICE_SCHEMA));
   addSitemapUrl(meta.path);
   pricePages += 1;
 }
@@ -559,7 +622,8 @@ for (const [fromId, toId] of pagePairs) {
   const meta = metaFor(from, to);
   const directory = resolve(SITE, "convert", `${from.slug}-to-${to.slug}`);
   await mkdir(directory, { recursive: true });
-  await writeFile(resolve(directory, "index.html"), renderPage(template, meta).replace("<!--frequent-slot-->", frequentSection(fromId, toId)), "utf8");
+  const html = renderPage(template, meta).replace("<!--frequent-slot-->", frequentSection(fromId, toId));
+  await writeFile(resolve(directory, "index.html"), replaceJsonLd(html, pairNodes(meta, meta.path, meta.heading, meta.description)), "utf8");
   urls.push(`  <url>\n    <loc>${ORIGIN}${meta.path}</loc>\n    <lastmod>${today}</lastmod>\n    <priority>0.8</priority>\n  </url>`);
 }
 
@@ -595,6 +659,7 @@ for (const [key, entry] of Object.entries(FREQUENT.pairs)) {
       html = html.replace(pattern, replacement);
     }
     html = html.replace("<!--frequent-slot-->", frequentSection(entry.from, entry.to, path));
+    html = replaceJsonLd(html, pairNodes(meta, path, item.text, description));
     const file = `amount-${item.amount}.html`;
     await writeFile(resolve(SITE, "convert", key, file), html, "utf8");
     urls.push(`  <url>\n    <loc>${url}</loc>\n    <lastmod>${today}</lastmod>\n    <priority>0.7</priority>\n  </url>`);
@@ -658,6 +723,39 @@ function homeKpis() {
     return `<a class="home-kpi" href="${kpi.url}" data-kpi="${kpi.id}"><span class="home-kpi-name"><span class="round-icon"><img src="${kpi.icon}" alt=""></span>${kpi.name}</span><span class="home-kpi-row"><span class="home-kpi-value"><strong>${amount}</strong><span class="home-kpi-unit">${unit}</span></span><small class="home-kpi-change ${tone}">${delta}</small></span></a>`;
   }).join("");
 }
+/* هاب‌ها. نام و توضیح صفحه از همان <title> و توضیحات متای فایل خوانده
+   می‌شود تا اسکیما از متن صفحه عقب نیفتد. */
+const CATEGORY_LIST_ORDER = ["currency", "gold", "coin", "parsian-coin", "commodity", "energy", "crypto"];
+function pageText(html) {
+  const title = /<title>([^<]+)<\/title>/.exec(html)?.[1];
+  const description = /<meta name="description" content="([^"]+)"/.exec(html)?.[1];
+  if (!title) throw new Error("صفحهٔ هاب <title> ندارد.");
+  return { name: title.replace(/ \| تبدکس$/, ""), description };
+}
+function hubNodes(path, html) {
+  const meta = { path, ...pageText(html) };
+  if (path === "/") {
+    // شش کارت بالای صفحه همان فهرست اصلی صفحه‌اند؛ مبدل هم روی همین صفحه است.
+    const list = buildItemList(path, "قیمت‌های اصلی بازار", HOME_KPIS.map((kpi) => ({ name: kpi.name, path: kpi.url })));
+    const page = buildCollectionPage(meta, list);
+    page.hasPart = [{ "@id": CONVERTER_ID }];
+    return withIdentity([page, list, buildConverter()]);
+  }
+  if (path === "/price/") {
+    const list = buildItemList(path, "دسته‌بندی بازارهای تبدکس", CATEGORY_LIST_ORDER.map((group) => ({ name: PRICE_CATEGORIES[group].name, path: `/price/${group}/` })));
+    const breadcrumb = buildBreadcrumb(path, [{ name: "تبدکس", path: "/" }, { name: "قیمت‌ها", path }]);
+    const page = buildCollectionPage(meta, list);
+    page.breadcrumb = { "@id": breadcrumb["@id"] };
+    return withIdentity([page, breadcrumb, list]);
+  }
+  // /convert/: خودِ صفحه ابزار است.
+  return withIdentity([buildWebPage(meta, { mainEntity: { "@id": CONVERTER_ID } }), buildConverter()]);
+}
+function staticPageNodes(path, name, description, type) {
+  const breadcrumb = buildBreadcrumb(path, [{ name: "تبدکس", path: "/" }, { name, path }]);
+  const about = type === "WebPage" ? undefined : { "@id": ORGANIZATION_ID };
+  return withIdentity([buildWebPage({ path, name, description }, { type, about, breadcrumb }), breadcrumb]);
+}
 for (const [path, file] of [["/", "index.html"], ["/price/", "price/index.html"], ["/convert/", "convert/index.html"]]) {
   let html = await readFile(resolve(ROOT, file), "utf8");
   if (path === "/") {
@@ -668,18 +766,33 @@ for (const [path, file] of [["/", "index.html"], ["/price/", "price/index.html"]
   html = html.replace(/ امروز (?:پنجشنبه|دوشنبه) [^<".]+۱۴۰۵/g, " امروز").replace("<!--frequent-slot-->", frequentSection(null, null));
 // /convert/ همان فایلی است که .htaccess برای جفت‌های ساخته‌نشده (مثلاً afn-to-usdt)
 // سرو می‌کند؛ پس بخش را از پیش رسم نمی‌کند و اسکریپت فقط برای جفت جورشده می‌سازدش.
-  await writePricePage(path, html);
+  await writePricePage(path, replaceJsonLd(html, hubNodes(path, html), path === "/price/" ? BUILT_PRICE_SCHEMA : ""));
 }
 // ماشین حساب رهن و اجاره صفحهٔ دست‌نویس است و همان‌طور که هست منتشر می‌شود.
 await mkdir(resolve(SITE, "convert", "rahn-ejare"), { recursive: true });
-await writeFile(resolve(SITE, "convert", "rahn-ejare", "index.html"), await readFile(resolve(ROOT, "convert", "rahn-ejare", "index.html"), "utf8"), "utf8");
+const rentPath = "/convert/rahn-ejare/";
+const rentName = "ماشین حساب تبدیل رهن و اجاره";
+const rentDescription = "محاسبه آنلاین تبدیل رهن به اجاره و اجاره به رهن با فرمول عرف بازار؛ مبلغ فعلی را وارد کنید و با گیج، ترکیب رهن و اجارهٔ جدید را انتخاب کنید.";
+const rentApplication = {
+  ...buildConverter(),
+  "@id": `${ORIGIN}${rentPath}#application`,
+  name: rentName,
+  url: `${ORIGIN}${rentPath}`,
+  description: rentDescription
+};
+const rentPage = buildWebPage({ path: rentPath, name: rentName, description: rentDescription }, {
+  mainEntity: { "@id": rentApplication["@id"] }
+});
+const rentTemplate = await readFile(resolve(ROOT, "convert", "rahn-ejare", "index.html"), "utf8");
+await writeFile(resolve(SITE, "convert", "rahn-ejare", "index.html"), replaceJsonLd(rentTemplate, withIdentity([rentPage, rentApplication])), "utf8");
 addSitemapUrl("/convert/rahn-ejare/", "0.8");
 const methodTemplate = await readFile(resolve(ROOT, "price/index.html"), "utf8");
 const crumbs = (title) => `<nav class="breadcrumbs" aria-label="مسیر صفحه"><ol><li><a href="/">تبدکس</a></li><li aria-current="page">${title}</li></ol></nav>`;
 const methodBody = `<main class="wide-shell price-main static-main" id="price-main">${crumbs("منابع داده و روش محاسبه")}<section class="seo-content"><h1>منابع داده و روش محاسبه تبدکس</h1><p>تبدکس ابزار نمایش نرخ و محاسبه ارزش معادل دارایی‌هاست و معامله یا انتقال وجه انجام نمی‌دهد.</p><h2>منابع قیمت</h2>${Object.values(GROUP_HELP).map(([h,t])=>`<h3>${h}</h3><p>${t}</p>`).join("")}<h2>زمان داده و قطع ارتباط</h2><p>زمان دریافت داده توسط تبدکس ممکن است با زمان آخرین معامله در منبع تفاوت داشته باشد. نرخ ذخیره‌شده با زمان خودش مشخص می‌شود و نباید نرخ لحظه‌ای تلقی شود. در نبود داده تازه، پیش از تصمیم‌گیری نرخ را با منبع معامله بررسی کنید.</p><h2>فرمول تبدیل</h2><p>ارزش مقدار مبدأ به تومان بر نرخ تومانی هر واحد مقصد تقسیم می‌شود. نرخ‌هایی که از نوبیتکس به ریال دریافت می‌شوند برای نمایش تومان بر ۱۰ تقسیم می‌شوند.</p><p><a href="/convert/">مبدل قیمت</a> · <a href="/price/">فهرست قیمت‌ها</a></p></section></main>`;
 let methodology = methodTemplate.replace(/<main[\s\S]*?<\/main>/, methodBody).replace(/<title>[^<]+<\/title>/,"<title>منابع داده و روش محاسبه | تبدکس</title>").replace(/(<link rel="canonical" href=")[^"]+/, '$1https://tabdex.ir/methodology/').replace(/(<meta property="og:url" content=")[^"]+/, '$1https://tabdex.ir/methodology/').replace(/(<meta (?:name="description"|property="og:description") content=")[^"]+/g, '$1منابع نرخ، واحد دارایی‌ها و روش محاسبه ارزش معادل در تبدکس.').replace(/(<meta property="og:title" content=")[^"]+/, '$1منابع داده و روش محاسبه | تبدکس').replace(/<script id="price-schema"[\s\S]*?<\/script>/, '').replace(/<script src="\/assets\/price.js[^<]+<\/script>/, '');
 await mkdir(resolve(SITE,"methodology"), {recursive:true});
-await writeFile(resolve(SITE,"methodology/index.html"), methodology);
+// دربارهٔ روش محاسبه است نه دربارهٔ ناشر: WebPage با publisher، بدون about.
+await writeFile(resolve(SITE,"methodology/index.html"), replaceJsonLd(methodology, staticPageNodes("/methodology/", "منابع داده و روش محاسبه", "منابع نرخ، واحد دارایی‌ها و روش محاسبه ارزش معادل در تبدکس.", "WebPage")));
 addSitemapUrl("/methodology/", "0.5");
 for (const [path, title, body] of [
   ["/about/", "درباره تبدکس", "<p>تبدکس توسط تیمی متشکل از جوانان علاقه‌مند به اقتصاد و بازارهای مالی گردانده می‌شود.</p><p>هدف ما فراهم کردن دسترسی ساده به نرخ دارایی‌ها و محاسبه ارزش معادل آن‌هاست. تبدکس نرخ‌های منابع بیرونی را نمایش می‌دهد و خدمات خرید، فروش یا انتقال وجه ارائه نمی‌کند.</p><p><a href='/methodology/'>منابع داده و روش محاسبه</a> · <a href='/contact/'>تماس با ما</a></p>"],
@@ -687,6 +800,8 @@ for (const [path, title, body] of [
 ]) {
   let html = methodology.replace(/<main[\s\S]*?<\/main>/, `<main class="wide-shell price-main static-main" id="price-main">${crumbs(title)}<section class="seo-content"><h1>${title}</h1>${body}</section></main>`);
   html = html.replace(/منابع داده و روش محاسبه \| تبدکس/g, `${title} | تبدکس`).replaceAll("https://tabdex.ir/methodology/", ORIGIN + path).replace(/منابع نرخ، واحد دارایی‌ها و روش محاسبه ارزش معادل در تبدکس\./g, title + "؛ معرفی و راه‌های ارتباط با تیم تبدکس.");
+  // «درباره ما» و «تماس» دربارهٔ خودِ ناشرند؛ about فقط همین‌جا.
+  html = replaceJsonLd(html, staticPageNodes(path, title, title + "؛ معرفی و راه‌های ارتباط با تیم تبدکس.", path === "/about/" ? "AboutPage" : "ContactPage"));
   await mkdir(resolve(SITE,path.slice(1)), {recursive:true});
   await writeFile(resolve(SITE,path.slice(1),"index.html"),html);
   addSitemapUrl(path,"0.5");

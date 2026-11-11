@@ -92,6 +92,7 @@ fs.mkdirSync(path.join(workdir, "convert", "rahn-ejare"), { recursive: true });
 fs.cpSync("convert/rahn-ejare/index.html", path.join(workdir, "convert", "rahn-ejare", "index.html"));
 fs.mkdirSync(path.join(workdir, "scripts"), { recursive: true });
 fs.cpSync("scripts/build-pages.mjs", path.join(workdir, "scripts/build-pages.mjs"));
+fs.cpSync("scripts/schema.mjs", path.join(workdir, "scripts/schema.mjs"));
 // صفحه‌های قیمت هم سرورساخته‌اند، پس مولد به قالب‌ها و نام دارایی‌ها نیاز دارد.
 fs.mkdirSync(path.join(workdir, "price"), { recursive: true });
 fs.cpSync("price/index.html", path.join(workdir, "price/index.html"));
