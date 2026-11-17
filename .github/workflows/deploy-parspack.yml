@@ -135,9 +135,7 @@ jobs:
             exit 0
           fi
           encoded=$(printf '%s' "$PANEL_SETUP_TOKEN" | base64 -w0)
-          printf '<?php
-return ["setup_token" => base64_decode("%s")];
-' "$encoded" > _site/panel/config.php
+          printf '<?php\nreturn ["setup_token" => base64_decode("%s")];\n' "$encoded" > _site/panel/config.php
 
       # Python 3 is included in the runner. No apt or Ubuntu mirror is needed.
       - name: Test FTPS uploader
