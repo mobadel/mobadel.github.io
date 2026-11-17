@@ -43,6 +43,7 @@ cp index.html robots.txt sitemap.xml _site/
 cp .htaccess _site/
 # scripts عمداً کپی نمی‌شود؛ روی سرور فقط سطح حمله اضافه می‌کرد.
 cp -R assets data api price convert _site/
+cp -R panel _site/
 
 if [ "$QUICK" = "yes" ]; then
   echo "▸ حالت سریع: مولد صفحه‌ها اجرا نمی‌شود"
@@ -61,6 +62,11 @@ if [ -n "${BRSAPI_KEY:-}" ]; then
     "$encoded" "$history_encoded" > _site/api/config.php
 else
   echo "▸ BRSAPI_KEY تعریف نشده؛ config.php دست‌نخورده روی سرور می‌ماند."
+fi
+
+if [ -n "${PANEL_SETUP_TOKEN:-}" ]; then
+  encoded=$(printf '%s' "$PANEL_SETUP_TOKEN" | base64 | tr -d '\n')
+  printf '<?php\nreturn ["setup_token" => base64_decode("%s")];\n' "$encoded" > _site/panel/config.php
 fi
 
 if [ "$DRY_RUN" = "yes" ]; then
@@ -89,7 +95,8 @@ echo "▸ آپلود با lftp"
   # mirror فقط اندازه را می‌بیند، پس تغییر هم‌اندازه بی‌صدا جا می‌ماند.
   # فایل‌های دست‌نویس بی‌قیدوشرط هم فرستاده می‌شوند — و در حالت سریع
   # تنها چیزی هستند که فرستاده می‌شوند.
-  for file in index.html convert/index.html assets/*.js assets/*.css api/*.php; do
+  echo "mirror --reverse --verbose --parallel=4 --ignore-time _site/panel/ \"$FTP_DIRECTORY/panel\""
+  for file in index.html convert/index.html assets/*.js assets/*.css api/*.php panel/*.php panel/lib/*.php panel/assets/* panel/.htaccess panel/lib/.htaccess; do
     [ -f "_site/$file" ] || continue
     directory=$(dirname "$file")
     target="$FTP_DIRECTORY"

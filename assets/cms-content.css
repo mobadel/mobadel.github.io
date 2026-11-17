@@ -1,0 +1,28 @@
+/* محتوایی که از پنل منتشر می‌شود. فقط روی همان صفحه‌ها بار می‌شود. */
+.cms-content .cms-body { overflow-wrap: anywhere; }
+.cms-content .cms-body > :first-child { margin-top: 0; }
+.cms-content .cms-body > :last-child { margin-bottom: 0; }
+.cms-content .cms-body p { margin: 0 0 12px; color: #4a5c55; font-size: 15.5px; line-height: 1.95; }
+.cms-content .cms-body h2 { margin: 26px 0 10px; font-size: 22px; line-height: 1.5; }
+.cms-content .cms-body h3 { margin: 22px 0 8px; font-size: 18px; line-height: 1.55; }
+.cms-content .cms-body h4, .cms-content .cms-body h5, .cms-content .cms-body h6 { margin: 18px 0 6px; font-size: 16px; line-height: 1.6; }
+.cms-content .cms-body a { color: var(--green-dark, #0c5f45); text-decoration: underline; text-underline-offset: 3px; }
+.cms-content .cms-body ul, .cms-content .cms-body ol { display: block; margin: 0 0 14px; padding-inline-start: 24px; color: #4a5c55; font-size: 15.5px; line-height: 1.95; }
+.cms-content .cms-body li { margin-bottom: 4px; }
+.cms-content .cms-body blockquote { margin: 16px 0; padding: 12px 18px; border-inline-start: 4px solid var(--green, #16815f); border-radius: 4px; background: var(--surface-muted, #f6f8f7); }
+.cms-content .cms-body blockquote > :last-child { margin-bottom: 0; }
+.cms-content .cms-body hr { margin: 24px 0; border: 0; border-top: 1px solid var(--border, #dce4e0); }
+.cms-content .cms-body img, .cms-content .cms-body video { display: block; max-width: 100%; height: auto; margin: 16px auto; border-radius: 14px; }
+.cms-content .cms-body audio { display: block; width: 100%; margin: 16px 0; }
+.cms-content .cms-body figure { margin: 18px 0; }
+.cms-content .cms-body figcaption { margin-top: 6px; color: var(--muted, #60716a); font-size: 13.5px; text-align: center; }
+.cms-content .cms-body pre { margin: 14px 0; padding: 14px; overflow-x: auto; border-radius: 10px; background: var(--surface-muted, #f6f8f7); direction: ltr; text-align: left; }
+.cms-content .cms-body table { display: block; width: 100%; margin: 16px 0; overflow-x: auto; border-collapse: collapse; font-size: 14.5px; }
+.cms-content .cms-body th, .cms-content .cms-body td { padding: 9px 12px; border: 1px solid var(--border, #dce4e0); text-align: start; }
+.cms-content .cms-body th { background: var(--surface-muted, #f6f8f7); }
+.cms-content .pair-links { margin: 18px 0 0; }
+@media (max-width: 640px) {
+  .cms-content .cms-body p, .cms-content .cms-body ul, .cms-content .cms-body ol { font-size: 14.5px; }
+  .cms-content .cms-body h2 { font-size: 19px; }
+  .cms-content .cms-body h3 { font-size: 17px; }
+}

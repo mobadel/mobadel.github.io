@@ -1,0 +1,11 @@
+Options -Indexes
+DirectoryIndex index.php
+
+# کتابخانه‌های PHP، فهرست صفحات و تنظیمات فقط از داخل سرور خوانده می‌شوند.
+<FilesMatch "^(config\.php|catalog\.json)$">
+  Require all denied
+</FilesMatch>
+
+<IfModule mod_headers.c>
+  Header set X-Robots-Tag "noindex, nofollow"
+</IfModule>
