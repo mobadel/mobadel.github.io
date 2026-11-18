@@ -26,8 +26,8 @@ for (const [name, html] of Object.entries(templates)) {
   // فوتر کامل، نه فهرست خلاصه، در همهٔ صفحه‌ها
   assert.match(html, /class="site-footer"><?[\s\S]*class="site-shell footer-inner"[\s\S]*class="footer-brand"/, `${name}: فوتر کامل لازم است`);
   for (const label of ["قیمت‌ها", "ابزارها و محتوا", "تبدکس"]) assert.match(html, new RegExp(`<strong>${label}</strong>`), `${name}: ستون «${label}» فوتر`);
-  assert.ok(html.includes("/assets/site.css?v=" + (name === "home" ? "20261027-prices" : "20261118-content")), `${name}: site.css`);
-  assert.ok(html.includes("/assets/site.js?v=" + (name === "home" ? "20261110-rahn" : "20261118-content")), `${name}: site.js`);
+  assert.ok(html.includes("/assets/site.css?v=" + (name === "home" ? "20261027-prices" : "20261118-chevron")), `${name}: site.css`);
+  assert.ok(html.includes("/assets/site.js?v=" + (name === "home" ? "20261110-rahn" : "20261118-chevron")), `${name}: site.js`);
   assert.doesNotMatch(html, /←/, `${name}: فلش متنی نباید باشد`);
   // هدر موبایل: لوگو، دکمهٔ جستجو و دکمهٔ منو که فهرست را باز می‌کند.
   assert.match(html, /class="header-actions"><a class="header-icon" href="\/price\/#search" aria-label="جستجوی دارایی">[\s\S]*?id="menu-toggle"[^>]*aria-expanded="false" aria-controls="site-nav"/, `${name}: دکمه‌های هدر موبایل`);
