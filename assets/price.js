@@ -464,6 +464,17 @@
   }
   function renderAsset() {
     var group = categoryFromPath(); var id = idFromSlug(assetSlugFromPath()); var category = CATEGORIES[group]; var asset = assets[id]; if (!category || (asset && asset.group !== group)) return renderNotFound("این مسیر قیمت معتبر نیست");
+    if (asset) {
+      var chart = document.getElementById("btc-price-chart");
+      if (chart && !chart.dataset.assetId) {
+        chart.dataset.assetId = asset.id;
+        chart.dataset.assetName = asset.name;
+        chart.dataset.assetGroup = asset.group;
+        chart.dataset.assetCurrency = asset.group === "crypto" ? asset.priceCurrency
+          : (asset.id === "goldounce" || asset.group === "energy" ? "USD" : "IRT");
+        document.dispatchEvent(new Event("tabdex:chart-asset"));
+      }
+    }
     if (!asset || !Number.isFinite(asset.price)) return renderUnavailable();
     setMeta("name", "robots", "index, follow, max-image-preview:large");
     var path = assetUrl(asset); var title = "قیمت لحظه ای " + asset.name + " امروز " + todayLabel(); var description = descriptionFor(asset); setDocumentMeta(title, description, path);
@@ -574,6 +585,8 @@
   function start() {
     var mode = document.body.getAttribute("data-price-page"); if (mode === "hub") { renderCategoryCards(); bindHubSearch(); }
     function render() { if (mode === "hub") renderHub(); else if (mode === "category") renderCategory(); else if (mode === "asset") renderAsset(); }
+    // مشخصات دارایی‌های ثابت بدون انتظار برای پاسخ منابع قیمت آماده است.
+    if (mode === "asset" && assets[idFromSlug(assetSlugFromPath())]) renderAsset();
     loadAll().then(render);
 
     /* ── تازه‌سازی دوره‌ای ─────────────────────────────────────────

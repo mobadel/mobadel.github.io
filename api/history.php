@@ -50,7 +50,13 @@ function capture(): array {
         http_response_code(503);
         return ['error' => 'rates_unavailable'];
     }
-    $time = recordHistoryPoints($rates['assets'], (int) ($rates['fetched_unix'] ?? time()));
+    try {
+        $assets = array_diff_key($rates['assets'], array_flip($rates['carried'] ?? []));
+        $time = recordHistoryPoints($assets, (int) ($rates['fetched_unix'] ?? time()));
+    } catch (RuntimeException $error) {
+        http_response_code(503);
+        return ['error' => 'history_write_failed'];
+    }
     $history = historyReadJson(HISTORY_CACHE_FILE);
 
     return ['ok' => true, 'captured_at' => $time, 'assets' => count($history['assets'] ?? [])];
@@ -102,5 +108,11 @@ if (!preg_match('/^[a-z0-9]+$/', $id)) {
    ساعت کاری بعداً اضافه شد و نقطه‌هایی که پیش از آن ثبت شده بودند در
    نمودار مانده‌اند — مثلاً جمعه ۱۳ شهریور ۱۴۰۵. فیلتر هنگام خواندن،
    مستقل از اینکه نقطه کِی ثبت شده، تعطیلی را از نمودار بیرون می‌گذارد. */
-$points = historyMergedPoints($id, assetGroup($id), historyReadJson(HISTORY_SEED_FILE), historyReadJson(HISTORY_CACHE_FILE));
-echo json_encode(['asset' => $id, 'unit' => 'toman', 'points' => $points], JSON_UNESCAPED_UNICODE);
+$dynamic = historyReadJson(HISTORY_CACHE_FILE);
+$unit = ($_GET['unit'] ?? '') === 'usd' ? 'usd' : 'toman';
+if ($unit === 'usd') {
+    $points = historyMergedPoints($id, 'energy', [], ['assets' => $dynamic['assets_usd'] ?? []]);
+} else {
+    $points = historyMergedPoints($id, assetGroup($id), historyReadJson(HISTORY_SEED_FILE), $dynamic);
+}
+echo json_encode(['asset' => $id, 'unit' => $unit, 'points' => $points], JSON_UNESCAPED_UNICODE);

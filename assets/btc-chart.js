@@ -1,35 +1,8 @@
 (function () {
   "use strict";
 
-  var routeMatch = location.pathname.match(/^\/price\/(crypto|gold|coin|currency)\/([a-z0-9]+)\/?$/);
-  if (!routeMatch) return;
-
   var API = "https://apiv2.nobitex.ir/market/udf/history";
-  var MARKET_HISTORY_ASSETS = {
-    gold18: "طلا ۱۸ عیار", gold24: "طلا ۲۴ عیار", gold22: "طلا ۲۲ عیار", gold21: "طلا ۲۱ عیار",
-    gold20: "طلا ۲۰ عیار", gold17: "طلا ۱۷ عیار", gold14: "طلا ۱۴ عیار", emami: "سکه امامی", baharazadi: "سکه بهار آزادی",
-    usd: "دلار", eur: "یورو", gbp: "پوند", aed: "درهم امارات", try: "لیر ترکیه",
-    cny: "یوآن چین", rub: "روبل روسیه", afn: "افغانی"
-  };
-  var MARKETS = {
-    btc: {
-      symbol: "BTCUSDT", statsKey: "btc-usdt", src: "btc", dst: "usdt", liveScale: 1,
-      title: "نمودار قیمت بیت کوین", unit: "تتر", source: "بر اساس داده‌های بازار «بیت کوین/تتر»"
-    },
-    usdt: {
-      symbol: "USDTIRT", statsKey: "usdt-irt", src: "usdt", dst: "irt", liveScale: 0.1,
-      title: "نمودار قیمت تتر", unit: "تومان", source: "بر اساس داده‌های بازار «تتر/تومان»"
-    }
-  };
-  var isCryptoChart = routeMatch[1] === "crypto";
-  var historyId = routeMatch[2] === "baharazadi" ? "bahar" : routeMatch[2];
-  var historyName = MARKET_HISTORY_ASSETS[routeMatch[2]];
-  if (!isCryptoChart && !historyName) return;
-  var marketConfig = isCryptoChart ? (MARKETS[routeMatch[2]] || { id: routeMatch[2], crypto: true }) : {
-    id: historyId, title: "نمودار قیمت " + historyName, unit: "تومان", history: true
-  };
-  var STATS_API = marketConfig.history ? "/api/rates.php" : (marketConfig.symbol ? "https://apiv2.nobitex.ir/market/stats?srcCurrency=" + marketConfig.src + "&dstCurrency=" + marketConfig.dst : "");
-  var USD_STABLECOINS = { usdt: true, usdc: true, dai: true, busd: true, usde: true, tusd: true, fdusd: true, usdd: true, pyusd: true, gusd: true, susd: true, frax: true };
+  var marketConfig;
   var RANGE_CONFIG = {
     "24h": { resolution: "15", seconds: 86400 },
     "7d": { resolution: "60", seconds: 7 * 86400 },
@@ -75,6 +48,10 @@
   }
 
   var priceFormatter = new Intl.NumberFormat("fa-IR", { maximumFractionDigits: 2 });
+  var smallPriceFormatter = new Intl.NumberFormat("fa-IR", { maximumSignificantDigits: 4 });
+  function formatChartPrice(price) {
+    return (price < 1 ? smallPriceFormatter : priceFormatter).format(price);
+  }
   var percentFormatter = new Intl.NumberFormat("fa-IR", { maximumFractionDigits: 2 });
   var dateFormatter = new Intl.DateTimeFormat("fa-IR", {
     timeZone: "Asia/Tehran", year: "numeric", month: "long", day: "numeric"
@@ -105,30 +82,6 @@
     });
   }
 
-  function resolveCryptoMarket() {
-    if (!marketConfig.crypto || marketConfig.symbol) return Promise.resolve();
-    return Promise.all([
-      fetchJson("https://apiv2.nobitex.ir/market/stats"),
-      fetchJson("/data/currencies.json?t=" + Date.now())
-    ]).then(function (responses) {
-      var stats = responses[0] && responses[0].stats || {};
-      var names = responses[1] && responses[1].currencies || {};
-      var id = marketConfig.id;
-      var usdtMarket = stats[id + "-usdt"];
-      var rlsMarket = stats[id + "-rls"];
-      var useUsdt = !USD_STABLECOINS[id] && usdtMarket && Number(usdtMarket.latest) > 0;
-      if (!useUsdt && (!rlsMarket || Number(rlsMarket.latest) <= 0)) throw new Error("market_unavailable");
-      var name = names[id] && names[id].fa || id.toUpperCase();
-      marketConfig.symbol = id.toUpperCase() + (useUsdt ? "USDT" : "IRT");
-      marketConfig.statsKey = id + (useUsdt ? "-usdt" : "-rls");
-      marketConfig.src = id;
-      marketConfig.dst = useUsdt ? "usdt" : "rls";
-      marketConfig.liveScale = useUsdt ? 1 : 0.1;
-      marketConfig.title = "نمودار قیمت " + name;
-      marketConfig.unit = useUsdt ? "تتر" : "تومان";
-      STATS_API = "https://apiv2.nobitex.ir/market/stats?srcCurrency=" + marketConfig.src + "&dstCurrency=" + marketConfig.dst;
-    });
-  }
   function fetchPage(config, from, to, page, signal) {
     var params = new URLSearchParams({
       symbol: marketConfig.symbol,
@@ -145,7 +98,7 @@
     return payload.t.map(function (time, index) {
       return { time: Number(time), price: Number(payload.c[index]) };
     }).filter(function (point) {
-      return Number.isFinite(point.time) && Number.isFinite(point.price);
+      return Number.isFinite(point.time) && Number.isFinite(point.price) && point.price > 0;
     });
   }
 
@@ -185,14 +138,10 @@
   }
 
   function fetchLivePoint(signal) {
-    return fetchJson(STATS_API, signal).then(function (payload) {
-      var price;
-      if (marketConfig.history) price = payload && payload.assets && payload.assets[marketConfig.id] && Number(payload.assets[marketConfig.id].toman);
-      else {
-        var market = payload && payload.stats && payload.stats[marketConfig.statsKey];
-        price = market && Number(market.latest) * marketConfig.liveScale;
-      }
-      if (!Number.isFinite(price)) throw new Error("no_live_price");
+    return fetchJson(marketConfig.statsUrl, signal).then(function (payload) {
+      var market = payload && payload.stats && payload.stats[marketConfig.statsKey];
+      var price = market && Number(market.latest) * marketConfig.liveScale;
+      if (!Number.isFinite(price) || price <= 0) throw new Error("no_live_price");
       return { time: Math.floor(Date.now() / 1000), price: price, live: true };
     });
   }
@@ -200,43 +149,44 @@
   function appendLivePoint(points, livePoint) {
     var normalized = points.filter(function (point) { return !point.live; }).sort(function (a, b) { return a.time - b.time; });
     var last = normalized[normalized.length - 1];
-    /* روی نمودار روزانه، قیمت لحظه‌ای جای نقطهٔ همان روز را می‌گیرد و
-       کنارش نمی‌نشیند؛ وگرنه امروز دو نقطه با چند دقیقه فاصله داشت،
-       آن هم روی نموداری که فاصلهٔ بقیهٔ نقطه‌هایش یک روز است. */
-    var replaces = last && (marketConfig.history && isDailyRange(activeRange)
-      ? tehranDay(last.time) === tehranDay(livePoint.time)
-      : last.time === livePoint.time);
-    if (replaces) normalized.pop();
+    if (last && last.time === livePoint.time) normalized.pop();
     normalized.push(livePoint);
     return normalized;
   }
 
-  function loadRange(range) {
-    if (cache[range]) return Promise.resolve(cache[range]);
+  function loadRange(range, signal) {
     if (marketConfig.history) {
-      return fetchJson("/api/history.php?asset=" + encodeURIComponent(marketConfig.id), requestController.signal).then(function (payload) {
+      var url = "/api/history.php?asset=" + encodeURIComponent(marketConfig.id);
+      if (marketConfig.unit === "دلار") url += "&unit=usd";
+      return fetchJson(url, signal).then(function (payload) {
+        if (marketConfig.unit === "دلار" && payload.unit !== "usd") throw new Error("history_unit");
         var now = Math.floor(Date.now() / 1000);
         var config = RANGE_CONFIG[range];
         var earliest = range === "all" ? 0 : now - config.seconds;
         var points = (payload.points || []).map(function (point) { return { time: Number(point[0]), price: Number(point[1]) }; }).filter(function (point) {
           return Number.isFinite(point.time) && Number.isFinite(point.price) && point.time >= earliest && point.time <= now;
         });
-        if (!points.length) throw new Error("no_data");
         // بازه‌های با تفکیک روزانه باید یک نقطه در روز داشته باشند.
         if (isDailyRange(range)) points = aggregateDaily(points);
-        cache[range] = points;
         return points;
       });
     }
+    if (cache[range]) return Promise.resolve(cache[range]);
     var config = RANGE_CONFIG[range];
     var to = Math.floor(Date.now() / 1000);
     var from = config.from || to - config.seconds;
 
     if (!config.paged) {
-      return fetchPage(config, from, to, 1, requestController.signal).then(function (payload) {
+      return fetchPage(config, from, to, 1, signal).then(function (payload) {
         var points = pointsFromPayload(payload);
-        if (!points.length) throw new Error("no_data");
-        cache[range] = points;
+        if (!points.length && range === "24h") {
+          // بعضی بازارها کندل ۱۵ دقیقه‌ای ندارند و کندل ساعتی دارند.
+          return fetchPage(RANGE_CONFIG["7d"], to - RANGE_CONFIG["7d"].seconds, to, 1, signal)
+            .then(pointsFromPayload).then(function (hourly) {
+              return hourly.filter(function (point) { return point.time >= from && point.time <= to; });
+            });
+        }
+        if (points.length) cache[range] = points;
         return points;
       });
     }
@@ -244,7 +194,7 @@
     var collected = [];
     function next(page) {
       if (page > 10) return Promise.resolve(collected);
-      return fetchPage(config, from, to, page, requestController.signal).then(function (payload) {
+      return fetchPage(config, from, to, page, signal).then(function (payload) {
         var points = pointsFromPayload(payload);
         if (!points.length) return collected;
         collected = collected.concat(points);
@@ -255,7 +205,7 @@
       var unique = {};
       points.forEach(function (point) { unique[point.time] = point; });
       var normalized = Object.keys(unique).map(function (key) { return unique[key]; });
-      if (!normalized.length) throw new Error("no_data");
+      if (!normalized.length) return normalized;
       normalized = range === "all" && to - normalized[0].time > 2 * 365 * 86400 ? aggregateWeekly(normalized) : normalized;
       cache[range] = normalized;
       return normalized;
@@ -265,7 +215,8 @@
   function pathFor(points, width, height, padding, min, max) {
     var span = max - min || 1;
     return points.map(function (point, index) {
-      var x = padding.left + index * (width - padding.left - padding.right) / Math.max(1, points.length - 1);
+      var x = points.length === 1 ? width / 2
+        : padding.left + index * (width - padding.left - padding.right) / (points.length - 1);
       var y = padding.top + (max - point.price) * (height - padding.top - padding.bottom) / span;
       return { x: x, y: y, command: (index ? "L" : "M") + x.toFixed(2) + " " + y.toFixed(2) };
     });
@@ -273,12 +224,12 @@
 
   function renderXAxis(points, width, height, padding) {
     xAxis.replaceChildren();
-    var labelCount = width < 520 ? 4 : Math.max(5, Math.min(8, Math.floor(width / 105)));
+    var labelCount = Math.min(points.length, width < 520 ? 4 : Math.max(5, Math.min(8, Math.floor(width / 105))));
     var axisInset = width < 520 ? 27 : 38;
     for (var index = 0; index < labelCount; index += 1) {
       var pointIndex = Math.round(index * (points.length - 1) / Math.max(1, labelCount - 1));
       var point = points[pointIndex];
-      var x = axisInset + index * (width - axisInset * 2) / Math.max(1, labelCount - 1);
+      var x = labelCount === 1 ? width / 2 : axisInset + index * (width - axisInset * 2) / (labelCount - 1);
       var label = document.createElementNS("http://www.w3.org/2000/svg", "text");
       var formatter = activeRange === "24h" ? axisTimeFormatter : (activeRange === "7d" || activeRange === "1m" ? axisDayFormatter : axisMonthFormatter);
       label.setAttribute("x", x);
@@ -293,10 +244,11 @@
   }
 
   function renderChartSummary(highestPrice, lowestPrice, percentageChange) {
-    fillNum(summaryHigh, priceFormatter.format(highestPrice), marketConfig.unit);
-    fillNum(summaryLow, priceFormatter.format(lowestPrice), marketConfig.unit);
+    fillNum(summaryHigh, formatChartPrice(highestPrice), marketConfig.unit);
+    fillNum(summaryLow, formatChartPrice(lowestPrice), marketConfig.unit);
     summaryChange.className = "btc-chart-summary-value btc-chart-summary-change " + (percentageChange > 0 ? "positive" : percentageChange < 0 ? "negative" : "neutral");
-    summaryChange.textContent = (percentageChange > 0 ? "+" : percentageChange < 0 ? "−" : "") + percentFormatter.format(Math.abs(percentageChange)) + "٪";
+    summaryChange.textContent = Number.isFinite(percentageChange)
+      ? (percentageChange > 0 ? "+" : percentageChange < 0 ? "−" : "") + percentFormatter.format(Math.abs(percentageChange)) + "٪" : "—";
   }
 
   function renderChart(points) {
@@ -322,11 +274,11 @@
     crosshair.setAttribute("y1", padding.top);
     crosshair.setAttribute("y2", height - padding.bottom);
     renderXAxis(activePoints, width, height, padding);
-    line.setAttribute("d", linePath);
+    line.setAttribute("d", plotted.length === 1 ? linePath + " h0.01" : linePath);
     area.setAttribute("d", areaPath);
     var firstPrice = activePoints[0].price;
     var lastPrice = activePoints[activePoints.length - 1].price;
-    var percentageChange = firstPrice ? (lastPrice - firstPrice) / firstPrice * 100 : 0;
+    var percentageChange = activePoints.length > 1 ? (lastPrice - firstPrice) / firstPrice * 100 : NaN;
     renderChartSummary(highestPrice, lowestPrice, percentageChange);
     svg.dataset.width = String(width);
     svg.dataset.paddingLeft = String(padding.left);
@@ -363,7 +315,7 @@
     crosshair.removeAttribute("hidden");
     marker.removeAttribute("hidden");
     tooltipDate.textContent = (activeRange === "24h" || activeRange === "7d" || activeRange === "1m" ? dateTimeFormatter : dateFormatter).format(new Date(point.time * 1000));
-    fillNum(tooltipPrice, priceFormatter.format(point.price), marketConfig.unit);
+    fillNum(tooltipPrice, formatChartPrice(point.price), marketConfig.unit);
     tooltip.hidden = false;
     var tooltipWidth = tooltip.offsetWidth || 145;
     var left = relative - tooltipWidth / 2;
@@ -378,22 +330,28 @@
       button.setAttribute("aria-pressed", active ? "true" : "false");
     });
     hideTooltip();
+    activePoints = [];
     svg.setAttribute("hidden", "");
     status.hidden = false;
     status.textContent = "در حال دریافت داده‌های نمودار…";
     if (requestController) requestController.abort();
     requestController = new AbortController();
-    Promise.all([loadRange(range), fetchLivePoint(requestController.signal)]).then(function (results) {
-      renderChart(appendLivePoint(results[0], results[1]));
+    var signal = requestController.signal;
+    var live = marketConfig.history ? Promise.resolve(null) : fetchLivePoint(signal).catch(function () { return null; });
+    Promise.all([loadRange(range, signal), live]).then(function (results) {
+      if (signal.aborted) return;
+      var points = results[1] ? appendLivePoint(results[0], results[1]) : results[0];
+      if (points.length) renderChart(points);
+      else status.textContent = "در این بازه هنوز داده‌ای برای نمودار ثبت نشده است.";
     }).catch(function (error) {
-      if (error && error.name === "AbortError") return;
+      if (signal.aborted || (error && error.name === "AbortError")) return;
       status.hidden = false;
       status.textContent = "داده‌های نمودار در حال حاضر در دسترس نیست.";
     });
   }
 
   buttons.forEach(function (button) {
-    button.addEventListener("click", function () { selectRange(button.dataset.chartRange); });
+    button.addEventListener("click", function () { if (marketConfig) selectRange(button.dataset.chartRange); });
   });
   stage.addEventListener("pointermove", function (event) { showPoint(event.clientX); });
   stage.addEventListener("pointerdown", function (event) { showPoint(event.clientX); });
@@ -406,20 +364,37 @@
     if (activePoints.length) renderChart(activePoints);
   });
   window.setInterval(function () {
+    if (!marketConfig || !requestController || document.visibilityState === "hidden") return;
     var rangeAtRequest = activeRange;
-    fetchLivePoint().then(function (livePoint) {
-      if (rangeAtRequest === activeRange && activePoints.length) renderChart(appendLivePoint(activePoints, livePoint));
+    var signal = requestController.signal;
+    var refresh = marketConfig.history ? loadRange(rangeAtRequest, signal)
+      : fetchLivePoint(signal).then(function (livePoint) { return appendLivePoint(activePoints, livePoint); });
+    refresh.then(function (points) {
+      if (!signal.aborted && points.length) renderChart(points);
     }).catch(function () {});
   }, 60000);
 
-  if (marketConfig.crypto && !marketConfig.symbol) {
-    status.textContent = "در حال آماده‌سازی داده‌های نمودار…";
-    resolveCryptoMarket().then(function () { prepareChart(); selectRange(activeRange); }).catch(function () {
-      status.textContent = "داده‌های نمودار در حال حاضر در دسترس نیست.";
-      section.hidden = false;
-    });
-  } else {
+  function startChart() {
+    var id = section.dataset.assetId;
+    if (!id || marketConfig) return;
+    var currency = section.dataset.assetCurrency;
+    var history = section.dataset.assetGroup !== "crypto";
+    var useUsdt = currency === "USDT";
+    var destination = useUsdt ? "usdt" : "rls";
+    marketConfig = {
+      id: id,
+      title: "نمودار قیمت " + section.dataset.assetName,
+      unit: currency === "USD" ? "دلار" : useUsdt ? "تتر" : "تومان",
+      history: history,
+      // نماد کوچک برای بازارهای تومانی، از جمله تتر، توسط API پذیرفته می‌شود.
+      symbol: useUsdt ? id.toUpperCase() + "USDT" : id + "irt",
+      statsKey: id + "-" + destination,
+      liveScale: useUsdt ? 1 : 0.1,
+      statsUrl: "https://apiv2.nobitex.ir/market/stats?srcCurrency=" + encodeURIComponent(id) + "&dstCurrency=" + destination
+    };
     prepareChart();
     selectRange(activeRange);
   }
+  document.addEventListener("tabdex:chart-asset", startChart);
+  startChart();
 })();

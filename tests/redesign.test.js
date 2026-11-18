@@ -138,6 +138,15 @@ if (php.status === 0) {
   assert.equal(batch.days, 400, "بازه به ۴۰۰ روز محدود شود");
   assert.ok(Array.isArray(batch.assets.usd) && Array.isArray(batch.assets.eur), "هر دارایی آرایهٔ خودش را دارد");
   assert.ok(Array.isArray(JSON.parse(call("asset=usd")).points), "حالت تک‌دارایی نمودار دست‌نخورده می‌ماند");
+  const storage = JSON.parse(run(`require "market-history.php";
+    $points = [[100, 1], [300, 3]];
+    $updated = recordHistorySeries($points, 300, 30, 200);
+    echo json_encode([$updated, recordHistorySeries($updated, 200, 99, 100),
+        recordHistorySeries($updated, 600, 6, 200)]);`));
+  assert.deepEqual(storage, [[[300, 30]], [[300, 30]], [[300, 30], [600, 6]]],
+    "ثبت هم‌سطل باید جایگزین شود و اجرای قدیمی نباید نقطهٔ جدید را تغییر دهد");
+  assert.deepEqual(JSON.parse(call("asset=brent&unit=usd")), { asset: "brent", unit: "usd", points: [] },
+    "سری دلاری نباید از تاریخچهٔ تومانی استفاده کند");
 } else {
   console.log("php در دسترس نیست؛ بررسی history.php رد شد");
 }
