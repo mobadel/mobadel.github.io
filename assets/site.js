@@ -67,7 +67,7 @@
       toggleContent.hidden = true;
 
       // پیوندهای جفت‌های مرتبط همچنان پایین کارت در دسترس‌اند.
-      Array.prototype.forEach.call(Array.from(section.childNodes), function (node) {
+      Array.from(section.childNodes).forEach(function (node) {
         if (node !== relatedLinks) body.appendChild(node);
       });
       preview.appendChild(body);

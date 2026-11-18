@@ -26,4 +26,5 @@ jobs:
         with:
           node-version: '20'
       - name: تست‌های node
-        run: node --test tests/
+        # تست‌های تولید صفحه از پوشهٔ مشترک _site استفاده می‌کنند.
+        run: node --test --test-concurrency=1 tests/
