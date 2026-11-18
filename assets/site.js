@@ -1,5 +1,4 @@
-/* رفتارهای مشترک همهٔ صفحه‌ها: علامت‌گذاری صفحهٔ فعال در منو، سال
-   شمسی فوتر و دکمهٔ اشتراک‌گذاری صفحهٔ دارایی. */
+/* رفتارهای مشترک صفحه‌ها: منو، سال شمسی، اشتراک‌گذاری و پیش‌نمایش توضیحات. */
 (function () {
   "use strict";
   if (typeof document === "undefined" || !document.querySelectorAll) return;
@@ -50,6 +49,67 @@
     var year = new Intl.DateTimeFormat("fa-IR-u-ca-persian-nu-arabext", { timeZone: "Asia/Tehran", year: "numeric" }).format(new Date());
     Array.prototype.forEach.call(document.querySelectorAll("[data-year]"), function (node) { node.textContent = year; });
   } catch (error) { /* سال ثابت داخل HTML می‌ماند */ }
+
+  if (/^\/(price|convert)(\/|$)/.test(location.pathname)) {
+    Array.prototype.forEach.call(document.querySelectorAll(
+      "main > .pair-content, .asset-layout-main > .asset-content, main > .seo-content.cms-content"
+    ), function (section, index) {
+      var relatedLinks = section.querySelector(":scope > .pair-links");
+      var preview = document.createElement("div");
+      var body = document.createElement("div");
+      var toggleContent = document.createElement("button");
+      preview.id = "content-preview-" + (index + 1);
+      preview.className = "content-preview";
+      body.className = "content-preview-body";
+      toggleContent.type = "button";
+      toggleContent.className = "content-preview-toggle";
+      toggleContent.setAttribute("aria-controls", preview.id);
+      toggleContent.hidden = true;
+
+      // پیوندهای جفت‌های مرتبط همچنان پایین کارت در دسترس‌اند.
+      Array.prototype.forEach.call(Array.from(section.childNodes), function (node) {
+        if (node !== relatedLinks) body.appendChild(node);
+      });
+      preview.appendChild(body);
+      section.insertBefore(preview, relatedLinks);
+      section.insertBefore(toggleContent, relatedLinks);
+
+      function checkOverflow() {
+        if (preview.classList.contains("is-collapsed")) {
+          toggleContent.hidden = preview.scrollHeight <= preview.clientHeight + 1;
+        }
+      }
+
+      function setExpanded(expanded) {
+        preview.classList.toggle("is-collapsed", !expanded);
+        toggleContent.setAttribute("aria-expanded", String(expanded));
+        toggleContent.textContent = expanded ? "نمایش کمتر" : "ادامه مطلب";
+        if (!expanded) checkOverflow();
+      }
+
+      setExpanded(false);
+      if (typeof ResizeObserver === "function") {
+        new ResizeObserver(checkOverflow).observe(body);
+      } else {
+        window.addEventListener("resize", checkOverflow);
+        window.addEventListener("load", checkOverflow);
+      }
+
+      toggleContent.addEventListener("click", function () {
+        var expanded = toggleContent.getAttribute("aria-expanded") === "true";
+        setExpanded(!expanded);
+        if (expanded && !toggleContent.hidden) toggleContent.scrollIntoView({ block: "nearest" });
+      });
+
+      preview.addEventListener("focusin", function (event) {
+        // پیوندی که با Tab فوکوس می‌گیرد باید بالاتر از ناحیهٔ محو باشد.
+        if (!toggleContent.hidden && preview.classList.contains("is-collapsed") &&
+            event.target.getBoundingClientRect().bottom > preview.getBoundingClientRect().bottom - 34) {
+          setExpanded(true);
+        }
+      });
+    });
+  }
 
   var share = document.getElementById("asset-share");
   var feedback = document.getElementById("asset-share-feedback");
