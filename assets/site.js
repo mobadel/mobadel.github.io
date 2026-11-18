@@ -83,7 +83,7 @@
       function setExpanded(expanded) {
         preview.classList.toggle("is-collapsed", !expanded);
         toggleContent.setAttribute("aria-expanded", String(expanded));
-        toggleContent.textContent = expanded ? "نمایش کمتر" : "ادامه مطلب";
+        toggleContent.setAttribute("aria-label", expanded ? "جمع‌کردن توضیحات" : "باز کردن توضیحات");
         if (!expanded) checkOverflow();
       }
 
