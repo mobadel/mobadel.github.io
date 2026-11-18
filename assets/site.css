@@ -506,7 +506,7 @@ body { background: var(--page); }
 .pair-content p { color: #4a5c55; font-size: 15.5px; line-height: 1.95; text-align: start; }
 
 .content-preview-body { display: flow-root; }
-.content-preview.is-collapsed { max-block-size: 10rem; overflow: clip; }
+.content-preview.is-collapsed { max-block-size: 8.25rem; overflow: clip; }
 .content-preview.is-collapsed:has(+ .content-preview-toggle:not([hidden])) {
   mask-image: linear-gradient(to bottom, #000 calc(100% - 34px), transparent);
 }
