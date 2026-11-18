@@ -39,9 +39,15 @@ function historyReadJson(string $path): array {
 }
 
 function historyWriteJson(string $path, array $payload): bool {
-    $directory = dirname($path);
-    if (!is_dir($directory) && !mkdir($directory, 0755, true) && !is_dir($directory)) return false;
-    return @file_put_contents($path, json_encode($payload, JSON_UNESCAPED_UNICODE), LOCK_EX) !== false;
+    $encoded = json_encode($payload, JSON_UNESCAPED_UNICODE);
+    if ($encoded === false) return false;
+    $temp = @tempnam(dirname($path), 'history-');
+    if ($temp === false) return false;
+    try {
+        return @file_put_contents($temp, $encoded) === strlen($encoded) && @rename($temp, $path);
+    } finally {
+        if (is_file($temp)) @unlink($temp);
+    }
 }
 
 /* آیا بازار در آن روز اصلاً باز بوده؟ تعطیل رسمی یا روزِ تعطیلِ هفته.
@@ -140,31 +146,61 @@ function historyDailyCloses(array $points, int $since = 0): array {
 
 /* ثبت یک اسنپ‌شات از نرخ‌های همین لحظه. هم rates.php بعد از تازه‌کردن
    کش صدایش می‌زند، هم کرون از راه history.php. */
+function recordHistorySeries(array $points, int $time, float $price, int $cutoff): array {
+    if (!is_finite($price) || $price <= 0 || $time < $cutoff) return $points;
+    $last = $points ? end($points) : null;
+    // بازاجرای کرون با نرخ قدیمی نباید نقطهٔ جدیدتر را جابه‌جا کند.
+    if (is_array($last) && (int) ($last[0] ?? 0) > $time) return $points;
+    if (is_array($last) && (int) ($last[0] ?? 0) === $time) array_pop($points);
+    $points[] = [$time, $price];
+    return array_values(array_filter(
+        $points,
+        static fn($point) => is_array($point) && (int) ($point[0] ?? 0) >= $cutoff
+    ));
+}
+
 function recordHistoryPoints(array $assets, int $fetchedUnix): int {
-    $history = historyReadJson(HISTORY_CACHE_FILE);
-    $history['assets'] = is_array($history['assets'] ?? null) ? $history['assets'] : [];
     $time = $fetchedUnix - ($fetchedUnix % HISTORY_BUCKET);
     $cutoff = time() - 400 * 86400;
-
-    foreach ($assets as $id => $asset) {
-        if (!is_array($asset)) continue;
-        if (!marketIsOpen((string) ($asset['group'] ?? ''), $time)) continue;
-        $price = (float) ($asset['toman'] ?? 0);
-        if ($price <= 0) continue;
-        $points = is_array($history['assets'][$id] ?? null) ? $history['assets'][$id] : [];
-        $last = $points ? end($points) : null;
-        // نقطهٔ هم‌سطل جایگزین می‌شود تا هر پنج دقیقه یک نقطه بماند.
-        if (is_array($last) && (int) ($last[0] ?? 0) === $time) array_pop($points);
-        $points[] = [$time, $price];
-        // حدود ۴۰۰ روز؛ دادهٔ روزانهٔ بلندمدت در فایل seed باقی می‌ماند.
-        $history['assets'][$id] = array_values(array_filter(
-            $points,
-            static fn($point) => is_array($point) && (int) ($point[0] ?? 0) >= $cutoff
-        ));
+    $directory = dirname(HISTORY_CACHE_FILE);
+    if (!is_dir($directory) && !@mkdir($directory, 0755, true) && !is_dir($directory)) {
+        throw new RuntimeException('history_cache_unavailable');
     }
+    $lock = @fopen(HISTORY_CACHE_FILE . '.lock', 'c');
+    if ($lock === false) throw new RuntimeException('history_lock_unavailable');
+    try {
+        if (!flock($lock, LOCK_EX)) throw new RuntimeException('history_lock_failed');
+        $history = historyReadJson(HISTORY_CACHE_FILE);
+        foreach (['assets', 'assets_usd'] as $key) {
+            $history[$key] = is_array($history[$key] ?? null) ? $history[$key] : [];
+        }
 
-    $history['updated'] = gmdate('c');
-    historyWriteJson(HISTORY_CACHE_FILE, $history);
+        foreach ($assets as $id => $asset) {
+            if (!is_array($asset)) continue;
+            $group = (string) ($asset['group'] ?? '');
+            $assetTime = $time;
+            if ($group === 'parsian') {
+                $updated = strtotime((string) ($asset['updated'] ?? ''));
+                if ($updated === false || $updated > $fetchedUnix) continue;
+                $assetTime = $updated - ($updated % HISTORY_BUCKET);
+            }
+            if (marketIsOpen($group, $assetTime)) {
+                $history['assets'][$id] = recordHistorySeries(
+                    $history['assets'][$id] ?? [], $assetTime, (float) ($asset['toman'] ?? 0), $cutoff
+                );
+            }
+            // واحد اصلی انس و انرژی دلار است. تاریخچهٔ تومانی قدیمی جدا می‌ماند.
+            if (($id === 'goldounce' || $group === 'energy') && marketIsOpen('energy', $assetTime)) {
+                $history['assets_usd'][$id] = recordHistorySeries(
+                    $history['assets_usd'][$id] ?? [], $assetTime, (float) ($asset['usd'] ?? 0), $cutoff
+                );
+            }
+        }
 
-    return $time;
+        $history['updated'] = gmdate('c');
+        if (!historyWriteJson(HISTORY_CACHE_FILE, $history)) throw new RuntimeException('history_write_failed');
+        return $time;
+    } finally {
+        fclose($lock);
+    }
 }

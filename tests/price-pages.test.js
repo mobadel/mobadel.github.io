@@ -50,14 +50,59 @@ assert.match(btcChartScript, /activeRange === "24h" \|\| activeRange === "7d" \|
 assert.match(btcChartScript, /label\.setAttribute\("text-anchor", "middle"\)/, "مرکز همه برچسب‌های محور باید با فاصله یکسان چیده شود");
 assert.doesNotMatch(asset, /btc-chart-grid/, "نمودار نباید خطوط افقی پس‌زمینه داشته باشد");
 assert.match(asset, /بالاترین قیمت[\s\S]*پایین‌ترین قیمت[\s\S]*تغییرات/, "خلاصهٔ بازه باید سه مقدار اصلی را نمایش دهد");
-assert.match(btcChartScript, /btc: \{[\s\S]*symbol: "BTCUSDT"[\s\S]*statsKey: "btc-usdt"[\s\S]*unit: "تتر"/, "نمودار بیت کوین باید از بازار بیت کوین تتر بیاید");
-assert.match(btcChartScript, /usdt: \{[\s\S]*symbol: "USDTIRT"[\s\S]*statsKey: "usdt-irt"[\s\S]*liveScale: 0\.1[\s\S]*unit: "تومان"/, "نمودار تتر باید داده تاریخی تومانی و قیمت لحظه‌ای تبدیل‌شده از ریال داشته باشد");
-assert.match(btcChartScript, /MARKET_HISTORY_ASSETS[\s\S]*gold18[\s\S]*baharazadi[\s\S]*afn/, "نمودار باید برای همه دارایی‌های دارای تاریخچه فعال شود");
-for (const id of ["gold24", "gold22", "gold21", "gold20", "gold17", "gold14"]) assert.match(btcChartScript, new RegExp(`${id}: "طلا [۰-۹]+ عیار"`), `${id} باید نمودار داشته باشد`);
+assert.match(script, /chart\.dataset\.assetId = asset\.id;[\s\S]*chart\.dataset\.assetGroup = asset\.group;/, "مشخصات نمودار باید از همان دارایی صفحه بیاید");
 assert.match(btcChartScript, /\/api\/history\.php\?asset=/, "نمودارهای غیررمزارزی باید تاریخچهٔ سرور را دریافت کنند");
-assert.match(btcChartScript, /resolveCryptoMarket[\s\S]*marketConfig\.symbol = id\.toUpperCase\(\) \+ \(useUsdt \? "USDT" : "IRT"\)/, "همهٔ رمزارزها باید نماد تاریخچه را از بازار نوبیتکس بسازند");
 assert.match(btcChartScript, /range === "all" && to - normalized\[0\]\.time > 2 \* 365 \* 86400 \? aggregateWeekly/, "بازه همه فقط برای تاریخچهٔ بیش از دو سال باید هفتگی شود");
 assert.match(btcChartScript, /if \(isDailyRange\(range\)\) points = aggregateDaily\(points\);/, "بازه‌های با تفکیک روزانه باید به یک نقطه در روز تبدیل شوند");
+
+// اجرای نمودار واقعی با مشخصات قالب و پاسخ‌های ساختگی API.
+require("node:test")("نمودار دارایی شناسهٔ منبع، واحد و دادهٔ یک‌نقطه‌ای را درست نمایش می‌دهد", async () => {
+  const now = Math.floor(Date.now() / 1000);
+  const node = () => ({
+    clientWidth: 600, dataset: {}, attributes: {}, hidden: true,
+    setAttribute(key, value) { this.attributes[key] = value; },
+    removeAttribute(key) { delete this.attributes[key]; },
+    addEventListener() {}, replaceChildren() {}, appendChild() {}
+  });
+  for (const sample of [
+    { id: "parsian100", group: "parsian", currency: "IRT", request: "/api/history.php?asset=parsian100" },
+    { id: "goldounce", group: "gold", currency: "USD", request: "/api/history.php?asset=goldounce&unit=usd" },
+    { id: "brent", group: "energy", currency: "USD", request: "/api/history.php?asset=brent&unit=usd" },
+    { id: "btc", group: "crypto", currency: "USDT", symbol: "BTCUSDT" },
+    { id: "1k_bonk", group: "crypto", currency: "USDT", symbol: "1K_BONKUSDT" },
+    { id: "usdt", group: "crypto", currency: "IRT", symbol: "usdtirt" },
+    { id: "grvt", group: "crypto", currency: "USDT", symbol: "GRVTUSDT", hourly: true }
+  ]) {
+    const elements = new Map();
+    const get = (id) => {
+      if (!elements.has(id)) elements.set(id, node());
+      return elements.get(id);
+    };
+    const section = get("btc-price-chart");
+    section.dataset = { assetId: sample.id, assetName: sample.id, assetGroup: sample.group, assetCurrency: sample.currency };
+    const requests = [];
+    vm.runInNewContext(btcChartScript, {
+      URLSearchParams, AbortController,
+      document: { getElementById: get, querySelectorAll: () => [], addEventListener() {}, createElement: node, createElementNS: node, createTextNode: String },
+      window: { addEventListener() {}, setInterval() {} },
+      async fetch(url) {
+        requests.push(url);
+        if (url.includes("/market/stats")) return { ok: false, status: 503 };
+        const payload = sample.symbol
+          ? sample.hourly && url.includes("resolution=15") ? { s: "no_data" } : { s: "ok", t: [now - 3600], c: [12] }
+          : { unit: sample.currency === "USD" ? "usd" : "toman", points: [[now - 300, 12]] };
+        return { ok: true, json: async () => payload };
+      }
+    });
+    await new Promise(setImmediate);
+    assert.equal(section.hidden, false, sample.id);
+    assert.match(get("btc-chart-line").attributes.d, /^M300\.00 .*h0\.01$/, sample.id);
+    assert.equal(get("btc-chart-summary-change").textContent, "—", sample.id);
+    if (sample.request) assert.ok(requests.includes(sample.request), sample.id);
+    if (sample.symbol) assert.ok(requests.some(url => url.includes("symbol=" + sample.symbol)), sample.id);
+    if (sample.hourly) assert.ok(requests.some(url => url.includes("resolution=60")));
+  }
+});
 
 // توابع کمکی تجمیع روزانه بدون DOM اجرا می‌شوند تا رفتارشان واقعاً سنجیده شود.
 const dailyHelpers = vm.runInNewContext(
@@ -103,7 +148,7 @@ assert.match(btcChartScript, /stage\.addEventListener\("pointerdown"/, "لمس �
 assert.match(btcChartScript, /stage\.addEventListener\("pointerup"[\s\S]*event\.pointerType !== "mouse"[\s\S]*hideTooltip/, "هاور لمسی باید با پایان لمس پاک شود");
 assert.match(btcChartScript, /stage\.addEventListener\("pointercancel", hideTooltip\)/, "لغو لمس باید نشانگر نمودار را پاک کند");
 assert.match(btcChartScript, /stage\.clientWidth < 520 \? 250 : 300/, "نسبت viewBox موبایل باید با ارتفاع واقعی نمودار یکسان باشد");
-assert.match(btcChartScript, /fillNum\(tooltipPrice, priceFormatter\.format\(point\.price\), marketConfig\.unit\)/, "Tooltip باید واحد متناسب با بازار فعال را نمایش دهد");
+assert.match(btcChartScript, /fillNum\(tooltipPrice, formatChartPrice\(point\.price\), marketConfig\.unit\)/, "Tooltip باید واحد متناسب با بازار فعال را نمایش دهد");
 assert.match(btcChartScript, /svg\.removeAttribute\("hidden"\)/, "پس از دریافت داده باید ویژگی hidden واقعاً از SVG حذف شود");
 
 for (const [name, html] of [["home", home], ["convert", converter], ["price", hub], ["category", category], ["asset", asset]]) {
