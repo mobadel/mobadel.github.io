@@ -128,6 +128,17 @@ assert.match(sitemap, /<loc>https:\/\/tabdex\.ir\/convert\/gram-to-irt\/<\/loc>/
 assert.match(sitemap, /<loc>https:\/\/tabdex\.ir\/convert\/irt-to-gram\/<\/loc>/, "صفحه تومان به GRAM باید در سایت‌مپ باشد");
 assert.doesNotMatch(sitemap, /\/convert\/(?:ton-to-irt|irt-to-ton)\//, "صفحه‌های منسوخ TON نباید در سایت‌مپ بمانند");
 assert.equal(fs.readFileSync(path.join(workdir, "sitemap.xml"), "utf8"), sitemap, "سایت‌مپ ریشه و خروجی deploy باید یکسان باشند");
+
+for (const [, assetPath] of sitemap.matchAll(/<loc>https:\/\/tabdex\.ir\/(price\/[^/]+\/[^/]+)\/<\/loc>/g)) {
+  const assetHtml = fs.readFileSync(path.join(workdir, "_site", assetPath, "index.html"), "utf8");
+  const assetName = assetHtml.match(/<h1 id="asset-title">قیمت ([^<]+)<\/h1>/)?.[1];
+  assert.ok(assetName, assetPath);
+  const escapedName = assetName.replaceAll("&", "&amp;").replaceAll('"', "&quot;");
+  const chartTitle = assetHtml.match(/<h2 id="btc-chart-title">([^<]*)<\/h2>/)?.[1];
+  const chartLabel = assetHtml.match(/<svg id="btc-chart-svg"[^>]*aria-label="([^"]*)"/)?.[1];
+  assert.equal(chartTitle, `نمودار قیمت ${escapedName}`, assetPath);
+  assert.equal(chartLabel, `نمودار تاریخی قیمت ${escapedName}`, assetPath);
+}
 assert.match(sitemap, /<loc>https:\/\/tabdex\.ir\/<\/loc>/);
 assert.match(sitemap, /<loc>https:\/\/tabdex\.ir\/price\/<\/loc>/);
 assert.match(sitemap, /<loc>https:\/\/tabdex\.ir\/convert\/<\/loc>/);
