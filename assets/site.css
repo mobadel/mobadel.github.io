@@ -478,6 +478,7 @@ body { background: var(--page); }
 .convert-main { padding-top: 40px; }
 .convert-main .intro { margin-bottom: 30px; }
 .convert-main .intro h1 { font-size: clamp(32px, 4.4vw, 44px); letter-spacing: 0; }
+.convert-source-price { margin-top: 16px; }
 .convert-layout { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: center; gap: 24px; }
 .convert-layout > .converter-card { flex: 3 1 520px; min-width: 0; }
 .convert-main .conversion-tables { margin-top: 40px; }
