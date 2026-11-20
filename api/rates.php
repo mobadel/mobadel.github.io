@@ -285,10 +285,20 @@ if (!is_dir($cacheDir)) {
     @mkdir($cacheDir, 0775, true);
 }
 
-/* وضعیت بازارها در لحظهٔ پاسخ، نه لحظهٔ ساخت کش: کش یک ساعته هم نباید
-   بازارِ تازه‌بسته را «باز» نشان دهد. پس به هر پاسخ جدا افزوده می‌شود. */
+/* نرخ محاسباتی ۵۰ سوت از نرخ ۱۰۰ سوت در هر پاسخ ساخته می‌شود تا کش‌های
+   موجود هم کار کنند. وضعیت بازار هم بر اساس زمان پاسخ به دست می‌آید. */
 require_once __DIR__ . '/market-history.php';
-function withMarketStatus(array $payload): array {
+function prepareRateResponse(array $payload): array {
+    $parsian100 = $payload['assets']['parsian100'] ?? null;
+    if (is_array($parsian100) && (float) ($parsian100['toman'] ?? 0) > 0) {
+        $payload['assets']['parsian50'] = array_replace($parsian100, [
+            'name' => 'parsian50',
+            'toman' => (float) $parsian100['toman'] / 2,
+        ]);
+        if (in_array('parsian100', $payload['carried'] ?? [], true)) {
+            $payload['carried'][] = 'parsian50';
+        }
+    }
     $payload['markets'] = marketStatusMap(time());
     /* کدام کرون آخرین بار refresh.php را زد (refresh.php ثبتش می‌کند). */
     $cron = json_decode((string) @file_get_contents(__DIR__ . '/cache/cron.json'), true);
@@ -326,7 +336,7 @@ if (is_readable($cacheFile)) {
             $cached = $decoded;
             $age = time() - (int) ($decoded['fetched_unix'] ?? 0);
             if ($age >= 0 && $age < $ttl - cronMargin($ttl)) {
-                echo json_encode(withMarketStatus($decoded), JSON_UNESCAPED_UNICODE);
+                echo json_encode(prepareRateResponse($decoded), JSON_UNESCAPED_UNICODE);
                 exit;
             }
         }
@@ -539,7 +549,7 @@ function serveStale(?array $cached, string $reason): never
         $cached['stale']  = true;
         $cached['reason'] = $reason;
         $cached['quota']  = ['used' => quotaToday(), 'limit' => quotaHardLimit()];
-        echo json_encode(withMarketStatus($cached), JSON_UNESCAPED_UNICODE);
+        echo json_encode(prepareRateResponse($cached), JSON_UNESCAPED_UNICODE);
     } else {
         http_response_code(503);
         echo json_encode([
@@ -1064,4 +1074,4 @@ try {
     // عمداً بی‌صدا: نرخ‌ها باید سرو شوند حتی اگر نمودار ثبت نشود.
 }
 
-echo json_encode(withMarketStatus($result), JSON_UNESCAPED_UNICODE);
+echo json_encode(prepareRateResponse($result), JSON_UNESCAPED_UNICODE);

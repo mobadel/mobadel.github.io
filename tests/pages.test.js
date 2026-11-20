@@ -154,12 +154,15 @@ for (const slug of ["emami", "gerami"]) assert.match(sitemap, new RegExp(`<loc>h
 
 // سکهٔ پارسیان دستهٔ جدای خودش است: ۲۱ وزن از ۱۰۰ سوت تا ۲٫۱ گرم، بدون جفت مبدل.
 assert.match(sitemap, /<loc>https:\/\/tabdex\.ir\/price\/parsian-coin\/<\/loc>/, "دستهٔ سکه پارسیان باید در سایت‌مپ باشد");
-assert.equal((sitemap.match(/<loc>https:\/\/tabdex\.ir\/price\/parsian-coin\/[^<]+\/<\/loc>/g) || []).length, 21, "هر ۲۱ وزن سکه پارسیان باید صفحه داشته باشند");
-for (const slug of ["100-sot", "900-sot", "1-gram", "1-1-gram", "2-1-gram"]) {
+assert.equal((sitemap.match(/<loc>https:\/\/tabdex\.ir\/price\/parsian-coin\/[^<]+\/<\/loc>/g) || []).length, 22, "هر ۲۲ وزن سکه پارسیان باید صفحه داشته باشند");
+for (const slug of ["50-sot", "100-sot", "900-sot", "1-gram", "1-1-gram", "2-1-gram"]) {
   assert.ok(fs.existsSync(path.join(workdir, "_site", "price", "parsian-coin", slug, "index.html")), `صفحهٔ سکه پارسیان ${slug} باید ساخته شود`);
 }
 assert.doesNotMatch(sitemap, /\/convert\/(?:[a-z0-9]+-to-)?[0-9][0-9-]*-(?:sot|gram)[-/]/, "سکه پارسیان در مبدل نیست و جفت تبدیل ندارد");
 const parsianPage = fs.readFileSync(path.join(workdir, "_site", "price", "parsian-coin", "100-sot", "index.html"), "utf8");
+const parsian50Page = fs.readFileSync(path.join(workdir, "_site", "price", "parsian-coin", "50-sot", "index.html"), "utf8");
+assert.match(parsian50Page, /<h1 id="asset-title">قیمت سکه پارسیان ۵۰ سوت<\/h1>/);
+assert.match(parsian50Page, /<p id="asset-about-text">[^<]*نرخ سکه پارسیان ۱۰۰ سوت بر ۲ محاسبه می‌شود/);
 assert.match(parsianPage, /<h1 id="asset-title">قیمت سکه پارسیان ۱۰۰ سوت<\/h1>/, "عنوان صفحه باید «قیمت سکه پارسیان ۱۰۰ سوت» باشد");
 assert.match(parsianPage, /<title>قیمت لحظه ای سکه پارسیان ۱۰۰ سوت امروز<\/title>/, "عنوان سند از قالب کلی سایت پیروی می‌کند");
 assert.match(parsianPage, /id="asset-hero-convert" href="\/convert\/" hidden>/, "دکمهٔ مبدل برای سکه پارسیان پنهان است");

@@ -4,6 +4,8 @@
  */
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
+const os = require("node:os");
+const path = require("node:path");
 const vm = require("node:vm");
 const { execFileSync, spawnSync } = require("node:child_process");
 
@@ -109,7 +111,7 @@ for (const file of ["assets/app.js", "assets/price.js"]) {
   assert.match(code, /بازار رسمی این دارایی در حال حاضر بسته است\./, `${file}: راهنمای بازار بسته`);
 }
 assert.match(read("assets/app.js"), /classList\.toggle\("error", !state\.live && !closed\)/, "بازار بسته قرمز نشود");
-assert.match(read("api/rates.php"), /function withMarketStatus/, "rates.php وضعیت بازارها را می‌فرستد");
+assert.match(read("api/rates.php"), /\$payload\['markets'\] = marketStatusMap\(time\(\)\)/, "rates.php وضعیت بازارها را می‌فرستد");
 
 // آیکون همهٔ دارایی‌ها گرد است.
 for (const selector of [".round-icon", ".round-icon img"]) {
@@ -148,6 +150,32 @@ if (php.status === 0) {
     "ثبت هم‌سطل باید جایگزین شود و اجرای قدیمی نباید نقطهٔ جدید را تغییر دهد");
   assert.deepEqual(JSON.parse(call("asset=brent&unit=usd")), { asset: "brent", unit: "usd", points: [] },
     "سری دلاری نباید از تاریخچهٔ تومانی استفاده کند");
+
+  const fixture = fs.mkdtempSync(path.join(os.tmpdir(), "tabdex-parsian-"));
+  const api = path.join(fixture, "api");
+  const cache = path.join(api, "cache");
+  const data = path.join(fixture, "data");
+  fs.mkdirSync(cache, { recursive: true });
+  fs.mkdirSync(data);
+  try {
+    for (const file of ["history.php", "market-history.php", "rates.php"]) fs.copyFileSync(path.join("api", file), path.join(api, file));
+    const now = Math.floor(Date.now() / 1000);
+    const reference = { name: "parsian100", toman: 12345, group: "parsian", unit: "piece", usd: null, change: 2, toman_change: 2, updated: new Date(now * 1000).toISOString() };
+    fs.writeFileSync(path.join(cache, "rates.json"), JSON.stringify({ fetched_unix: now, carried: ["parsian100"], assets: { parsian100: reference } }));
+    fs.writeFileSync(path.join(data, "market-history.json"), JSON.stringify({ assets: { parsian100: [[now - 86400, 10000], [now - 600, 12000]] } }));
+    fs.writeFileSync(path.join(cache, "market-history.json"), JSON.stringify({ assets: { parsian100: [[now - 600, 12345]] } }));
+    const request = (code) => JSON.parse(execFileSync("php", ["-r", code], { cwd: api, encoding: "utf8" }));
+    const rates = request('require "rates.php";');
+    assert.deepEqual(rates.assets.parsian100, reference);
+    assert.deepEqual(rates.assets.parsian50, { ...reference, name: "parsian50", toman: 6172.5 });
+    assert.deepEqual(rates.carried, ["parsian100", "parsian50"]);
+    const history = request('$_GET["asset"] = "parsian50"; require "history.php";');
+    assert.deepEqual(history, { asset: "parsian50", unit: "toman", points: [[now - 86400, 5000], [now - 600, 6172.5]] });
+    const daily = request('$_GET["assets"] = "parsian50,parsian100"; require "history.php";');
+    assert.deepEqual(daily.assets.parsian50, daily.assets.parsian100.map(([time, price]) => [time, price / 2]));
+  } finally {
+    fs.rmSync(fixture, { recursive: true, force: true });
+  }
 } else {
   console.log("php در دسترس نیست؛ بررسی history.php رد شد");
 }

@@ -66,6 +66,7 @@ require("node:test")("نمودار دارایی شناسهٔ منبع، واحد
     addEventListener() {}, replaceChildren() {}, appendChild() {}
   });
   for (const sample of [
+    { id: "parsian50", group: "parsian", currency: "IRT", request: "/api/history.php?asset=parsian50" },
     { id: "parsian100", group: "parsian", currency: "IRT", request: "/api/history.php?asset=parsian100" },
     { id: "goldounce", group: "gold", currency: "USD", request: "/api/history.php?asset=goldounce&unit=usd" },
     { id: "brent", group: "energy", currency: "USD", request: "/api/history.php?asset=brent&unit=usd" },
