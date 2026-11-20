@@ -201,12 +201,29 @@ body { background: var(--page); }
 .home-main .seo-content { max-width: none; margin: 0 0 24px; }
 
 /* ── مبدل ────────────────────────────────────────────────────── */
-.converter-insights { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-top: 20px; padding-top: 18px; border-top: 1px solid var(--line-soft); }
-.converter-insights[hidden] { display: none; }
-.converter-insights span { color: var(--muted); font-size: 13px; }
-.converter-insights strong { display: block; color: var(--text); font-size: 15px; direction: ltr; text-align: right; unicode-bidi: plaintext; }
-.converter-insights strong.positive { color: var(--up); }
-.converter-insights strong.negative { color: var(--down); }
+.convert-source-price {
+  display: flex;
+  justify-content: center;
+  min-height: 46px;
+  margin-top: 20px;
+  padding: 10px 16px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--green-soft);
+  text-align: center;
+}
+.convert-source-price[hidden] { display: none; }
+.convert-source-price:hover { border-color: var(--green); color: var(--green-dark); }
+.convert-source-price:focus-visible { outline: 2px solid var(--green); outline-offset: 3px; }
+.convert-source-price::after {
+  content: "";
+  flex: 0 0 auto;
+  width: 8px;
+  height: 8px;
+  border: solid currentColor;
+  border-width: 0 1.5px 1.5px 0;
+  transform: rotate(135deg);
+}
 .conversion-tables { margin-top: 28px; }
 .conversion-tables[hidden] { display: none; }
 .conversion-tables > h2 { margin: 0 0 14px; font-size: clamp(20px, 3vw, 24px); }
@@ -445,9 +462,6 @@ body { background: var(--page); }
   .conversion-grid { grid-template-columns: minmax(0, 1fr); }
   .conversion-table { table-layout: fixed; font-size: 13.5px; }
   .conversion-table th, .conversion-table td { padding-inline: 12px; white-space: normal; overflow-wrap: anywhere; }
-  .converter-insights { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
-  .converter-insights span { font-size: 11.5px; line-height: 1.5; }
-  .converter-insights strong { font-size: 13.5px; }
   .price-main.wide-shell { width: min(100% - 24px, var(--site-width)); }
   .hub-search { max-width: none; }
   .category-grid.category-panels { grid-template-columns: minmax(0, 1fr); }
@@ -478,7 +492,6 @@ body { background: var(--page); }
 .convert-main { padding-top: 40px; }
 .convert-main .intro { margin-bottom: 30px; }
 .convert-main .intro h1 { font-size: clamp(32px, 4.4vw, 44px); letter-spacing: 0; }
-.convert-source-price { margin-top: 16px; }
 .convert-layout { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: center; gap: 24px; }
 .convert-layout > .converter-card { flex: 3 1 520px; min-width: 0; }
 .convert-main .conversion-tables { margin-top: 40px; }
@@ -723,7 +736,7 @@ body { font-family: var(--font-body); }
 :is(.price-primary strong, .rate-value .num) { font-weight: 800; }
 :is(.home-kpi-value strong, .index-card-bottom b, .asset-stat strong, .price-secondary-value, .field-control input, #asset-quick-input, #asset-quick-output .num) { font-weight: 700; }
 :is(.home-kpi-change, .home-market-change, .change-badge, .home-market-price .num, .market-row-price .num, .market-row-month, .price-change strong, .category-stat .num,
-  .category-top em, .movers-card em, .related-meta em, .related-meta b .num, .category-top b .num, .btc-chart-summary-value, .btc-chart-summary-value .num, #btc-chart-tooltip-price .num, #home-usd-chart-low, #home-usd-chart-high, .converter-insights .num) { font-weight: 600; }
+  .category-top em, .movers-card em, .related-meta em, .related-meta b .num, .category-top b .num, .btc-chart-summary-value, .btc-chart-summary-value .num, #btc-chart-tooltip-price .num, #home-usd-chart-low, #home-usd-chart-high) { font-weight: 600; }
 :is(.market-row-rank, .market-row-range > span > span, .price-change-abs, .index-card-bottom .ltr-num, .mover-label small .num, .movers-card small .num, .hub-search-results small .num, td.num, td .num) { font-weight: 500; }
 
 /* عددهای Estedad هم فاصلهٔ طبیعی دارند؛ tnum آن هر رقم را ۰٫۷۴em می‌کند. */

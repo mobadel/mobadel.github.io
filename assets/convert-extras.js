@@ -1,5 +1,4 @@
-/* بخش‌های کمکی مبدل: دکمه‌های مبلغ سریع، جدول تبدیل دوطرفه و خلاصهٔ
-   روزهای اخیر. app.js بعد از هر رندر رویداد «tabdex:pair» را با جفت و
+/* app.js بعد از هر رندر رویداد «tabdex:pair» را با جفت و
    نرخ فعلی می‌فرستد؛ این فایل فقط همان را می‌خواند و به منطق مبدل دست
    نمی‌زند. */
 (function () {
@@ -11,7 +10,6 @@
   var tables = document.getElementById("conversion-tables");
   var grid = document.getElementById("conversion-grid");
   var tablesTitle = document.getElementById("conversion-tables-title");
-  var insights = document.getElementById("converter-insights");
 
   function format(value, digits) {
     return new Intl.NumberFormat("fa-IR", { maximumFractionDigits: digits }).format(value);
@@ -81,72 +79,10 @@
     tables.hidden = false;
   }
 
-  /* خلاصهٔ روزهای اخیر فقط برای دارایی‌هایی که سرور تاریخچه‌شان را
-     نگه می‌دارد معنا دارد: ارز، طلا، سکه و فلزات در برابر تومان. */
-  var historyCache = {};
-  function loadDaily(id) {
-    if (historyCache[id]) return historyCache[id];
-    historyCache[id] = fetch("/api/history.php?assets=" + encodeURIComponent(id) + "&days=40", { headers: { Accept: "application/json" } })
-      .then(function (response) { if (!response.ok) throw new Error("http_" + response.status); return response.json(); })
-      .then(function (payload) { return (payload && payload.assets && payload.assets[id]) || []; })
-      .catch(function () { delete historyCache[id]; return []; });
-    return historyCache[id];
-  }
-
-  var HISTORY_GROUPS = { fiat: true, gold: true, coin: true, commodity: true };
-  var insightToken = 0;
-
   /* عدد در span.num با قلم Estedad و واحد با قلم بدنه. */
   function numCell(value, unit) {
     var td = document.createElement("td"); var num = document.createElement("span");
     num.className = "num"; num.textContent = value; td.append(num, document.createTextNode(" " + unit)); return td;
-  }
-
-  function insightItem(title, value, tone, unit) {
-    var item = document.createElement("div");
-    var span = document.createElement("span"); span.textContent = title;
-    var strong = document.createElement("strong");
-    var num = document.createElement("span"); num.className = "num"; num.textContent = value;
-    strong.appendChild(num); if (unit) strong.appendChild(document.createTextNode(" " + unit));
-    if (tone) strong.className = tone;
-    item.append(span, strong);
-    return item;
-  }
-
-  function percent(now, before) {
-    if (!Number.isFinite(now) || !Number.isFinite(before) || before <= 0) return null;
-    return (now - before) / before * 100;
-  }
-  function percentText(value) { return value === null ? "—" : (value > 0 ? "+" : "") + format(value, 2) + "٪"; }
-  function tone(value) { return value === null ? "neutral" : value > 0 ? "positive" : value < 0 ? "negative" : "neutral"; }
-
-  function paintInsights(detail) {
-    if (!insights) return;
-    var token = ++insightToken;
-    var asset = detail.to.id === "irt" ? detail.from : detail.from.id === "irt" ? detail.to : null;
-    if (!asset || asset.id === "goldounce" || !HISTORY_GROUPS[asset.group] || !detail.rate) { insights.hidden = true; return; }
-    var live = detail.to.id === "irt" ? detail.rate : 1 / detail.rate;
-    loadDaily(asset.id).then(function (points) {
-      if (token !== insightToken) return;
-      if (!points || points.length < 2) { insights.hidden = true; return; }
-      var now = Date.now() / 1000;
-      var todayKey = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Tehran" }).format(new Date());
-      var dayKey = function (time) { return new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Tehran" }).format(new Date(time * 1000)); };
-      // «دیروز» یعنی آخرین روز معاملاتیِ پیش از امروز، نه لزوماً تقویم دیروز.
-      var previous = null;
-      for (var i = points.length - 1; i >= 0; i -= 1) { if (dayKey(points[i][0]) !== todayKey) { previous = points[i]; break; } }
-      var monthAgo = null;
-      for (var j = points.length - 1; j >= 0; j -= 1) { if (points[j][0] <= now - 30 * 86400) { monthAgo = points[j]; break; } }
-      var dayChange = previous ? percent(live, previous[1]) : null;
-      var monthChange = monthAgo ? percent(live, monthAgo[1]) : null;
-      var items = [];
-      if (previous) items.push(insightItem("پایانی آخرین روز معاملاتی", smartFormat(previous[1], { group: asset.group, decimals: 0 }), null, "تومان"));
-      if (dayChange !== null) items.push(insightItem("تغییر نسبت به آن روز", percentText(dayChange), tone(dayChange)));
-      if (monthChange !== null) items.push(insightItem("تغییر ۳۰ روزه", percentText(monthChange), tone(monthChange)));
-      if (!items.length) { insights.hidden = true; return; }
-      insights.replaceChildren.apply(insights, items);
-      insights.hidden = false;
-    });
   }
 
   /* عدد بلند نباید از لبهٔ فیلد بیرون بزند (۲٬۳۵۱٬۸۸۰٬۰۰۰ در موبایل).
@@ -214,6 +150,5 @@
     if (!detail || !detail.from || !detail.to) return;
     paintTables(detail);
     paintFrequent(detail);
-    paintInsights(detail);
   });
 }());
