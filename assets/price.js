@@ -485,8 +485,7 @@
     var freshness = document.getElementById("asset-freshness"); if (freshness) { var dot = document.createElement("i"); dot.setAttribute("aria-hidden", "true"); if (marketClosed(asset)) freshness.replaceChildren(dot, document.createTextNode(" آخرین نرخ بازار "), closedHint()); else freshness.replaceChildren(dot, document.createTextNode(" آخرین به‌روزرسانی " + formatTime(asset.updatedAt || latestUpdate))); }
     text(document.getElementById("asset-content-title"), "قیمت " + asset.name + " امروز"); var movement = asset.change > 0 ? "افزایش" : asset.change < 0 ? "کاهش" : "بدون تغییر"; var tomanSentence = Number.isFinite(asset.tomanPrice) && asset.group !== "energy" ? " نرخ آن در بازار تومانی " + formatPrice(asset.tomanPrice) + " تومان است." : ""; text(document.getElementById("asset-content-lead"), "قیمت هر " + unitText(asset) + " " + asset.name + " اکنون " + formattedPrice(asset) + " است." + tomanSentence + (Number.isFinite(asset.change) ? " این قیمت در ۲۴ ساعت گذشته " + formatAbsoluteChange(asset.change) + " " + movement + " داشته است." : ""));
     text(document.getElementById("asset-about-title"), "درباره " + asset.name);
-    var isParsian50 = asset.id === "parsian50";
-    var aboutText = isParsian50
+    var aboutText = asset.id === "parsian50"
       ? "قیمت سکه پارسیان ۵۰ سوت با تقسیم نرخ سکه پارسیان ۱۰۰ سوت بر ۲ محاسبه می‌شود. نقاط نمودار هم با همین روش به دست می‌آیند."
       : asset.name + (asset.code ? " با نماد " + asset.code : "") + " در دسته " + category.name + " قرار دارد. این صفحه آخرین قیمت قابل دریافت از " + (asset.source || "بازار") + " را نمایش می‌دهد و برای پیگیری ارزش روز این دارایی به‌روزرسانی می‌شود.";
     text(document.getElementById("asset-about-text"), aboutText);
@@ -496,13 +495,6 @@
     renderQuickConvert(asset);
     renderRelated(asset);
     renderAbsoluteChange(asset);
-    var sourceBox = document.getElementById("data-source-note");
-    if (sourceBox) {
-      var sourceText = isParsian50 ? "مبنای محاسبه، نرخ سکه پارسیان ۱۰۰ سوت از سایت طلاست."
-        : "قیمت " + asset.name + " از " + (asset.source || "بازار") + " دریافت می‌شود.";
-      text(document.getElementById("data-source-text"), sourceText);
-      sourceBox.hidden = false;
-    }
     var thingId = ORIGIN + path + "#thing";
     setSchema([{ "@type": "WebPage", "@id": ORIGIN + path + "#webpage", name: title.replace(" | تبدکس", ""), description: description, url: ORIGIN + path, inLanguage: "fa-IR", about: { "@id": thingId }, mainEntity: { "@id": thingId }, breadcrumb: { "@id": ORIGIN + path + "#breadcrumb" } }, { "@type": "Thing", "@id": thingId, name: asset.name, alternateName: asset.code || asset.englishName }, Object.assign({ "@id": ORIGIN + path + "#breadcrumb" }, breadcrumb([{ name: "تبدکس", path: "/" }, { name: "قیمت‌ها", path: "/price/" }, { name: category.name, path: categoryUrl(group) }, { name: asset.name, path: path }]))]);
   }
