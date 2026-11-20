@@ -28,7 +28,7 @@ for (const [name, html] of Object.entries(templates)) {
   // فوتر کامل، نه فهرست خلاصه، در همهٔ صفحه‌ها
   assert.match(html, /class="site-footer"><?[\s\S]*class="site-shell footer-inner"[\s\S]*class="footer-brand"/, `${name}: فوتر کامل لازم است`);
   for (const label of ["قیمت‌ها", "ابزارها و محتوا", "تبدکس"]) assert.match(html, new RegExp(`<strong>${label}</strong>`), `${name}: ستون «${label}» فوتر`);
-  const siteStyleVersion = { home: "20261027-prices", convert: "20261120-source-price" }[name] || "20261118-chevron";
+  const siteStyleVersion = { home: "20261027-prices", convert: "20261120-price-action" }[name] || "20261118-chevron";
   assert.ok(html.includes("/assets/site.css?v=" + siteStyleVersion), `${name}: site.css`);
   assert.ok(html.includes("/assets/site.js?v=" + (name === "home" ? "20261110-rahn" : "20261118-chevron")), `${name}: site.js`);
   assert.doesNotMatch(html, /←/, `${name}: فلش متنی نباید باشد`);
@@ -51,7 +51,9 @@ assert.match(templates.home, /id="home-market-filters"[\s\S]*class="home-market-
 assert.match(templates.home, /id="home-usd-chart" hidden[\s\S]*id="home-movers" hidden/, "هوم: کارت‌های کناری تا رسیدن داده پنهان‌اند");
 assert.match(templates.home, /class="home-mag" id="home-mag"[^>]*hidden/, "هوم: مجله بدون داده پنهان می‌ماند");
 assert.doesNotMatch(templates.home, /home-faq|class="ticker/, "پرسش‌ها و نوار تیکر عمداً حذف شده‌اند");
-assert.match(templates.convert, /id="quick-amounts"[\s\S]*id="converter-insights"[^>]*hidden[\s\S]*id="conversion-tables"[^>]*hidden[\s\S]*class="pair-content"/, "مبدل: مبلغ سریع، خلاصه و جدول تبدیل");
+assert.match(templates.convert, /id="quick-amounts"[\s\S]*?<\/div>\s*<a[^>]*id="source-price-link"[^>]*hidden><\/a>\s*<\/section>[\s\S]*id="conversion-tables"[^>]*hidden[\s\S]*class="pair-content"/, "دکمهٔ قیمت زیر مبلغ سریع و داخل کارت مبدل قرار می‌گیرد");
+assert.doesNotMatch(templates.convert, /converter-insights/);
+assert.doesNotMatch(read("assets/convert-extras.js"), /\/api\/history\.php/);
 assert.match(templates.hub, /id="hub-search"[\s\S]*id="hub-indices"[\s\S]*id="category-grid"[\s\S]*id="hub-movers"/, "هاب: جستجو، شاخص‌ها، دسته‌ها و بیشترین تغییرات");
 assert.match(templates.category, /id="category-stats"[\s\S]*id="market-sort"[\s\S]*id="market-table-wrap"[\s\S]*id="other-markets"/, "دسته: آمار، مرتب‌سازی، جدول و بازارهای دیگر");
 assert.match(templates.convert, /<body data-inline-picker>[\s\S]*class="convert-layout">[\s\S]*class="converter-card"[\s\S]*id="asset-dialog"[\s\S]*id="asset-recent"[\s\S]*<\/div>\n    <\/div>\n\n    <section class="conversion-tables"/, "مبدل: انتخابگر کنار مبدل");
