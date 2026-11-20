@@ -393,6 +393,8 @@ function priceAssetMeta(group, slug, name) {
     path: `/price/${group}/${slug}/`,
     slots: [
       [/(<h1 id="asset-title">)[^<]*(<\/h1>)/, `$1قیمت ${name}$2`],
+      [/(<h2 id="btc-chart-title">)[^<]*(<\/h2>)/, `$1نمودار قیمت ${esc(name)}$2`],
+      [/(<svg id="btc-chart-svg"[^>]*\baria-label=")[^"]*(")/, `$1نمودار تاریخی قیمت ${esc(name)}$2`],
       [/(<li id="asset-crumb" aria-current="page">)[^<]*(<\/li>)/, `$1${name}$2`],
       [/(<a id="asset-category-link" href=")[^"]*(">)[^<]*(<\/a>)/, `$1/price/${group}/$2${category.name}$3`],
       [/(<h2 id="asset-content-title">)[^<]*(<\/h2>)/, `$1قیمت ${name} امروز$2`],

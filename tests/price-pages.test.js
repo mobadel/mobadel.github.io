@@ -31,8 +31,9 @@ new vm.Script(homeScript, { filename: "assets/home.js" });
 new vm.Script(dateScript, { filename: "assets/date.js" });
 new vm.Script(btcChartScript, { filename: "assets/btc-chart.js" });
 
-assert.match(asset, /id="btc-price-chart"[^>]*hidden[\s\S]*<h2 id="btc-chart-title">نمودار قیمت بیت کوین<\/h2>/, "نمودار آزمایشی باید در قالب دارایی و به صورت پیش‌فرض مخفی باشد");
+assert.match(asset, /id="btc-price-chart"[^>]*hidden[\s\S]*<h2 id="btc-chart-title">نمودار قیمت<\/h2>/, "نمودار در قالب مشترک باید با عنوان عمومی و به‌صورت پیش‌فرض مخفی باشد");
 assert.match(asset, /data-chart-range="24h"[\s\S]*data-chart-range="7d"[\s\S]*data-chart-range="1m"[\s\S]*data-chart-range="1y"[\s\S]*data-chart-range="all"/, "پنج بازه زمانی نمودار لازم است");
+assert.match(asset, /<svg id="btc-chart-svg"[^>]*aria-label="نمودار تاریخی قیمت"/, "برچسب نمودار در قالب مشترک باید عمومی باشد");
 assert.match(asset, /id="btc-chart-summary-high"[\s\S]*id="btc-chart-summary-low"[\s\S]*id="btc-chart-summary-change"/, "نمودار باید خلاصهٔ بیشترین، پایین‌ترین و تغییرات بازه را داشته باشد");
 assert.doesNotMatch(asset, /btc-chart-high-label|btc-chart-low-label|btc-chart-source/, "برچسب‌های روی نمودار و متن منبع قدیمی باید حذف شوند");
 assert.match(btcChartScript, /lowestPrice[\s\S]*highestPrice[\s\S]*percentageChange[\s\S]*renderChartSummary/, "خلاصهٔ پایین نمودار باید از نقاط همان بازه محاسبه شود");
