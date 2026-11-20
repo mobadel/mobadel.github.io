@@ -114,6 +114,12 @@ function marketStatusMap(int $time): array {
    $dynamic از بیرون داده می‌شوند تا درخواستِ چنددارایی هر فایل را فقط
    یک‌بار بخواند. */
 function historyMergedPoints(string $id, string $group, array $seed, array $dynamic): array {
+    $scale = 1;
+    if ($id === 'parsian50') {
+        $id = 'parsian100';
+        $group = 'parsian';
+        $scale = 0.5;
+    }
     $merged = [];
     foreach ([$seed, $dynamic] as $source) {
         foreach (($source['assets'][$id] ?? []) as $point) {
@@ -121,7 +127,7 @@ function historyMergedPoints(string $id, string $group, array $seed, array $dyna
             $time = (int) $point[0]; $price = (float) $point[1];
             if ($time <= 0 || $price <= 0) continue;
             if (!marketDayIsOpen($group, $time)) continue;
-            $merged[$time] = [$time, $price];
+            $merged[$time] = [$time, $price * $scale];
         }
     }
     ksort($merged, SORT_NUMERIC);

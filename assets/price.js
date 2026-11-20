@@ -17,7 +17,7 @@
   /* سکهٔ پارسیان: وزن به سوت (هزارم گرم). شناسه parsian100 و اسلاگ 100-sot؛
      از یک گرم به بالا 1-gram، 1-1-gram … 2-1-gram. همین جدول در
      scripts/build-pages.mjs هم هست. */
-  var PARSIAN_WEIGHTS = [100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100, 1200, 1300, 1400, 1500, 1600, 1700, 1800, 1900, 2000, 2100];
+  var PARSIAN_WEIGHTS = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100, 1200, 1300, 1400, 1500, 1600, 1700, 1800, 1900, 2000, 2100];
   function parsianSlug(weight) { return weight < 1000 ? weight + "-sot" : String(weight / 1000).replace(".", "-") + "-gram"; }
   function parsianName(weight) { return "سکه پارسیان " + (weight < 1000 ? formatNumber(weight) + " سوت" : formatNumber(weight / 1000, 1).replace("٫", ".") + " گرم"); }
   PARSIAN_WEIGHTS.forEach(function (weight) { SLUGS["parsian" + weight] = parsianSlug(weight); });
@@ -484,14 +484,25 @@
     text(document.getElementById("asset-price"), formatPrice(asset.price, asset)); text(document.getElementById("asset-unit"), priceLabel(asset)); var secondary = document.getElementById("asset-secondary"); if (secondary) { var hasToman = Number.isFinite(asset.tomanPrice) && asset.group !== "energy"; secondary.hidden = !hasToman; text(document.getElementById("asset-secondary-price"), hasToman ? formatPrice(asset.tomanPrice) : "—"); var secondaryChange = document.getElementById("asset-secondary-change"); if (secondaryChange) { secondaryChange.className = "price-change secondary-change " + (hasToman ? changeClass(asset.tomanChange) : "neutral"); text(secondaryChange.querySelector("strong"), hasToman ? formatChange(asset.tomanChange) : "—"); } } var changeBox = document.getElementById("asset-change"); if (changeBox) { changeBox.className = "price-change " + changeClass(asset.change); var strong = changeBox.querySelector("strong"); text(strong, formatChange(asset.change)); }
     var freshness = document.getElementById("asset-freshness"); if (freshness) { var dot = document.createElement("i"); dot.setAttribute("aria-hidden", "true"); if (marketClosed(asset)) freshness.replaceChildren(dot, document.createTextNode(" آخرین نرخ بازار "), closedHint()); else freshness.replaceChildren(dot, document.createTextNode(" آخرین به‌روزرسانی " + formatTime(asset.updatedAt || latestUpdate))); }
     text(document.getElementById("asset-content-title"), "قیمت " + asset.name + " امروز"); var movement = asset.change > 0 ? "افزایش" : asset.change < 0 ? "کاهش" : "بدون تغییر"; var tomanSentence = Number.isFinite(asset.tomanPrice) && asset.group !== "energy" ? " نرخ آن در بازار تومانی " + formatPrice(asset.tomanPrice) + " تومان است." : ""; text(document.getElementById("asset-content-lead"), "قیمت هر " + unitText(asset) + " " + asset.name + " اکنون " + formattedPrice(asset) + " است." + tomanSentence + (Number.isFinite(asset.change) ? " این قیمت در ۲۴ ساعت گذشته " + formatAbsoluteChange(asset.change) + " " + movement + " داشته است." : ""));
-    text(document.getElementById("asset-about-title"), "درباره " + asset.name); text(document.getElementById("asset-about-text"), asset.name + (asset.code ? " با نماد " + asset.code : "") + " در دسته " + category.name + " قرار دارد. این صفحه آخرین قیمت قابل دریافت از " + (asset.source || "بازار") + " را نمایش می‌دهد و برای پیگیری ارزش روز این دارایی به‌روزرسانی می‌شود.");
+    text(document.getElementById("asset-about-title"), "درباره " + asset.name);
+    var isParsian50 = asset.id === "parsian50";
+    var aboutText = isParsian50
+      ? "قیمت سکه پارسیان ۵۰ سوت با تقسیم نرخ سکه پارسیان ۱۰۰ سوت بر ۲ محاسبه می‌شود. نقاط نمودار هم با همین روش به دست می‌آیند."
+      : asset.name + (asset.code ? " با نماد " + asset.code : "") + " در دسته " + category.name + " قرار دارد. این صفحه آخرین قیمت قابل دریافت از " + (asset.source || "بازار") + " را نمایش می‌دهد و برای پیگیری ارزش روز این دارایی به‌روزرسانی می‌شود.";
+    text(document.getElementById("asset-about-text"), aboutText);
     text(document.getElementById("asset-usage-text"), "با مقایسه قیمت لحظه ای و درصد تغییر ۲۴ ساعته می‌توانید جهت حرکت کوتاه‌مدت قیمت " + asset.name + " را بهتر ببینید. این داده صرفاً برای محاسبه و اطلاع‌رسانی است و پیشنهاد خرید یا فروش محسوب نمی‌شود.");
     // دکمهٔ بالای صفحه به مبدل همین دارایی به تومان می‌رود: «مبدل قیمت دلار».
     var heroConvert = document.getElementById("asset-hero-convert"); if (heroConvert) heroConvert.hidden = !hasConverter(asset); if (heroConvert && hasConverter(asset)) { heroConvert.setAttribute("href", "/convert/" + slugOf(asset.id) + "-to-irt/"); var heroArrow = document.createElement("span"); heroArrow.className = "icon-chevron"; heroArrow.setAttribute("aria-hidden", "true"); heroConvert.replaceChildren(document.createTextNode("مبدل قیمت " + asset.name + " "), heroArrow); }
     renderQuickConvert(asset);
     renderRelated(asset);
     renderAbsoluteChange(asset);
-    var sourceBox = document.getElementById("data-source-note"); if (sourceBox) { text(document.getElementById("data-source-text"), "قیمت " + asset.name + " از " + (asset.source || "بازار") + " دریافت می‌شود."); sourceBox.hidden = false; }
+    var sourceBox = document.getElementById("data-source-note");
+    if (sourceBox) {
+      var sourceText = isParsian50 ? "مبنای محاسبه، نرخ سکه پارسیان ۱۰۰ سوت از سایت طلاست."
+        : "قیمت " + asset.name + " از " + (asset.source || "بازار") + " دریافت می‌شود.";
+      text(document.getElementById("data-source-text"), sourceText);
+      sourceBox.hidden = false;
+    }
     var thingId = ORIGIN + path + "#thing";
     setSchema([{ "@type": "WebPage", "@id": ORIGIN + path + "#webpage", name: title.replace(" | تبدکس", ""), description: description, url: ORIGIN + path, inLanguage: "fa-IR", about: { "@id": thingId }, mainEntity: { "@id": thingId }, breadcrumb: { "@id": ORIGIN + path + "#breadcrumb" } }, { "@type": "Thing", "@id": thingId, name: asset.name, alternateName: asset.code || asset.englishName }, Object.assign({ "@id": ORIGIN + path + "#breadcrumb" }, breadcrumb([{ name: "تبدکس", path: "/" }, { name: "قیمت‌ها", path: "/price/" }, { name: category.name, path: categoryUrl(group) }, { name: asset.name, path: path }]))]);
   }
