@@ -19,7 +19,7 @@ assert.match(html, /<h1 id="page-title">تبدیل دلار به تومان<\/h1
 assert.match(html, /<h2 class="rate-value" id="rate-value">/);
 assert.match(html, /<h2 id="pair-content-title">تبدیل دلار به تومان با قیمت لحظه ای و سریع<\/h2>/);
 assert.doesNotMatch(html, /<h2 id="asset-dialog-title">/);
-assert.match(html, /<script src="\/assets\/app\.js\?v=20261108-content"><\/script>/);
+assert.match(html, /<script src="\/assets\/app\.js\?v=20261120-source-price"><\/script>/);
 assert.match(fs.readFileSync("assets/app.js", "utf8"), /coin-emami\.webp\?v=20260825-2/);
 assert.ok(fs.existsSync("assets/coin-emami.webp"));
 assert.ok(fs.statSync("assets/coin-emami.webp").size < 25000, "آیکون سکه باید برای وب بهینه باشد");
@@ -76,6 +76,7 @@ class FakeElement {
     return selector === "[data-group]" && this.dataset.group ? this : null;
   }
   setAttribute(name, value) { this.attributes[name] = String(value); }
+  removeAttribute(name) { delete this.attributes[name]; }
   appendChild(child) { this.children.push(child); return child; }
   append(...children) { this.children.push(...children); }
   replaceChildren(...children) { this.children = children; }
@@ -92,6 +93,7 @@ class FakeElement {
 
 const ids = [
   "amount-from", "amount-to", "currency-from", "currency-to", "page-title", "rate-value",
+  "source-price-link",
   "pair-content-title", "pair-content-intro", "pair-content-rate",
   "rate-status", "swap", "refresh", "asset-dialog", "asset-dialog-title", "dialog-close",
   "asset-search", "asset-list", "asset-empty", "asset-filters", "asset-dialog-panel"
@@ -368,6 +370,9 @@ setTimeout(async () => {
   openDialog("to");
   elements["asset-list"].children.find((item) => item.dataset.currency === "irt").dispatch("click");
   assert.equal(location.pathname, "/convert/btc-to-irt/", "تغییر جفت باید آدرس را عوض کند");
+  assert.equal(elements["source-price-link"].attributes.href, "/price/crypto/btc/");
+  assert.equal(elements["source-price-link"].textContent, "قیمت لحظه‌ای بیت کوین");
+  assert.equal(elements["source-price-link"].hidden, false);
   assert.equal(document.title, `تبدیل بیت کوین به تومان امروز ${TODAY} | مبدل قیمت`);
   assert.equal(headTags['meta[name="description"]'].attributes.content, `تبدیل بیت کوین به تومان با قیمت لحظه ای امروز ${TODAY}. مبدل نرخ بیت کوین به تومان.`);
   assert.equal(headTags['link[rel="canonical"]'].attributes.href, "https://tabdex.ir/convert/btc-to-irt/");
@@ -384,6 +389,8 @@ setTimeout(async () => {
   // جابه‌جایی طرفین آدرس معکوس می‌سازد.
   elements["swap"].dispatch("click");
   assert.equal(location.pathname, "/convert/irt-to-btc/", "جابه‌جایی باید آدرس معکوس بسازد");
+  assert.equal(elements["source-price-link"].hidden, true);
+  assert.equal(elements["source-price-link"].attributes.href, undefined);
 
   // تتر به تومان، با وجود نمایش‌دادن همین جفت در نسخه‌های قدیمی خانه،
   // باید مسیر و canonical مستقل خودش را داشته باشد.
@@ -406,6 +413,8 @@ setTimeout(async () => {
   elements["asset-search"].dispatch("input");
   elements["asset-list"].children.find((item) => item.dataset.currency === "usd").dispatch("click");
   assert.equal(location.pathname, "/convert/usd-to-irt/", "دلار به تومان باید آدرس مستقل خودش را نشان دهد");
+  assert.equal(elements["source-price-link"].attributes.href, "/price/currency/usd/");
+  assert.equal(elements["source-price-link"].textContent, "قیمت لحظه‌ای دلار");
   assert.equal(headTags['link[rel="canonical"]'].attributes.href, "https://tabdex.ir/convert/usd-to-irt/");
 
   /* ── فلزات: مس منبع به‌جای نماد لاتین؛ نقره بازار آزاد، مثل طلا ── */

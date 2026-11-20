@@ -201,6 +201,7 @@
     amountFrom: document.getElementById("amount-from"), amountTo: document.getElementById("amount-to"),
     currencyFrom: document.getElementById("currency-from"), currencyTo: document.getElementById("currency-to"),
     pageTitle: document.getElementById("page-title"), rateValue: document.getElementById("rate-value"),
+    sourcePriceLink: document.getElementById("source-price-link"),
     pairContentTitle: document.getElementById("pair-content-title"),
     pairContentIntro: document.getElementById("pair-content-intro"),
     pairContentRate: document.getElementById("pair-content-rate"),
@@ -505,6 +506,17 @@
     var toCurrency = currencies[state.to];
     if (!fromCurrency || !toCurrency) return;
     var heading = "تبدیل " + fromCurrency.name + " به " + toCurrency.name;
+    if (elements.sourcePriceLink) {
+      var hasPricePage = fromCurrency.id !== "irt";
+      if (hasPricePage) {
+        var groupSlug = fromCurrency.group === "fiat" ? "currency" : fromCurrency.group;
+        elements.sourcePriceLink.setAttribute("href", "/price/" + groupSlug + "/" + slugOf(fromCurrency.id) + "/");
+        elements.sourcePriceLink.textContent = "قیمت لحظه‌ای " + fromCurrency.name;
+      } else {
+        elements.sourcePriceLink.removeAttribute("href");
+      }
+      elements.sourcePriceLink.hidden = !hasPricePage;
+    }
     // صفحهٔ مقدار («۱۰۰۰ دلار چند تومان است؟») عنوان، H1 و canonical خودش را
     // از سرور دارد؛ تا وقتی جفت همان است دست نمی‌خورند.
     if (!onAmountPage()) {

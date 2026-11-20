@@ -294,6 +294,8 @@ function metaFor(from, to) {
    نیفتند. اگر یکی از این الگوها پیدا نشود، عمداً خطا می‌دهیم؛ تولید
    بی‌سروصدای صفحه‌های ناقص بدتر از شکست دیپلوی است. */
 function renderPage(template, meta) {
+  const sourcePriceLink = meta.fromSlug === "irt" ? "$1 hidden></a>"
+    : `$1 href="/price/${groupFor(meta.fromSlug)}/${meta.fromSlug}/">قیمت لحظه‌ای ${esc(meta.fromName)}</a>`;
   const replacements = [
     [/<title>[^<]*<\/title>/, `<title>${meta.title}</title>`],
     [/(<meta name="description" content=")[^"]*(">)/, `$1${meta.description}$2`],
@@ -304,6 +306,7 @@ function renderPage(template, meta) {
     [/(<link rel="canonical" href=")[^"]*(">)/, `$1${ORIGIN}${meta.path}$2`],
     [/(<meta property="og:url" content=")[^"]*(">)/, `$1${ORIGIN}${meta.path}$2`],
     [/(<h1 id="page-title">)[^<]*(<\/h1>)/, `$1${meta.heading}$2`],
+    [/(<a class="asset-primary-link convert-source-price" id="source-price-link") hidden><\/a>/, sourcePriceLink],
     [/(<h2 id="pair-content-title">)[^<]*(<\/h2>)/, `$1${meta.heading} با قیمت لحظه ای و سریع$2`],
     [/(<p id="pair-content-intro">)[^<]*(<\/p>)/, `$1با سرویس مبدل تبدکس، می‌توانید به‌سادگی ${meta.fromName} خود را به ${meta.toName} تبدیل کنید. قیمت لحظه ای هر دارایی به شما کمک می‌کند قبل از انجام تبدیل، ارزش دارایی خود را مشاهده کنید.$2`],
     [/(<p id="pair-content-rate">)[^<]*(<\/p>)/, `$1در حال دریافت نرخ لحظه ای ${meta.fromName} و ${meta.toName}…$2`]

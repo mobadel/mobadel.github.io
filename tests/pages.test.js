@@ -112,6 +112,9 @@ assert.match(html, /<title>تبدیل طلا ۱۸ عیار به تومان \| م
 assert.match(html, /<meta name="description" content="تبدیل طلا ۱۸ عیار به تومان با نرخ مرجع بازار\. مبدل نرخ طلا ۱۸ عیار به تومان\.">/);
 assert.match(html, /<link rel="canonical" href="https:\/\/tabdex\.ir\/convert\/gold18-to-irt\/">/);
 assert.match(html, /<h1 id="page-title">تبدیل طلا ۱۸ عیار به تومان<\/h1>/);
+assert.match(html, /id="source-price-link" href="\/price\/gold\/gold18\/">قیمت لحظه‌ای طلا ۱۸ عیار<\/a>/);
+assert.match(fs.readFileSync(path.join(workdir, "_site", "convert", "irt-to-gold18", "index.html"), "utf8"), /id="source-price-link" hidden><\/a>/);
+assert.match(fs.readFileSync(path.join(workdir, "_site", "convert", "usd-to-irt", "amount-1000.html"), "utf8"), /id="source-price-link" href="\/price\/currency\/usd\/">قیمت لحظه‌ای دلار<\/a>/);
 assert.match(html, /<h2 id="pair-content-title">تبدیل طلا ۱۸ عیار به تومان با قیمت لحظه ای و سریع<\/h2>/);
 assert.match(html, /<p id="pair-content-intro">با سرویس مبدل تبدکس، می‌توانید به‌سادگی طلا ۱۸ عیار خود را به تومان تبدیل کنید\./);
 // مسیرها باید مطلق شده باشند وگرنه از داخل پوشه به فایل نمی‌رسند
