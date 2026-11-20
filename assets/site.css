@@ -606,11 +606,6 @@ body { background: var(--page); }
 .asset-content .converter-link:hover { color: #fff; background: var(--green); }
 .quick-convert-field { border-color: var(--green); }
 .quick-convert output { font-size: 24px; font-weight: 800; }
-.source-note { padding: 18px; border: 1px dashed var(--border-strong); border-radius: 20px; color: #4a5c55; background: var(--surface-muted); font-size: 13.5px; }
-.source-note[hidden] { display: none; }
-.source-note strong { display: block; margin-bottom: 4px; color: var(--text); }
-.source-note p { margin: 0; line-height: 1.85; }
-.source-note a { display: inline-flex; align-items: center; gap: 6px; margin-top: 6px; color: var(--green-dark); font-weight: 700; text-decoration: none; }
 
 @media (max-width: 900px) {
   .asset-price-hero { grid-template-columns: minmax(0, 1fr); grid-template-areas: "identity" "quote" "secondary" "fresh" "actions"; gap: 12px; }
