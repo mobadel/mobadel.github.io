@@ -13,6 +13,13 @@ assert.match(htaccess, /RewriteRule \^panel\/\(\?:lib/, "کد داخلی پنل 
 assert.match(htaccess, /\^cms-media\/\.\*\\\.\(\?:php/, "اجرای PHP در پوشهٔ رسانه باید بسته باشد");
 assert.ok(htaccess.indexOf("panel/render.php") < htaccess.indexOf("RewriteCond %{REQUEST_FILENAME} -f"), "محتوای پنل باید پیش از قاعدهٔ فایل واقعی باشد");
 assert.match(htaccess, /%\{DOCUMENT_ROOT\}\/cms-data\/published\/\$1\.php -f/, "فقط صفحه‌های منتشرشده باید از PHP بگذرند");
+const cmsRules = htaccess.split(/\r?\n/).filter(line => line.includes(" panel/render.php "));
+assert.strictEqual(cmsRules.length, 2);
+for (const rule of cmsRules) {
+  const pattern = new RegExp(rule.trim().split(/\s+/)[1]);
+  assert.ok(pattern.test("convert/rahn-ejare/"), "رهن و اجاره باید از مسیر پیش‌نمایش و انتشار پشتیبانی کند");
+  assert.ok(!pattern.test("convert/another-tool/"), "ابزارهای دیگر بدون ثبت نباید وارد پنل شوند");
+}
 
 /* قاعده‌های ?amount= باید بالاتر از پنل بنشینند، وگرنه صفحه‌های مقدار از کار می‌افتند. */
 assert.match(read("scripts/build-pages.mjs"), /const anchor = " {2}# محتوای دستی پنل:";/);
@@ -45,6 +52,7 @@ if (spawnSync(php, ["-v"]).status !== 0) {
   const script = `
     require ${JSON.stringify(path.join(root, "panel/lib/core.php"))};
     require ${JSON.stringify(path.join(root, "panel/lib/sanitize.php"))};
+    require ${JSON.stringify(path.join(root, "panel/lib/pages.php"))};
     $clean = cms_sanitize(file_get_contents("php://stdin"));
     $page = '<head></head><main><section class="pair-content" aria-labelledby="x"><h2 id="pair-content-title">auto</h2><p class="pair-links"><a href="/l">l</a></p></section></main>';
     echo json_encode([
@@ -54,6 +62,9 @@ if (spawnSync(php, ["-v"]).status !== 0) {
       "traversal" => cms_key_from_path("/price/../../cms-data/users"),
       "newline" => cms_key_from_path("/price/gold\\n"),
       "dynamic" => cms_key_from_path("/convert/btc-to-eur/?amount=3"),
+      "rent_key" => cms_key_from_path("/convert/rahn-ejare/?cms_preview=test"),
+      "rent_auto" => cms_auto_content("convert/rahn-ejare"),
+      "rent_render" => cms_inject(cms_base_html("convert/rahn-ejare"), '<p>Rent CMS test</p>', "convert/rahn-ejare"),
     ], JSON_UNESCAPED_UNICODE);
   `;
   const input = `<h1>تیتر</h1><p onclick="x()" style="color:#f00;background:url(javascript:x)">متن <a href="java&#10;script:x()">a</a><a href="https://a.example/" target="_blank">b</a></p><script>x()</script><img src=x onerror=y()><iframe src="https://e.example"></iframe><video src="/v.mp4" autoplay></video>`;
@@ -73,6 +84,12 @@ if (spawnSync(php, ["-v"]).status !== 0) {
   assert.strictEqual(out.traversal, null);
   assert.strictEqual(out.newline, null);
   assert.strictEqual(out.dynamic, "convert/btc-to-eur");
+  assert.strictEqual(out.rent_key, "convert/rahn-ejare");
+  assert.match(out.rent_auto, /فرمول تبدیل رهن به اجاره/);
+  assert.match(out.rent_render, /class="pair-content cms-content"[^>]*><div class="cms-body"><p>Rent CMS test<\/p>/);
+  assert.match(out.rent_render, /class="converter-card rent-card"/);
+  assert.match(out.rent_render, /src="\/assets\/rent-calc\.js/);
+  assert.doesNotMatch(out.rent_render, /id="rent-about-title"/);
 }
 
 console.log("panel tests passed");

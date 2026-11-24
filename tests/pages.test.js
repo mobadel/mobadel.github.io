@@ -104,6 +104,11 @@ fs.cpSync("data/frequent-conversions.json", path.join(workdir, "data/frequent-co
 
 execFileSync(process.execPath, ["scripts/build-pages.mjs"], { cwd: workdir, stdio: "pipe" });
 
+const panelCatalog = JSON.parse(fs.readFileSync(path.join(workdir, "_site/panel/catalog.json"), "utf8"));
+assert.deepStrictEqual(panelCatalog.pages.find(page => page.path === "/convert/rahn-ejare/"), {
+  path: "/convert/rahn-ejare/", title: "ماشین حساب تبدیل رهن و اجاره", type: "convert"
+});
+
 const generated = path.join(workdir, "_site", "convert", "gold18-to-irt", "index.html");
 assert.ok(fs.existsSync(generated), "صفحهٔ gold18-to-irt ساخته نشد");
 

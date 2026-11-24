@@ -820,6 +820,7 @@ const completeSitemap = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="
 const panelPages = [
   { path: "/price/", title: "هاب قیمت‌ها", type: "category" },
   { path: "/convert/", title: "صفحهٔ اصلی مبدل", type: "convert" },
+  { path: rentPath, title: rentName, type: "convert" },
   ...[...Object.keys(PRICE_GROUPS), "crypto"].map((group) => ({ path: `/price/${group}/`, title: `قیمت ${PRICE_CATEGORIES[group].name}`, type: "category" })),
 ];
 const panelSeen = new Set(panelPages.map((page) => page.path));

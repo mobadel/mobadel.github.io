@@ -159,7 +159,7 @@ function cms_update_index(string $key, string $status, array $actor): void
            کدام جفت‌ها باید از سرور با متن دستی‌شان بار شوند. */
         $pairs = [];
         foreach ($index as $indexKey => $meta) {
-            if (str_starts_with((string) $indexKey, 'convert/') && in_array($meta['status'], ['published', 'changed'], true)) {
+            if (preg_match(CMS_PAIR_PATTERN, (string) $indexKey) === 1 && in_array($meta['status'], ['published', 'changed'], true)) {
                 $pairs[] = cms_path_from_key((string) $indexKey);
             }
         }
