@@ -12,7 +12,8 @@ declare(strict_types=1);
  */
 
 const CMS_GUARD = "<?php exit; ?>\n";
-const CMS_KEY_PATTERN = '~^(?:price(?:/[a-z0-9-]+){0,2}|convert(?:/[a-z0-9]+-to-[a-z0-9]+)?)$~D';
+const CMS_KEY_PATTERN = '~^(?:price(?:/[a-z0-9-]+){0,2}|convert(?:/(?:[a-z0-9]+-to-[a-z0-9]+|rahn-ejare))?)$~D';
+const CMS_PAIR_PATTERN = '~^convert/[a-z0-9]+-to-[a-z0-9]+$~D';
 const CMS_CSS_VERSION = '20261108-1';
 
 define('CMS_ROOT', dirname(__DIR__, 2));
@@ -151,7 +152,7 @@ function cms_read_published(string $key): ?string
 function cms_base_html(string $key): ?string
 {
     $candidates = [CMS_ROOT . '/' . $key . '/index.html'];
-    if (str_starts_with($key, 'convert/')) {
+    if (preg_match(CMS_PAIR_PATTERN, $key) === 1) {
         $candidates[] = CMS_ROOT . '/convert/index.html';
     } elseif (substr_count($key, '/') === 1) {
         $candidates[] = CMS_ROOT . '/price/category.html';

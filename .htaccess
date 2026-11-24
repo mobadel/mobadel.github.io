@@ -39,9 +39,9 @@ DirectoryIndex index.html
   # محتوای دستی پنل: فقط آدرس‌هایی که متن منتشرشده دارند از PHP می‌گذرند
   # و باید پیش از قاعدهٔ «فایل یا پوشهٔ واقعی» باشند. پیش‌نمایش با امضای موقت است.
   RewriteCond %{QUERY_STRING} (?:^|&)cms_preview=
-  RewriteRule ^(?:price(?:/[a-z0-9-]+){0,2}|convert(?:/[a-z0-9]+-to-[a-z0-9]+)?)/?$ panel/render.php [L]
+  RewriteRule ^(?:price(?:/[a-z0-9-]+){0,2}|convert(?:/(?:[a-z0-9]+-to-[a-z0-9]+|rahn-ejare))?)/?$ panel/render.php [L]
   RewriteCond %{DOCUMENT_ROOT}/cms-data/published/$1.php -f
-  RewriteRule ^(price(?:/[a-z0-9-]+){0,2}|convert(?:/[a-z0-9]+-to-[a-z0-9]+)?)/?$ panel/render.php [L]
+  RewriteRule ^(price(?:/[a-z0-9-]+){0,2}|convert(?:/(?:[a-z0-9]+-to-[a-z0-9]+|rahn-ejare))?)/?$ panel/render.php [L]
 
   # اگر فایل یا پوشهٔ واقعی وجود دارد، دست نزن. صفحه‌های ایستایی که
   # هنگام دیپلوی ساخته می‌شوند از همین راه سرو می‌شوند و بازنویسی
