@@ -19,6 +19,7 @@ for (const url of urls) {
   assert.equal((html.match(/<h1[ >]/g)||[]).length,1,`${url} must have one primary heading`);
   assert.ok(!/<title>[^<]*۱۴۰۵/.test(html),`${url} must not advertise a stale build-day title`);
   assert.ok(html.includes('href="/contact/"')&&html.includes('href="/about/"'));
+  assert.ok(html.includes('<a href="/terms/">قوانین و مقررات</a>'), `${url} must link to the terms page`);
   if (pathname.startsWith('/convert/')&&pathname!='/convert/') {
     const reverse = pathname.replace(/([a-z0-9]+)-to-([a-z0-9]+)/,'$2-to-$1');
     assert.ok(html.includes(`href="${reverse}"`));
@@ -73,6 +74,12 @@ assert.ok(!fs.readFileSync(path.join(root,'price/index.html'),'utf8').includes('
 for (const group of ['currency','gold','coin','commodity','energy','crypto']) assert.ok(!fs.readFileSync(path.join(root,'price',group,'index.html'),'utf8').includes('دسترسی به صفحات قیمت'),`صفحهٔ دسته ${group} نباید فهرست «دسترسی به صفحات قیمت» داشته باشد`);
 const contact=fs.readFileSync(path.join(root,'contact/index.html'),'utf8');
 assert.ok(contact.includes('mailto:info@tabdex.ir')&&!contact.includes('tel:')&&!contact.includes('09981903599'),'contact page: email only, no phone number');
+assert.ok(urls.includes('https://tabdex.ir/terms/'), 'terms page must be in the sitemap');
+const terms = fs.readFileSync(path.join(root, 'terms/index.html'), 'utf8');
+assert.match(terms, /<h1>قوانین و مقررات<\/h1>/);
+assert.match(terms, /ماده ۳۳/);
+assert.match(terms, /مواد ۳۷ و ۳۸/);
+assert.match(terms, /هفت روز کاری/);
 // Exercise the real rendering branch with missing upstream rates; indexing and
 // the pre-rendered identity must survive the outage.
 const script=fs.readFileSync('assets/price.js','utf8');
