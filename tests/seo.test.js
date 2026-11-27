@@ -8,6 +8,7 @@ const root = path.resolve('_site');
 const sitemap = fs.readFileSync(path.join(root,'sitemap.xml'),'utf8');
 const urls = [...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map(m=>m[1]);
 assert.equal(new Set(urls).size,urls.length,'canonical sitemap URLs must be unique');
+const trustSeal = "<a referrerpolicy='origin' target='_blank' href='https://trustseal.enamad.ir/?id=7412338&Code=XCfE41Qgrc742QaPTZwjiULrwzMauEF0'><img referrerpolicy='origin' src='https://trustseal.enamad.ir/logo.aspx?id=7412338&Code=XCfE41Qgrc742QaPTZwjiULrwzMauEF0' alt='' style='cursor:pointer' code='XCfE41Qgrc742QaPTZwjiULrwzMauEF0'></a>";
 for (const url of urls) {
   const parsed = new URL(url); const pathname = parsed.pathname;
   // صفحه‌های «تبدیل‌های پرتکرار» (?amount=…) فایل ایستای خودشان را دارند.
@@ -20,6 +21,8 @@ for (const url of urls) {
   assert.ok(!/<title>[^<]*۱۴۰۵/.test(html),`${url} must not advertise a stale build-day title`);
   assert.ok(html.includes('href="/contact/"')&&html.includes('href="/about/"'));
   assert.ok(html.includes('<a href="/terms/">قوانین و مقررات</a>'), `${url} must link to the terms page`);
+  const footer = html.match(/<footer\b[\s\S]*?<\/footer>/)?.[0];
+  assert.equal(footer?.split(trustSeal).length, 2, `${url} must include the unchanged E-Namad badge once in the footer`);
   if (pathname.startsWith('/convert/')&&pathname!='/convert/') {
     const reverse = pathname.replace(/([a-z0-9]+)-to-([a-z0-9]+)/,'$2-to-$1');
     assert.ok(html.includes(`href="${reverse}"`));

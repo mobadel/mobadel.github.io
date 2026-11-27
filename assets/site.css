@@ -49,6 +49,9 @@ body { background: var(--page); }
 .footer-brand { flex: 2 1 280px; }
 .footer-brand .brand { color: var(--text); }
 .footer-brand p { max-width: 340px; margin: 14px 0 0; color: var(--muted); font-size: 14px; line-height: 1.9; }
+.footer-trust-seal { margin-top: 16px; }
+.footer-trust-seal a { display: inline-block; vertical-align: top; }
+.footer-trust-seal img { display: block; width: 88px; aspect-ratio: 125 / 136; object-fit: contain; }
 .site-footer .footer-links { display: flex; flex: 1 1 160px; flex-direction: column; flex-wrap: nowrap; align-items: flex-start; justify-content: flex-start; gap: 9px; }
 .footer-links strong { margin-bottom: 4px; color: var(--text); font-size: 15px; }
 .site-footer .footer-links a { color: var(--muted); font-size: 14px; text-decoration: none; }

@@ -28,8 +28,7 @@ for (const [name, html] of Object.entries(templates)) {
   // فوتر کامل، نه فهرست خلاصه، در همهٔ صفحه‌ها
   assert.match(html, /class="site-footer"><?[\s\S]*class="site-shell footer-inner"[\s\S]*class="footer-brand"/, `${name}: فوتر کامل لازم است`);
   for (const label of ["قیمت‌ها", "ابزارها و محتوا", "تبدکس"]) assert.match(html, new RegExp(`<strong>${label}</strong>`), `${name}: ستون «${label}» فوتر`);
-  const siteStyleVersion = { home: "20261027-prices", convert: "20261120-price-action", asset: "20261120-source-card" }[name] || "20261118-chevron";
-  assert.ok(html.includes("/assets/site.css?v=" + siteStyleVersion), `${name}: site.css`);
+  assert.ok(html.includes("/assets/site.css?v=20261127-enamad"), `${name}: site.css`);
   assert.ok(html.includes("/assets/site.js?v=" + (name === "home" ? "20261110-rahn" : "20261118-chevron")), `${name}: site.js`);
   assert.doesNotMatch(html, /←/, `${name}: فلش متنی نباید باشد`);
   // هدر موبایل: لوگو، دکمهٔ جستجو و دکمهٔ منو که فهرست را باز می‌کند.
