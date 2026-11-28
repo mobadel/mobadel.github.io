@@ -19,7 +19,8 @@
  */
 
 const TOKEN = process.env.TELEGRAM_BOT_TOKEN || "";
-const CHAT_ID = process.env.TELEGRAM_CHAT_ID || "@tabdexir";
+const CHANNEL = process.env.TELEGRAM_CHANNEL || "market";
+const CHAT_ID = process.env.TELEGRAM_CHAT_ID || (CHANNEL === "usdc" ? "@usdcirt" : "@tabdexir");
 const UA = "tabdex-telegram/1.0 (+https://tabdex.ir)";
 
 /* علامت راست‌به‌چپ (RLM). تلگرام جهت هر خط را از اولین نویسهٔ «قوی» حدس
@@ -195,6 +196,31 @@ async function buildPost() {
   return lines.join("\n");
 }
 
+async function buildUsdcPost() {
+  const [assets, stats] = await Promise.all([
+    brsRates(),
+    nobitex("usdc", "rls"),
+  ]);
+  const usd = assets.usd;
+  const usdc = stats["usdc-rls"];
+  const dollarToman = Number(usd?.toman);
+  const usdcToman = Number(usdc?.latest) / 10;
+  if (!Number.isFinite(dollarToman) || dollarToman <= 0 ||
+      !Number.isFinite(usdcToman) || usdcToman <= 0) {
+    throw new Error("قیمت معتبر هر دو دارایی دریافت نشد؛ پست منتشر نشد.");
+  }
+
+  return [
+    `${RLM}📊 <b>قیمت USDC و دلار آمریکا</b>`,
+    "",
+    `${RLM}🔹 یو‌اس‌دی کوین (USDC): ${amount(usdcToman)} تومان${change(usdc.dayChange)}`,
+    `${RLM}🇺🇸 دلار آمریکا: ${amount(dollarToman)} تومان${change(usd.change)}`,
+    "",
+    `${RLM}⏰ ${tehranStamp()}`,
+    `${RLM}📲 <a href="https://tabdex.ir/?utm_source=telegram&amp;utm_medium=channel&amp;utm_campaign=usdcirt">Tabdex.ir</a>`,
+  ].join("\n");
+}
+
 async function send(text) {
   const res = await fetch(`https://api.telegram.org/bot${TOKEN}/sendMessage`, {
     method: "POST",
@@ -224,7 +250,10 @@ if (SLOT > 0) {
     await new Promise((r) => setTimeout(r, wait));
   }
 }
-const text = await buildPost();
+if (CHANNEL !== "market" && CHANNEL !== "usdc") {
+  throw new Error("TELEGRAM_CHANNEL نامعتبر است.");
+}
+const text = await (CHANNEL === "usdc" ? buildUsdcPost() : buildPost());
 console.log(text);
 if (!TOKEN) {
   console.log("::notice::TELEGRAM_BOT_TOKEN تعریف نشده؛ فقط پیش‌نمایش چاپ شد.");
