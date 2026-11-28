@@ -210,15 +210,8 @@ async function buildUsdcPost() {
     throw new Error("قیمت معتبر هر دو دارایی دریافت نشد؛ پست منتشر نشد.");
   }
 
-  return [
-    `${RLM}📊 <b>قیمت USDC و دلار آمریکا</b>`,
-    "",
-    `${RLM}🔹 یو‌اس‌دی کوین (USDC): ${amount(usdcToman)} تومان${change(usdc.dayChange)}`,
-    `${RLM}🇺🇸 دلار آمریکا: ${amount(dollarToman)} تومان${change(usd.change)}`,
-    "",
-    `${RLM}⏰ ${tehranStamp()}`,
-    `${RLM}📲 <a href="https://tabdex.ir/?utm_source=telegram&amp;utm_medium=channel&amp;utm_campaign=usdcirt">Tabdex.ir</a>`,
-  ].join("\n");
+  const formatToman = new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 });
+  return `USDC ${formatToman.format(usdcToman)}\nDollar ${formatToman.format(dollarToman)}`;
 }
 
 async function send(text) {
