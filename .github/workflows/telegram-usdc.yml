@@ -1,0 +1,35 @@
+name: Telegram USDC prices
+
+# Invoke workflow_dispatch from the minute scheduler or run it manually.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: telegram-usdc
+  cancel-in-progress: false
+
+jobs:
+  post:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: scripts/telegram-post.mjs
+          sparse-checkout-cone-mode: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Send prices to @usdcirt
+        env:
+          TELEGRAM_CHANNEL: usdc
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_USDC_BOT_TOKEN }}
+        run: |
+          if [ -z "$TELEGRAM_BOT_TOKEN" ]; then
+            echo "::error::Repository secret TELEGRAM_USDC_BOT_TOKEN is missing"
+            exit 1
+          fi
+          node scripts/telegram-post.mjs
